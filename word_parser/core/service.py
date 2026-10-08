@@ -1,12 +1,6 @@
-"""Stable service API."""
+"""Stable service API, compatible with the original public entry points."""
 
-from parser_engine.api import create_parser, enhance_parse_result, parse_document, parse_document_with_table_values
-from parser_engine.core.service import ParserService
+from word_parser.application.api import create_parser, enhance_parse_result, parse_document, parse_document_with_table_values
+from word_parser.application.service import ParserService
 
-__all__ = [
-    "ParserService",
-    "create_parser",
-    "enhance_parse_result",
-    "parse_document",
-    "parse_document_with_table_values",
-]
+__all__ = ["ParserService", "create_parser", "enhance_parse_result", "parse_document", "parse_document_with_table_values"]

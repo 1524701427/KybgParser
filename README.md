@@ -1,4 +1,4 @@
-﻿# WordParser
+# WordParser
 
 WordParser 是一个面向风电可研报告 Word 文档的结构化解析引擎。它负责加载 `.doc/.docx`，识别章节和表格，召回候选证据，抽取配置字段，校验结果，并输出业务 JSON 和人工核对用的 details JSON。
 
@@ -11,33 +11,39 @@ WordParser 是一个面向风电可研报告 Word 文档的结构化解析引擎
 
 ## 项目结构
 
-根目录只保留少量固定入口：
-
-```text
-WordParser/
-  word_parser/        # 简化后的主代码入口：document/extraction/output/core
-  parser_engine/      # 解析引擎代码
-  configs/            # 主抽取和二次抽取配置
-  tools/              # 调试脚本、评估、训练、临时工具
-  tests/              # 自动化测试
-  samples/            # 样例报告和解析参考文档
-  runtime/            # Aspose/SkiaSharp DLL 和 license
-  data/               # 输出、日志、调试图片
-  models/             # 本地模型
-  main.py             # 本地示例入口
-```
-
-推荐开发时只看 `word_parser/` 的四层入口：
+主实现按职责放在 `word_parser/`，旧入口继续兼容：
 
 ```text
 word_parser/
-  document/     Word/PDF 加载、统一文档模型、章节和结构解析
-  extraction/   配置化抽取、原表抽取、二次表格抽取、OCR 兜底
-  output/       result.json / details.json / fields.json 构建
-  core/         pipeline、配置和服务 API
+  application/              # API、服务、装配工厂、主流水线和单次解析上下文
+  core/                     # 原有公共入口的兼容转发
+  config/                   # 配置加载、输出 schema 和已有默认配置
+  document/                 # 文档加载、模型和章节识别公共接口
+  domains/                  # 风资源、发电量、电气、土建、投资、财务等规则
+  extraction/
+    engine.py               # 通用抽取组件公共接口
+    deterministic_rules.py  # 配置化标量抽取和原有覆盖顺序
+    document_support.py     # 原文、表格、数值和证据共用方法
+    table_values/           # 表内二次抽取、定位、操作、结果合并和文件适配
+  output/                   # 结果组装入口、展示结构和 JSON 导出
+parser_engine/              # 保留旧导入路径，以及尚未迁移的 loader/ML/通用抽取实现
+configs/                    # 现有 YAML 配置，结构和内容保持不变
 ```
 
-`parser_engine/` 目前作为兼容实现层保留，避免结构调整影响已有业务抽取逻辑。新增调用优先从 `word_parser.*` 导入。
+现有业务调用方式不变：
+
+```python
+from word_parser.core import parse_document_with_table_values
+```
+
+新代码也可直接使用 `word_parser.application.api`。两个入口调用同一份实现。
+`parser_engine.*` 中已经迁移的模块只做兼容转发；文档 loader、ML 和部分通用
+抽取组件仍保留原实现，避免本次职责拆分扩大到模型和底层文档行为。
+
+本次重构保留原有规则、默认值、覆盖优先级、执行阶段、文件路径及返回格式。
+领域规则通过 mixin 共享原 `ResultBuilder` 的状态，作为兼容迁移阶段；这还不是
+互相独立的领域服务。主解析与二次抽取仍保留原有文件交互流程。
+详细职责、修改位置和验证记录见 [ARCHITECTURE.md](ARCHITECTURE.md)。
 
 ## 目录
 

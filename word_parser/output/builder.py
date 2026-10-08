@@ -1,6 +1,6 @@
-"""result.json / details.json / fields.json builders."""
+"""Public result assembly and JSON export entry points."""
 
-from parser_engine.output.json_exporter import JsonExporter
-from parser_engine.output.result_builder import ResultBuilder
+from word_parser.output.json_exporter import JsonExporter
+from word_parser.output.result_builder import ResultBuilder
 
 __all__ = ["JsonExporter", "ResultBuilder"]
