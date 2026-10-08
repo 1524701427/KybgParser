@@ -1,0 +1,91 @@
+﻿modules:
+  aspose_loader:
+    enabled: true
+    mode: active
+
+  rule_heading_detector:
+    enabled: true
+    mode: active
+
+  sklearn_heading_classifier:
+    enabled: true
+    mode: shadow
+
+  alias_matcher:
+    enabled: true
+    mode: active
+
+  bge_matcher:
+    enabled: false
+    mode: active
+    model_name: C:\Users\EDY\Desktop\WordParser\models\bge\bge-base-zh-v1.5
+    threshold: 0.72
+    max_text_length: 128
+    batch_size: 4
+    memory_aware: true
+    memory_safety_ratio: 0.15
+    min_free_memory_mb: 1536
+    # 单文档低内存建议 true；批量服务化解析可设为 false，避免每个文档重复加载模型。
+    release_after_match: true
+    top_k_per_field: 50
+    min_match_score: 0.0
+
+  table_rule_extractor:
+    enabled: true
+    mode: active
+
+  regex_extractor:
+    enabled: true
+    mode: active
+
+  uie_extractor:
+    enabled: false
+    mode: active
+    model_name: uie-base
+    threshold: 0.75
+    max_text_length: 256
+    batch_size: 2
+    release_after_extract: true
+    top_k_per_field: 3
+    min_match_score: 1.0
+
+  global_pointer_extractor:
+    enabled: false
+    mode: shadow
+
+  candidate_ranker:
+    enabled: true
+    mode: shadow
+
+  semantic_analyzer:
+    enabled: true
+    mode: active
+    near_window: 40
+
+  funnel:
+    enabled: true
+    mode: active
+    stages:
+      extraction_matches: 30
+      semantic_candidates: 15
+      reranker_candidates: 5
+      nli_candidates: 5
+
+  semantic_verifier:
+    enabled: false
+    mode: active
+    reranker_enabled: true
+    reranker_backend: onnx
+    reranker_model_name: C:\Users\EDY\Desktop\WordParser\models\reranker\bge-reranker-base
+    reranker_weight: 0.6
+    nli_enabled: true
+    nli_model_name: C:\Users\EDY\Desktop\WordParser\models\nli\erlangshen-roberta-110m-nli
+    nli_weight: 0.8
+    batch_size: 4
+    # 单文档低内存建议 true；批量服务化解析可设为 false，避免每个文档重复加载模型。
+    release_after_verify: true
+
+  validator:
+    enabled: false
+    mode: active
+

@@ -1,0 +1,81 @@
+fields:
+  installedCapacity:
+    name: 装机容量
+    value_type: number
+    standard_unit: MW
+    sections:
+      include: [工程概况, 建设规模, 主要技术经济指标]
+      exclude: []
+    aliases: [装机容量, 建设规模, 总装机容量]
+    unit_aliases: [MW, 兆瓦]
+    patterns:
+      - "(?:装机容量|建设规模|总装机容量).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(MW|兆瓦)?"
+    validators:
+      min: 0
+
+  unitKwInvestment:
+    name: 单位千瓦投资
+    value_type: number
+    standard_unit: 元/kW
+    sections:
+      include: [投资估算, 主要技术经济指标]
+      exclude: [风资源]
+    aliases: [单位千瓦投资, 单位投资, 千瓦投资]
+    unit_aliases: [元/kW, 元/千瓦]
+    patterns:
+      - "(?:单位千瓦投资|单位投资|千瓦投资).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(元/kW|元/千瓦)?"
+    validators:
+      min: 0
+      max: 30000
+
+  staticInvestment:
+    name: 静态投资
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 主要技术经济指标, 工程概算]
+      exclude: [风资源]
+    aliases: [静态投资, 工程静态投资]
+    unit_aliases: [万元]
+    patterns:
+      - "(?:静态投资|工程静态投资).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元)?"
+    validators:
+      min: 0
+
+  dynamicInvestment:
+    name: 单位千瓦动态投资
+    value_type: number
+    standard_unit: 元/kW
+    sections:
+      include:
+        - 投资估算
+        - 主要技术经济指标
+        - 工程概算
+        - 设计概算
+        - 综合说明
+      exclude:
+        - 风资源
+        - 机组选型
+        - 敏感性分析
+        - 110KV送出工程
+        - 送出工程
+    aliases:
+      - 单位千瓦动态投资
+    unit_aliases:
+      - 元/kW
+      - 元/千瓦
+    patterns:
+      - (?:\u5355\u4f4d\u5343\u74e6\u52a8\u6001\u6295\u8d44).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(\u5143/kW|\u5143/\u5343\u74e6)?
+    validators:
+      min: 0
+      max: 30000
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 单位千瓦动态投资
+        - 单位千瓦投资
+      row_label_columns: 2
+      row_label_match: contains
+      column_aliases:
+        - 数  量
+        - 数量

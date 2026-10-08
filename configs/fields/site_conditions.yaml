@@ -1,0 +1,110 @@
+fields:
+  terrainType:
+    name: 地形地貌
+    value_type: string
+    sections:
+      include: [场址, 地形地貌, 工程地质, 建设条件]
+      exclude: [投资估算, 财务评价]
+    aliases: [地形地貌, 地貌类型, 地形条件]
+    patterns:
+      - "(?:地形地貌|地貌类型|地形条件)[:：\\s]*([^，。；;\\n]{2,80})"
+
+  geologyCondition:
+    name: 工程地质条件
+    value_type: string
+    sections:
+      include: [工程地质, 地质, 场址, 建设条件]
+      exclude: [投资估算, 财务评价]
+    aliases: [工程地质条件, 地质条件, 场地地质]
+    patterns:
+      - "(?:工程地质条件|地质条件|场地地质)[:：\\s]*([^。；;\\n]{2,120})"
+
+  projectGeomorphology:
+    name: 项目地貌
+    value_type: string
+    sections:
+      include: [地勘章节, 工程地质, 地质, 地形地貌, 综合说明, 工程概况]
+      exclude: [投资估算, 财务评价]
+    aliases: [地处, 主要地貌, 场区地貌, 地貌]
+    patterns:
+      - "(?:地处|位于)(?P<value>[^。；;\\n]{2,120}?地貌)"
+      - "(?:主要地貌|场区地貌)[:：\\s为是]*(?P<value>[^，。；;\\n]{2,80})"
+
+  surfaceVegetationType:
+    name: 地表类型
+    value_type: string
+    sections:
+      include: [地勘章节, 工程地质, 地质, 地形地貌, 综合说明, 工程概况]
+      exclude: [投资估算, 财务评价]
+    aliases: [地表, 地表植被]
+    patterns:
+      - "(?:地表植被|地表)[:：\\s为是]*(?P<value>果树|旱地|荒漠|荒草|草地|灌木|乔木|林地|农田|耕地)"
+
+  siteElevationRange:
+    name: 场区海拔高度
+    value_type: string
+    standard_unit: m
+    sections:
+      include: [地勘章节, 工程地质, 地质, 地形地貌, 综合说明, 工程概况]
+      exclude: [投资估算, 财务评价]
+    aliases: [海拔高程, 海拔高度]
+    unit_aliases: [m, 米]
+    patterns:
+      - "(?:海拔高程|海拔高度|海拔)[^。；;\\n]{0,20}?(?P<value>[0-9]+(?:\\.[0-9]+)?\\s*(?:m|米)?\\s*[~～至\\-—]\\s*[0-9]+(?:\\.[0-9]+)?\\s*(?:m|米)?)"
+
+  seismicIntensity:
+    name: 抗震设防烈度
+    value_type: number
+    standard_unit: 度
+    sections:
+      include: [工程地质, 地震, 抗震, 场址]
+      exclude: [投资估算, 财务评价]
+    aliases: [抗震设防烈度, 地震基本烈度, 设防烈度]
+    unit_aliases: [度]
+    patterns:
+      - "(?:抗震设防烈度|地震基本烈度|设防烈度).{0,30}?([0-9]+)\\s*(度)?"
+    validators:
+      min: 0
+      max: 12
+
+  basicWindPressure:
+    name: 基本风压
+    value_type: number
+    standard_unit: kN/m2
+    sections:
+      include: [工程地质, 气象, 设计条件, 场址]
+      exclude: [财务评价]
+    aliases: [基本风压, 风压]
+    unit_aliases: [kN/m2, kN/㎡, 千牛/平方米]
+    patterns:
+      - "(?:基本风压|风压).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(kN/m2|kN/㎡|千牛/平方米)?"
+    validators:
+      min: 0
+
+  basicSnowPressure:
+    name: 基本雪压
+    value_type: number
+    standard_unit: kN/m2
+    sections:
+      include: [工程地质, 气象, 设计条件, 场址]
+      exclude: [财务评价]
+    aliases: [基本雪压, 雪压]
+    unit_aliases: [kN/m2, kN/㎡, 千牛/平方米]
+    patterns:
+      - "(?:基本雪压|雪压).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(kN/m2|kN/㎡|千牛/平方米)?"
+    validators:
+      min: 0
+
+  nearestRoadDistance:
+    name: 距既有道路距离
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [交通运输, 道路, 场址, 建设条件]
+      exclude: [财务评价]
+    aliases: [距既有道路, 距公路, 交通距离, 道路距离]
+    unit_aliases: [km, 公里, m, 米]
+    patterns:
+      - "(?:距既有道路|距公路|交通距离|道路距离).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(km|公里|m|米)?"
+    validators:
+      min: 0

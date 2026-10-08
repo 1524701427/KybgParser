@@ -1,0 +1,49 @@
+# PyCharm / IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Python cache and test artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Generated project data
+data/debug-images/
+data/logs/
+data/opendataloader_probe/
+data/predictions/*_result.json
+data/predictions/*_enhanced_result.json
+data/predictions/*_details.json
+samples/tmp/
+tools/scratch/
+
+# Local environment files
+.env
+.env.*
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+samples/
+models/

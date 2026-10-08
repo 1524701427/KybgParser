@@ -1,0 +1,25 @@
+# 核心配置与日志
+pyyaml>=6.0
+loguru>=0.7
+regex>=2023.0
+opendataloader-pdf==2.4.7
+PyMuPDF>=1.27
+rapidocr>=3.8
+
+# Aspose.Words.dll 加载方式：pythonnet + 项目根目录 DLL/license
+pythonnet>=3.0
+
+# 表格增强、评测和传统机器学习
+pandas>=2.0
+scikit-learn>=1.3
+
+# 后续非 LLM 模型增强，当前骨架已预留接口
+torch>=2.0
+transformers>=4.40
+sentence-transformers>=3.0
+
+# UIE 信息抽取不要放在主 requirements 里自动解析。
+# PaddleNLP 在部分环境会错误解析 tool-helpers，请按 README 使用 --no-deps 单独安装。
+
+# 测试
+pytest>=8.0

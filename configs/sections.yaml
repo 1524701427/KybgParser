@@ -1,0 +1,60 @@
+sections:
+  project_summary:
+    name: 工程特性表
+    aliases: [工程特性表, 风电场工程特性表, 综合说明, 摘要, 概算指标, 经济指标]
+
+  wind_resource:
+    name: 资源章节
+    aliases: [资源章节, 风资源, 风能资源, 测风数据, 测风资料, 资源分析]
+
+  generation:
+    name: 发电量章节
+    aliases: [发电量章节, 发电量, 发电量计算, 上网电量, 等效满负荷小时数]
+
+  geology:
+    name: 地勘章节
+    aliases: [地勘章节, 工程地质, 地质, 水文地质, 地形地貌]
+
+  electrical_primary:
+    name: 电气一次
+    aliases: [电气一次, 第六章 电气, 电气设备, 升压站电气, 电气主接线, 配电装置, 主变压器, 110kV GIS, 风电场接入系统方式, 接入系统方式, 接入系统]
+
+  electrical_secondary:
+    name: 电气二次
+    aliases: [电气二次, 综合自动化, 直流系统, UPS, 通信电源]
+
+  collector_line:
+    name: 集电线路
+    aliases: [集电线路, 35kV集电线路, 电缆线路, 架空线路, 路径方案描述]
+
+  substation_civil:
+    name: 土建升压站
+    aliases: [土建升压站, 升压站土建, 升压站总平面, 升压站工程量, 站区总平面]
+
+  wind_foundation:
+    name: 风机基础
+    aliases: [风机基础, 风电机组基础, 风机桩基础, 基础尺寸, 桩基础]
+
+  box_foundation:
+    name: 箱变基础
+    aliases: [箱变基础, 箱式变电站基础, 机组变压器基础]
+
+  road:
+    name: 道路
+    aliases: [道路, 交通工程, 进站道路, 场内道路, 新建道路, 改建道路, 道路及平台, 场内道路及进站道路]
+
+  land:
+    name: 用地面积
+    aliases: [用地面积, 征地, 永久用地, 临时用地, 临征永补]
+
+  earthwork:
+    name: 土石方平衡
+    aliases: [土石方平衡, 土石方, 土方开挖, 土方回填]
+
+  investment:
+    name: 技经概算
+    aliases: [技经概算, 投资估算, 概算, 静态投资, 动态投资, 单位千瓦投资, 设备及安装工程]
+
+  finance:
+    name: 财务
+    aliases: [财务, 财务评价, 财务内部收益率, 投资回收期, 总成本费用, 上网电价]

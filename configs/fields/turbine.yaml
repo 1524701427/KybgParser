@@ -1,0 +1,80 @@
+fields:
+  turbineModel:
+    name: 风机型号
+    value_type: string
+    sections:
+      include: [机组选型, 风力发电机组, 设备选型, 主要技术经济指标]
+      exclude: [财务评价]
+    aliases: [风机型号, 机组型号, 风力发电机组型号]
+    patterns:
+      - "(?:风机型号|机组型号|风力发电机组型号)[:：\\s]*([A-Za-z0-9_.\\-/]+)"
+
+  hubHeight:
+    name: 轮毂高度
+    value_type: number
+    standard_unit: m
+    sections:
+      include: [机组选型, 风力发电机组, 风资源, 主要技术经济指标]
+      exclude: [财务评价]
+    aliases: [轮毂高度, 轮毂中心高度]
+    unit_aliases: [m, 米]
+    patterns:
+      - "(?:轮毂高度|轮毂中心高度).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(m|米)?"
+    validators:
+      min: 0
+
+  rotorDiameter:
+    name: 风轮直径
+    value_type: number
+    standard_unit: m
+    sections:
+      include: [机组选型, 风力发电机组, 主要技术经济指标]
+      exclude: [财务评价]
+    aliases: [风轮直径, 叶轮直径, 转轮直径]
+    unit_aliases: [m, 米]
+    patterns:
+      - "(?:风轮直径|叶轮直径|转轮直径).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(m|米)?"
+    validators:
+      min: 0
+
+  cutInWindSpeed:
+    name: 切入风速
+    value_type: number
+    standard_unit: m/s
+    sections:
+      include: [机组选型, 风力发电机组, 设备选型]
+      exclude: [财务评价]
+    aliases: [切入风速]
+    unit_aliases: [m/s, 米/秒]
+    patterns:
+      - "(?:切入风速).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(m/s|米/秒)?"
+    validators:
+      min: 0
+
+  ratedWindSpeed:
+    name: 额定风速
+    value_type: number
+    standard_unit: m/s
+    sections:
+      include: [机组选型, 风力发电机组, 设备选型]
+      exclude: [财务评价]
+    aliases: [额定风速]
+    unit_aliases: [m/s, 米/秒]
+    patterns:
+      - "(?:额定风速).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(m/s|米/秒)?"
+    validators:
+      min: 0
+
+  cutOutWindSpeed:
+    name: 切出风速
+    value_type: number
+    standard_unit: m/s
+    sections:
+      include: [机组选型, 风力发电机组, 设备选型]
+      exclude: [财务评价]
+    aliases: [切出风速]
+    unit_aliases: [m/s, 米/秒]
+    patterns:
+      - "(?:切出风速).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(m/s|米/秒)?"
+    validators:
+      min: 0

@@ -1,0 +1,497 @@
+result=陕西华电靖边韩家沟200MW风电项目可行性研究报告_result.json
+detail=陕西华电靖边韩家沟200MW风电项目可行性研究报告_details.json
+docx=可研报告解析（陕西华电靖边韩家沟200MW项目）.docx
+
+=== RESULT FIELDS ===
+0	None	None	None
+1	None	None	None
+2	None	None	None
+3	None	None	None
+4	None	None	None
+5	None	None	None
+6	None	None	None
+7	None	None	None
+8	None	None	None
+9	None	None	None
+10	None	None	None
+11	None	None	None
+12	None	None	None
+13	None	None	None
+14	None	None	None
+15	None	None	None
+16	None	None	None
+17	None	None	None
+18	None	None	None
+19	None	None	None
+20	None	None	None
+21	None	None	None
+22	None	None	None
+23	None	None	None
+24	None	None	None
+25	None	None	None
+26	None	None	None
+27	None	None	None
+28	None	None	None
+29	None	None	None
+30	None	None	None
+31	None	None	None
+32	None	None	None
+33	None	None	None
+34	None	None	None
+35	None	None	None
+36	None	None	None
+37	None	None	None
+38	None	None	None
+39	None	None	None
+40	None	None	None
+41	None	None	None
+42	None	None	None
+43	None	None	None
+44	None	None	None
+45	None	None	None
+46	None	None	None
+47	None	None	None
+48	None	None	None
+49	None	None	None
+50	None	None	None
+51	None	None	None
+52	None	None	None
+53	None	None	None
+54	None	None	None
+55	None	None	None
+56	None	None	None
+57	None	None	None
+58	None	None	None
+59	None	None	None
+60	None	None	None
+61	None	None	None
+62	None	None	None
+63	None	None	None
+64	None	None	None
+65	None	None	None
+66	None	None	None
+67	None	None	None
+68	None	None	None
+69	None	None	None
+70	None	None	None
+71	None	None	None
+72	None	None	None
+73	None	None	None
+74	None	None	None
+75	None	None	None
+76	None	None	None
+77	None	None	None
+78	None	None	None
+79	None	None	None
+80	None	None	None
+81	None	None	None
+82	None	None	None
+83	None	None	None
+84	None	None	None
+85	None	None	None
+86	None	None	None
+87	None	None	None
+88	None	None	None
+89	None	None	None
+90	None	None	None
+91	None	None	None
+92	None	None	None
+93	None	None	None
+94	None	None	None
+95	None	None	None
+96	None	None	None
+97	None	None	None
+98	None	None	None
+99	None	None	None
+100	None	None	None
+101	None	None	None
+102	None	None	None
+103	None	None	None
+104	None	None	None
+105	None	None	None
+106	None	None	None
+107	None	None	None
+108	None	None	None
+109	None	None	None
+110	None	None	None
+111	None	None	None
+112	None	None	None
+113	None	None	None
+114	None	None	None
+115	None	None	None
+116	None	None	None
+117	None	None	None
+118	None	None	None
+119	None	None	None
+120	None	None	None
+121	None	None	None
+122	None	None	None
+123	None	None	None
+124	None	None	None
+125	None	None	None
+126	None	None	None
+127	None	None	None
+128	None	None	None
+129	None	None	None
+130	None	None	None
+131	None	None	None
+132	None	None	None
+133	None	None	None
+134	None	None	None
+135	None	None	None
+136	None	None	None
+137	None	None	None
+138	None	None	None
+139	None	None	None
+140	None	None	None
+141	None	None	None
+142	None	None	None
+143	None	None	None
+144	None	None	None
+145	None	None	None
+146	None	None	None
+147	None	None	None
+148	None	None	None
+149	None	None	None
+150	None	None	None
+151	None	None	None
+152	None	None	None
+153	None	None	None
+154	None	None	None
+155	None	None	None
+156	None	None	None
+157	None	None	None
+158	None	None	None
+159	None	None	None
+160	None	None	None
+161	None	None	None
+162	None	None	None
+163	None	None	None
+164	None	None	None
+
+=== DETAIL FIELDS ===
+annualEnergy	年上网电量	PASS	47521.1	None	None
+roadLength	道路长度	PASS	122.8	km	None
+newRoadLength	新建道路长度	PASS	23.1	km	None
+rebuiltRoadLength	改建道路长度	PASS	99.7	km	None
+constructionPeriod	建设工期	PASS	12	月	None
+voltageLevel	电压等级	PASS	35	kV	None
+mainTransformerCapacity	主变容量	PASS	200	MVA	None
+waterSoilConservationInvestment	水土保持投资	PASS	104.3	万元	None
+capitalIRR	资本金财务内部收益率	PASS	12.09	%	None
+paybackPeriod	投资回收期	PASS	11.02	年	None
+equivalentHours	等效满负荷小时数	PASS	2376	h	None
+stationTransformerCapacity10kv	10kV站用变容量	PASS	315	None	None
+substationTotalArea	总占地面积	PASS	6700	m2	None
+substationInsideWallArea	围墙内占地面积	PASS	5952	m2	None
+loanInterestRate	贷款利率	PASS	4.2	%	None
+annualLoanInterestRate	年贷款利率	PASS	4.2	%	None
+terrainType	地形地貌	PASS	较复杂	None	None
+seismicIntensity	抗震设防烈度	PASS	6	度	None
+hubHeight	轮毂高度	PASS	110	m	None
+circuitBreakerSpec	断路器	PASS	126	None	None
+mainConnectionType	主接线形式	PASS	简单清晰	None	None
+constructionInstallationCost	建筑安装工程费	PASS	1542.64	万元	None
+installedCapacity	装机容量	PASS	200	MW	None
+accessRoadLength	进站道路工程量	PASS	0.4	km	None
+projectLocation	建设地点	PASS	荒漠草原地带	None	None
+collectorCircuitType	回路	PASS	单/双回路	None	None
+projectAltitude	场址海拔	PASS	1500	m	None
+maxWindSpeed50Year	50年一遇最大风速	PASS	37.5	m/s	None
+foundationType	风机基础型式	PASS	箱型	None	None
+turbineCapacity	单机容量	PASS	5000	None	None
+collectorLineLength	集电线路长度	PASS	16	None	None
+lcoe	度电成本	PASS	6.2	None	None
+annualProfit	年利润总额	PASS	112719.61	万元	None
+netPresentValue	财务净现值	PASS	20316.61	万元	None
+debtServiceCoverageRatio	偿债备付率	PASS	0	None	None
+assetLiabilityRatio	资产负债率	PASS	70.44	%	None
+unitKwInvestment	单位千瓦投资	PASS	4460.81	元/kW	None
+staticInvestment	静态投资	PASS	126411.41	万元	None
+dynamicInvestment	动态投资	PASS	6415.7	None	None
+equipmentPurchaseCost	设备购置费	PASS	48826.4	万元	None
+otherCost	其他费用	PASS	9083.63	万元	None
+reserveFund	基本预备费	PASS	110	None	None
+constructionInterest	建设期利息	PASS	1902.56	万元	None
+workingCapital	流动资金	PASS	1600	万元	None
+projectName	项目名称	PASS	200	None	None
+landArea	用地面积	WARNING	2	m2	None
+mainTransformerType	主变压器	PASS	480	None	None
+disconnectorSpec	隔离开关	PASS	126	None	None
+currentTransformerSpec	电流互感器	PASS	5	None	None
+voltageTransformerSpec	电压互感器	PASS	110	None	None
+ptSpec	Pt	PASS	126	None	None
+collectorLineNames	线路名称	PASS	线路长度 (km)	None	None
+foundationBuriedDepth	基础埋深	PASS	2.8	m	None
+constructionPeriodYears	建设期	PASS	1902.56	None	None
+materialCost	材料费	PASS	3800	None	None
+incomeTax	所得税	PASS	8.95	None	None
+projectInvestmentIrrBeforeTax	项目投资财务内部收益率所得税前	PASS	8.76	%	None
+projectInvestmentIrrAfterTax	项目投资财务内部收益率所得税后	PASS	8.95	None	None
+geologyCondition	工程地质条件	PASS	链式开沟机；水平定向钻机；专用接地挖掘机；	None	None
+rotorDiameter	风轮直径	PASS	2	m	None
+cutInWindSpeed	切入风速	PASS	2.5	m/s	None
+ratedWindSpeed	额定风速	PASS	8.9	m/s	None
+cutOutWindSpeed	切出风速	PASS	20	m/s	None
+avgWindSpeed	平均风速	PASS	1.9	m/s	None
+gridConnectionPoint	接入点	PASS	最终以接入系统审查意见为准	None	None
+noiseControlMeasure	噪声防治措施	PASS	87	None	None
+ownerCompany	建设单位	PASS	与施工单位若未明确各自的安全生产责任	None	None
+independentLightningRodCount	独立避雷针个数	PASS	1	座	None
+frameLightningRodCount	构架避雷针个数	PASS	110	None	None
+doubleCircuitOverheadLength	双回架空线路路径长	PASS	2	None	None
+singleCircuitOverheadLength	单回架空线路路径长	PASS	1	None	None
+substationVerticalDesign	站区竖向设计	PASS	采取平坡式	None	None
+staffSalary	人员工资	PASS	23.84	None	None
+basicWindPressure	基本风压	PASS	50	None	None
+boxTransformerCapacity	箱变容量	PASS	1	None	None
+environmentalInvestment	环保投资	PASS	715	万元	None
+annualRevenue	年营业收入	PASS	344.4	None	None
+nonWakeLossFactor	不考虑尾流效应的折减系数	PASS	98	%	None
+hubHeightAnnualAverageWindSpeed	轮毂高度年平均风速	PASS	[3]	m/s	None
+selectedTurbineSafetyClass	最终宜选机型	PASS	风力发电机	None	None
+constructionScale	建设规模	PASS	2	None	None
+representativeTurbulenceIntensity	最大高度处代表性湍流强度	PASS	0.219	None	None
+windShearExponent	综合风切变	PASS	0.043	None	None
+permanentLandWindFoundationArea	永久占地-风机基础	PASS	34262	None	None
+permanentLandBoxTransformerArea	永久占地-箱变基础	PASS	1200	m2	None
+permanentLandSubstationArea	永久占地-110kV升压站	PASS	110	None	None
+permanentLandCollectorTowerArea	永久占地-集电线路杆塔征地	PASS	10584	m2	None
+permanentLandAccessRoadArea	永久占地-进升压站道路	PASS	120	m2	None
+permanentLandTotalArea	永久占地合计	PASS	18	None	None
+longTermLeaseCableBuriedArea	长期租地-电缆直埋征地	PASS	2373	m2	None
+longTermLeasePermanentRoadArea	长期租地-场内永久道路	PASS	103950	m2	None
+longTermLeaseAccessRoadArea	长期租地-进站道路	PASS	25	None	None
+longTermLeaseTotalArea	长期租地合计	PASS	18	None	None
+temporaryLandPlatformArea	临时占地-场内平整安装平台	PASS	91501	m2	None
+temporaryLandConstructionRoadArea	临时占地-临时施工道路	PASS	314900	m2	None
+temporaryLandLivingArea	临时占地-生活临建	PASS	9600	m2	None
+temporaryLandTotalArea	临时性占地合计	PASS	18	None	None
+roadEarthworkExcavation	道路土方开挖	PASS	110	None	None
+roadEarthworkBackfill	道路土方回填	PASS	110	None	None
+windPlatformEarthworkExcavation	风机平台土方开挖	PASS	327450	None	None
+windPlatformEarthworkBackfill	风机平台土方回填	PASS	245588	None	None
+windFoundationEarthworkExcavation	风机基础土方开挖	PASS	34262	None	None
+windFoundationEarthworkBackfill	风机基础土方回填	PASS	16687	None	None
+boxFoundationEarthworkExcavation	箱变基础土方开挖	PASS	1200	None	None
+boxFoundationEarthworkBackfill	箱变基础土方回填	PASS	1400	None	None
+substationEarthworkExcavation	升压站土方开挖	PASS	110	None	None
+substationEarthworkBackfill	升压站土方回填	PASS	6	None	None
+totalEarthworkExcavation	合计土方开挖	PASS	18	None	None
+totalEarthworkBackfill	合计土方回填	PASS	18	None	None
+installationCost	安装费	PASS	398066.46	None	None
+unitKwStaticInvestment	单位千瓦静态投资	PASS	6320.57	元/kW	None
+landUseTax	土地使用税	PASS	45.6	None	None
+airDensityAtHeight	高度对应的空气密度	PASS	[3]	None	None
+hubHeightWindPowerDensity	轮毂高度平均风功率密度	PASS	[163]	None	None
+constructionStartDate	开工时间	PASS	12	None	None
+theoreticalAnnualEnergy	年理论发电量	PASS	5.1	None	None
+foundationCapBottomRadius	基础承台底面半径	PASS	17	m	None
+turbineCount	风机台数	PASS	1.5	None	None
+collectorVoltageLevel	集电线路电压等级	PASS	1.6	None	None
+boxTransformerCount	箱变数量	PASS	1.6	None	None
+substationVoltageLevel	升压站电压等级	PASS	1.6	None	None
+allInvestmentAfterTaxIRR	全投资税后财务内部收益率	PASS	1.15	None	None
+projectCapitalRatio	项目资本金比例	PASS	1.15	None	None
+loanRatio	贷款比例	PASS	1.15	None	None
+wakeLossPercent	尾流平均折减	PASS	1.5	None	None
+substationMainConnectionPlannedCapacity	升压站电气主接线规划总规模	PASS	6.3	None	None
+substationMainConnectionCurrentCapacity	升压站电气主接线本期规模	PASS	6.3	None	None
+towerFoundationCount	全线共用铁塔基数	PASS	6.6	None	None
+pileSectionRadius	桩界面半径	PASS	9.4	None	None
+foundationExcavationQuantity	基础开挖量	PASS	9.4	None	None
+foundationBackfillQuantity	基础回填量	PASS	9.4	None	None
+windFoundationConcreteQuantity	风机基础混凝土量	PASS	9.4	None	None
+windFoundationRebarQuantity	风机基础钢筋工程量	PASS	9.4	None	None
+constructionFundLoanRatio	建设资金贷款比例	PASS	1.15	None	None
+repaymentPeriod	偿还年限	PASS	1.15	None	None
+staffingCount	定员人数	PASS	1.15	None	None
+welfareOtherRatio	职工福利费及其他占比	PASS	1.15	None	None
+insuranceRate	保险费率	PASS	1.15	None	None
+basicSnowPressure	基本雪压	PASS	1.3	None	None
+nearestRoadDistance	距既有道路距离	PASS	3.4	None	None
+operationDate	投产时间	MISSING	None	None	None
+ecologicalImpactConclusion	生态环境影响结论	MISSING	None	None	None
+projectNature	项目性质	MISSING	None	None	None
+metTowerCode	测风塔编号	MISSING	None	None	None
+hubHeightMainWindDirection	轮毂高度处的主风向	MISSING	None	None	None
+hubHeightMainWindEnergyDirection	轮毂高度处的主风能方向	MISSING	None	None	None
+generationCalculationUsed	发电量计算是否使用	MISSING	None	None	None
+mainTransformerRatio	主变压器变比	MISSING	None	None	None
+svgReactiveCompensationCapacity	SVG无功补偿装置容量	MISSING	None	None	None
+groundingTransformerCapacity35kv	35kV接地变用变容量	MISSING	None	None	None
+groundingStationTransformerCapacity35kv	35kV接地变兼站用变容量	MISSING	None	None	None
+dcBatteryConfiguration	直流蓄电池配置	MISSING	None	None	None
+upsPowerConfiguration	UPS电源配置	MISSING	None	None	None
+communicationPowerDesign	通讯电源设计	MISSING	None	None	None
+substationRoadLayoutType	升压站内道路布置类型	MISSING	None	None	None
+substationFunctionalZones	升压站包含生活区和生产区	MISSING	None	None	None
+pileRingCount	桩圈数	MISSING	None	None	None
+pilesPerRing	每圈桩数	MISSING	None	None	None
+boxFoundationConcreteC25Quantity	箱变基础混凝土量C25	MISSING	None	None	None
+boxFoundationRebarQuantity	箱变基础钢筋工程量	MISSING	None	None	None
+totalProjectCost	总费用	MISSING	None	None	None
+constructionCost	施工费	MISSING	None	None	None
+mainEquipmentUnitPrice	主要设备单价	MISSING	None	None	None
+materialPriceLevel	材料价格水平	MISSING	None	None	None
+turbineModel	风机型号	MISSING	None	None	None
+
+=== RESULT DETAILS ===
+earthworkBalance: 95
+  {"item": "风力发电机组"}
+  {"item": "风力发电机组"}
+  {"item": "箱式变电站（华变）"}
+  {"item": "箱式变电站（华变）"}
+  {"item": "电缆"}
+  {"item": "电缆敷设（风机控制柜至箱变）"}
+  {"item": "电缆敷设（塔筒等电位铜排至箱变）"}
+  {"item": "电缆终端头"}
+  {"item": "电缆终端头"}
+  {"item": "电缆防火"}
+  {"item": "电缆防火"}
+  {"item": "电缆防火"}
+
+=== DOCX PARAGRAPHS ===
+P0: 可研报告解析（陕西华电靖边韩家沟200MW项目）
+P1: 1. 资源章节
+P2: 1.1 解析数据
+P3: 50年一遇最大风速值：26.93m/s
+P4: 最终宜选机型：IECⅢa及其以上安全等级的风机
+P5: 1.2 报告示意
+P14: 2. 发电量章节
+P15: 2.1  解析数据
+P16: 2.2 报告示意
+P20: 3. 地勘章节
+P21: 4. 电气一次
+P22: 4.1 解析数据
+P23: 升压站电气主接线规划总规模：200MW
+P24: 升压站电气主接线本期规模：200MW
+P25: 主接线形式（线变组/单母线接线）：单母线接线
+P26: 主变压器：三相双绕组油浸自冷式有载调压变压器
+P27: 主变压器容量：110MVA/台
+P28: 主变压器变比：115±8×1.25%/37kV
+P29: 主变压器接线形式：单母线接线
+P30: SVG无功补偿装置容量：±30Mvar动态无功补偿装置
+P31: 35kV接地变用变容量：500kVA
+P32: 35kV接地变兼站用变容量：800/315kVA
+P33: 10kV站用变容量：315kVA
+P34: 直流蓄电池配置：——
+P35: UPS电源配置：——
+P36: 独立避雷针个数：2座
+P37: 构架避雷针个数：1座
+P38: 通讯电源设计：——
+P39: 断路器：SF6断路器：126kV，2000A，40kA/3s，配弹簧操作机构
+P40: 隔离开关：126kV，2000A，40kA/3s，100kA，含微动开关
+P41: 电流互感器：126kV，600 ， 600-1200/1A，0.2S/0.5/0.5/5P30/5P30/5P30/5P30
+P42: 电压互感器：（35/√3）/（0.1/√3）/（0.1/√3）/（0.1/√3）/（0.1/3）kV，0.2/0.5/3P/3P，30/30/30/100VA
+P43: Pt:
+P44: 集电线路长度（包括架空和电缆长度）：——
+P45: 4.2 报告示意
+P55: 5. 电气二次
+P56: 5.1 解析数据
+P57: 直流蓄电池配置：2面
+P58: UPS电源配置：容量为7.5kVA，采用二台UPS双冗余方式
+P59: 电流互感器：三相配置
+P60: 电压互感器：电压互感器二次绕组
+P61: 5.2 报告示意
+P64: 6. 集电线路
+P65: 6.1 解析数据
+P66: 线路名称：A线、B线、C线、D线、E线、F线、G线、H线
+P67: 6.2 报告示意
+P69: 7. 储能
+P70: 8. 土建升压站
+P71: 8.1 解析数据
+P72: 升压站包含生活区和生产区；
+P73: 8.2 报告示意
+P75: 9. 风机基础
+P76: 9.1 解析数据
+P77: 9.2 报告示意
+P80: 10. 箱变基础
+P81: 10.1 解析数据
+P82: 10.2 报告示意
+P84: 11. 道路
+P85: 11.1 解析数据
+P86: 11.2 报告示意
+P88: 12. 用地面积
+P89: 12.1 解析数据
+P92: 12.2 报告示意
+P94: 13. 土石方平衡
+P95: 13.1 解析数据
+P96: 13.2 报告示意
+P98: 14. 技经概算
+P99: 14.1 解析数据
+P100: 14.2 报告示意
+P105: 15. 财务
+P106: 15.1 解析数据
+P109: 15.2 报告示意
+
+=== DOCX TABLES ===
+TABLE 0: rows=7 cols=9
+测风塔编号 | 高度对应的空气密度 高度m kg/m³ | 轮毂高度平均风速m/s | 轮毂高度平均风功率密度W/m² | 轮毂高度处的主风向 | 轮毂高度处的主风能方向 | 最大高度处代表性湍流强度 | 综合风切变 | 发电量计算是否使用
+0821# | 90:1.011 | 6.42 | 232 | NNW | NNW | 0.114 | 0.07 | 是
+0822# | 90：—— | 5.75 | 163 | NW | NW | 0.15 | 0.11 | 是
+0823# | 90：—— | 6.03 | 176 | NNW | NW | 0.135 | 0.09 | 是
+0824# | 90：—— | 5.87 | 183 | S | NNW | 0.117 | 0.06 | 是
+8688# | 90：1.013 | 6.03 | 189 | SSW | SSW | 0.122 | 0.09 | 是
+8899# | 90：1.015 | 6.14 | 209 | NNW | NW | 0.123 | 0.11 | 是
+
+TABLE 1: rows=2 cols=5
+年理论发电量[万kW·h] | 尾流平均折减[%] | 不考虑尾流效应的折减系数% | 年上网发电量【万kW·h】 | 年等效满负荷小时数【h】
+67447.2 | -4.28 | 73.65 | 47521.1 | 2376
+
+TABLE 2: rows=2 cols=6
+线路额定电压 | 回路 | 线路总长度 | 双回架空线路路径长 | 单回架空线路路径长 | 全线共用铁塔基数
+35kV | 单/双回路架设 | 81.6km | 2×3.6km | 1×78km | 316基
+
+TABLE 3: rows=2 cols=5
+升压站规模 | 总占地面积 | 围墙内占地面积 | 战区竖向设计 | 升压站内道路布置类型
+110kV | 6700㎡ | 5952㎡ | 平坡式 | 环形道路
+
+TABLE 4: rows=2 cols=10
+基础承台底面半径【m】 | 基础埋深【m】 | 地基处理措施 | 桩界面半径 | 桩圈数 | 每圈桩数 | 基础开挖量 | 基础回填量 | 混凝土量（C40、C20） | 钢筋工程量
+8.5 | 2.8 | 桩基础 | —— | 两圈 | 第一圈布置4根，第二圈布置20根 | —— | —— | —— | ——
+
+TABLE 5: rows=2 cols=2
+混凝土量（C25）【m³】 | 钢筋工程量【t】
+25 | 0.5
+
+TABLE 6: rows=2 cols=3
+进站道路工程量【km】 | 场内新建道路工程量【km】 | 场内扩建道路工程量【km】
+0.40 | 23.1 | 99.7
+
+TABLE 7: rows=2 cols=7
+永久性占地项目 | 风机基础 | 箱变基础 | 110kV升压站 | 集电线路杆塔征地 | 进升压站道路 | 合计
+面积（m²） | 8695 | 1200 | 9800 | 10584 | 120 | 30399(45.6亩)
+
+TABLE 8: rows=2 cols=5
+长期租地项目 | 电缆直埋征地（宽1m） | 场内永久道路 | 进站道路 | 合计
+面积（m²） | 2373 | 103950 | 1560 | 107883 （161.8亩）
+
+TABLE 9: rows=2 cols=5
+临时性占地项目 | 场内平整（安装平台） | 临时施工道路 | 生活临建 | 合计
+面积（m²） | 91501 | 314900 | 9600 | 416001（624.0亩）
+
+TABLE 10: rows=7 cols=3
+项目 | 土方开挖m³ | 土方回填m³
+道路 | 1048836 | 1149523
+风机平台 | 327450 | 245588
+风机基础 | 34262 | 16687
+箱变基础 | 2400 | 1400
+升压站 | 22500 | 22500
+合计 | 1435228 | 1435698
+
+TABLE 11: rows=2 cols=8
+总费用（万元） | 设备费（万元） | 安装费（万元） | 施工费（万元） | 主要设备单价 | 材料价格水平 | 单位千瓦静态投资（元/kW） | 单位千瓦动态投资 （元/kW）
+128313.98 | 48826.40 | 5748.89 | 1542.64 | —— | —— | 6320.57 | 6415.70
+
+TABLE 12: rows=2 cols=7
+建设期（年） | 流动资金金额（万元） | 贷款比例 | 贷款利率 | 建设资金贷款比例 | 偿还年限（年） | 年贷款利率
+1 | 1600 | —— | —— | —— | 15 | ——
+
+TABLE 13: rows=2 cols=3
+定员人数（人） | 人员工资 | 职工福利费及其他占比（%）
+15 | 人均年工资23.84万元 | 70
+
+TABLE 14: rows=2 cols=8
+保险费率 | 材料费（万元） | 其他费用 | 土地使用税 | 风电场上网电价（元/kWh） | 所得税（万元） | 项目投资财务内部收益率% | 资本金财务内部收益率%
+—— | 3800 |  | —— | 0.3345 | 24040.44 | 所得税前：8.76 所得税后：7.55 | 12.09

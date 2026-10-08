@@ -1,0 +1,3485 @@
+fields:
+  metTowerCode:
+    name: 测风塔编号
+    value_type: string
+    multi_value: true
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 测风塔编号
+    patterns:
+      - (?:测风塔编号).{0,30}?([0-9A-Za-z#-]+)
+  windTowerLongitude:
+    name: 测风塔经度
+    value_type: string
+    multi_value: true
+    sections:
+      include: [资源章节, 风资源, 解析数据]
+      exclude: []
+    aliases: [测风塔经度, 经度, 东经, 经纬度, 坐标]
+    patterns:
+      - '(?:测风塔)?(?:经度|东经)[：:\s]*((?:东经|[Ee])?\s*\d{3}(?:\.\d+)?(?:\s*[°度]\s*\d{1,2}(?:\.\d+)?(?:\s*[′分'']\s*\d{1,2}(?:\.\d+)?\s*[″秒"]?)?)?)'
+      - '(?:经纬度|坐标)[^。；;\n]{0,80}?((?:东经|[Ee])\s*\d{2,3}(?:\.\d+)?(?:\s*[°度]\s*\d{1,2}(?:\.\d+)?(?:\s*[′分'']\s*\d{1,2}(?:\.\d+)?\s*[″秒"]?)?)?)'
+  windTowerLatitude:
+    name: 测风塔纬度
+    value_type: string
+    multi_value: true
+    sections:
+      include: [资源章节, 风资源, 解析数据]
+      exclude: []
+    aliases: [测风塔纬度, 纬度, 北纬, 经纬度, 坐标]
+    patterns:
+      - '(?:测风塔)?(?:纬度|北纬)[：:\s]*((?:北纬|[Nn])?\s*\d{2}(?:\.\d+)?(?:\s*[°度]\s*\d{1,2}(?:\.\d+)?(?:\s*[′分'']\s*\d{1,2}(?:\.\d+)?\s*[″秒"]?)?)?)'
+      - '(?:经纬度|坐标)[^。；;\n]{0,80}?((?:北纬|[Nn])\s*\d{2}(?:\.\d+)?(?:\s*[°度]\s*\d{1,2}(?:\.\d+)?(?:\s*[′分'']\s*\d{1,2}(?:\.\d+)?\s*[″秒"]?)?)?)'
+  windMeasurementPeriod:
+    name: 测风周期
+    value_type: string
+    multi_value: true
+    sections:
+      include: [资源章节, 风资源, 解析数据]
+      exclude: []
+    aliases: [测风周期, 测风时段, 观测周期, 观测时段]
+    patterns:
+      - '(?:测风周期|测风时段|观测周期|观测时段)[：:\s]*([^，。；;\n|]{3,80})'
+  airDensityAtHeight:
+    name: 高度对应的空气密度
+    value_type: number
+    multi_value: true
+    standard_unit: kg/m3
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 高度对应的空气密度
+      - 空气密度
+    unit_aliases:
+      - kg/m³
+      - kg/m3
+    multi_number_pattern: 空气密度分别为([^。；;\n]+)
+    patterns:
+      - 计算得到本项目区域空气密度分别为([0-9]+(?:\.[0-9]+)?)\s*(kg/m³|kg/m3)?
+      - (?:高度对应的空气密度|空气密度).{0,40}?([0-9]+(?:\.[0-9]+)?)\s*(kg/m³|kg/m3)?
+    validators:
+      min: 0
+  windFarmAirDensities:
+    name: 该风电场的空气密度
+    value_type: number
+    multi_value: true
+    standard_unit: kg/m3
+    coarse_table_rule_enabled: false
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 该风电场的空气密度
+      - 该风电场空气密度
+      - 本风电场空气密度
+      - 风电场区域空气密度
+      - 本项目区域空气密度
+    unit_aliases:
+      - kg/m³
+      - kg/m3
+    patterns:
+      - (?:该|本)(?:风电场|项目)(?:区域)?的?空气密度(?:采用|为|是|计算得到)?\s*([0-9]+(?:\.[0-9]+)?)\s*(kg/m³|kg/m3)?
+      - (?:风电场|项目)(?:区域)?空气密度(?:采用|为|是|计算得到)?\s*([0-9]+(?:\.[0-9]+)?)\s*(kg/m³|kg/m3)?
+      - 计算得到(?:该|本)?(?:风电场|项目)(?:区域)?的?空气密度(?:为)?\s*([0-9]+(?:\.[0-9]+)?)\s*(kg/m³|kg/m3)?
+    validators:
+      min: 0
+      max: 2
+  hubHeightWindPowerDensity:
+    name: 轮毂高度平均风功率密度
+    value_type: number
+    multi_value: true
+    standard_unit: W/m2
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 轮毂高度平均风功率密度
+      - 平均风功率密度
+    unit_aliases:
+      - W/m²
+      - W/m2
+    patterns:
+      - (?:轮毂高度平均风功率密度|平均风功率密度).{0,40}?([0-9]+(?:\.[0-9]+)?)\s*(W/m²|W/m2)?
+    table_lookup:
+      row_aliases:
+        - 风功率
+      column_aliases:
+        - 年均
+    validators:
+      min: 0
+  hubHeightMainWindDirection:
+    name: 轮毂高度处的主风向
+    value_type: string
+    multi_value: true
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 轮毂高度处的主风向
+      - 主风向
+    patterns:
+      - (?:轮毂高度处的主风向|主风向)[:：\s]*([A-Z]{1,4}|[东南西北偏]+)
+  hubHeightAnnualAverageWindSpeed:
+    name: 轮毂高度年平均风速
+    value_type: number
+    multi_value: true
+    standard_unit: m/s
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 轮毂高度平均风速
+      - 年平均风速
+      - 风速
+    unit_aliases:
+      - m/s
+      - 米/秒
+    patterns:
+      - (?:轮毂高度平均风速|年平均风速).{0,40}?([0-9]+(?:\.[0-9]+)?)\s*(m/s|米/秒)?
+    table_lookup:
+      row_aliases:
+        - 风速
+      column_aliases:
+        - 年均
+    validators:
+      min: 0
+      max: 50
+  hubHeightMainWindEnergyDirection:
+    name: 轮毂高度处的主风能方向
+    value_type: string
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 轮毂高度处的主风能方向
+      - 主风能方向
+    patterns:
+      - (?:轮毂高度处的主风能方向|主风能方向)[:：\s]*([A-Z]{1,4}|[东南西北偏]+)
+  representativeTurbulenceIntensity:
+    name: 最大高度处代表性湍流强度
+    value_type: number
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 最大高度处代表性湍流强度
+      - 代表性湍流强度
+      - 湍流强度
+    patterns:
+      - (?:最大高度处代表性湍流强度|代表性湍流强度|湍流强度).{0,40}?([0-9]+(?:\.[0-9]+)?)
+    validators:
+      min: 0
+  windPowerDensityGrade:
+    name: 风功率密度等级
+    value_type: string
+    standard_unit: 级
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 风功率密度等级
+    patterns:
+      - 风功率密度等级[^。；;\n]{0,20}?(?P<value>[A-ZＡ-Ｚ]-?\s*[0-9ⅠⅡⅢⅣⅤⅥ一二三四五六]+)\s*级?
+  windShearExponent:
+    name: 综合风切变
+    value_type: number
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 综合风切变
+      - 风切变
+    patterns:
+      - (?:综合风切变|风切变).{0,40}?([0-9]+(?:\.[0-9]+)?)
+    validators:
+      min: 0
+  generationCalculationUsed:
+    name: 发电量计算是否使用
+    value_type: string
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 解析数据
+      exclude: []
+    aliases:
+      - 发电量计算是否使用
+      - 是否使用
+    patterns:
+      - (?:发电量计算是否使用|是否使用)[:：\s]*(是|否)
+  selectedTurbineSafetyClass:
+    name: 最终宜选机型
+    value_type: string
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex
+    sections:
+      include:
+        - 资源章节
+        - 风资源
+        - 机型
+      exclude:
+        - 财务评价
+        - 设计依据
+        - 编制依据
+        - 引用标准
+    aliases:
+      - 最终宜选机型
+      - 宜选机型
+      - 安全等级
+      - IECⅢa
+      - IECⅢC类
+      - IEC ⅢC 类
+    patterns:
+      - '((?:IEC|iec)\s*[\u2160-\u216FIVXIVX]+\s*[a-zA-Z]\s*(?:类|级)?(?:及其以上|及以上|以上)?(?:等级)?(?:的)?(?:风机|风力发电机组|风电机组)?)'
+      - '(?:安全等级|宜选|采用)[^。；;\n]{0,60}?((?:IEC|iec)\s*[\u2160-\u216FIVXIVX]+\s*[a-zA-Z]\s*(?:类|级)?(?:及其以上|及以上|以上)?)'
+    value_map:
+      IECⅢa类及以上: IECIIIa+
+      IECⅢa及其以上: IECIIIa+
+      IECⅢa及以上: IECIIIa+
+      IEC IIIa: IECIIIa+
+      IECIIIa: IECIIIa+
+    validators:
+      allow_pattern: '(?i)IEC'
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 资源章节正文最终宜选机型
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: string
+      value_group: value
+      section_include: [资源, 风资源, 风能资源, 机型, 发电量]
+      section_exclude: [财务评价, 设计依据, 编制依据, 引用标准]
+      require_any: [IEC]
+      patterns:
+      - '(?P<value>(?:IEC|iec)\s*[\u2160-\u216FIVX]+\s*[A-Ca-c]\s*(?:类|级)\s*或以上安全等级的(?:风机|风力发电机组|风电机组))'
+      - '(?:(?:本|该)?风电场选用适合\s*)(?P<value>(?:IEC|iec)\s*[\u2160-\u216FIVX]+\s*[A-Ca-c]\s*(?:类|级)?(?:及其以上|及以上|以上)?(?:安全等级)?(?:的)?(?:风机|风力发电机组|风电机组))'
+      - '(?:采用|建议)[^。；;\n]{0,30}?(?P<value>(?:IEC|iec)\s*61400(?:[-:：]\s*1)?\s*(?::|：)?\s*2019\s*中?的?\s*(?:III|Ⅲ|ⅡI|II[I1])\s*类\s*(?:及以上|以上)?(?:的)?(?:风机|风力发电机组|风电机组))'
+      - '(?P<value>(?:IEC|iec)\s*[\u2160-\u216FIVX]+\s*[A-Ca-c]\s*(?:类|级)?(?:及其以上|及以上|以上)?(?:等级)?(?:的)?(?:风机|风力发电机组|风电机组)?)'
+      - '(?:安全等级|宜选|采用|推荐)[^。；;\n]{0,60}?(?P<value>(?:IEC|iec)\s*[\u2160-\u216FIVX]+\s*[A-Ca-c]\s*(?:类|级)?(?:及其以上|及以上|以上)?)'
+      compact: true
+      prefer_any:
+        综上: 80
+        最终: 60
+        宜选: 60
+        采用: 40
+        推荐: 30
+    coarse_table_rule_enabled: false
+  nonWakeLossFactor:
+    name: 不考虑尾流效应的折减系数
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 发电量章节
+        - 发电量
+        - 解析数据
+      exclude:
+        - 投资估算
+    aliases:
+      - 不考虑尾流效应的折减系数
+      - 综合折减系数
+      - 综合折减后
+    unit_aliases:
+      - '%'
+    patterns:
+      - \u7efc\u5408\u6298\u51cf\u540e(?:\uff08|\()?\u7efc\u5408\u6298\u51cf\u7cfb\u6570\u4e3a([0-9]+(?:\.[0-9]+)?)\s*(%)?
+      - (?:\u4e0d\u8003\u8651\u5c3e\u6d41\u6548\u5e94\u7684\u6298\u51cf\u7cfb\u6570|\u7efc\u5408\u6298\u51cf\u7cfb\u6570).{0,40}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+    validators:
+      min: 0
+      max: 100
+    value_headers:
+      - 推荐方案
+      - 数量
+      - 数  量
+      - 合计
+      - 总计
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 发电量正文综合折减率
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      unit: '%'
+      score: 240
+      section_include: [发电量章节, 发电量, 风电场年上网电量估算]
+      section_exclude: [投资估算, 财务]
+      require_any: [综合折减率]
+      patterns:
+      - '综合折减率[^0-9%]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>%|％)'
+      - '综合折减率\s*(?P<unit>%|％)?\s*[|：:]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+  accessStationName:
+    name: 接入站名称
+    value_type: string
+    sections:
+      include: [电气一次, 接入系统, 主接线]
+      exclude: [财务]
+    aliases: [接入站名称, 升压站, 变电站]
+    validators:
+      allow_pattern: '(?:变电站|升压站|汇集站|[^，。；;\n]{1,20}变)$'
+      reject_patterns:
+      - '接入站名称|可接入|\|'
+      - '^(?:本工程|本风电场|场内|配套新建).{0,30}?升压站$'
+      - '^(?:本期|一期|1期|二期|2期|本项目|本工程|.*风电场).{0,30}?升压站$'
+      - '^[0-9]+\s*kV\s*升压站$'
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 电气一次正文接入汇集站名称
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: string
+      value_group: value
+      score: 380
+      section_include: [电气一次, 电气, 接入系统, 主接线, 风电场接入系统方式, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [汇集站]
+      patterns:
+      - '(?:打捆送至|汇集后送至|送至)[^，。；;\n]{0,40}?(?P<value>[\u4e00-\u9fa5A-Za-z0-9]+\s*(?:[0-9]+\s*kV\s*)?汇\s*集\s*站)'
+      - '(?:接入|接至|送至|送到|送出至)(?:适时扩建|规划扩建|东北方向的|方向的)?\s*(?P<value>[\u4e00-\u9fa5]{1,8}\s*(?:[0-9]+\s*kV\s*)?汇\s*集\s*站)'
+      - '(?:接入|接至|送至|送到|送出至)[^，。；;\n]{0,40}?(?P<value>[\u4e00-\u9fa5]{1,6}\s*[\u4e00-\u9fa5]{1,6}\s*(?:[0-9]+\s*kV\s*)?汇\s*集\s*站)'
+      - '(?:接入|接至|送至|送到|送出至)[^，。；;\n]{0,30}?(?P<value>[\u4e00-\u9fa5A-Za-z0-9]+\s*[0-9]+\s*kV\s*汇集站)'
+      - '(?:接入|接至|送至|送到|送出至)[^，。；;\n]{0,30}?(?P<value>[\u4e00-\u9fa5A-Za-z0-9]{1,20}汇集站)'
+      compact: true
+      prefer_any:
+        汇集站: 120
+        接入: 60
+        送出: 40
+      penalize_any:
+        暂定: 20
+    - name: 电气一次显式标签接入站名称
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: string
+      value_group: value
+      score: 320
+      section_include: [电气, 接入系统, 主接线]
+      section_exclude: [财务]
+      require_any: [接入站名称]
+      patterns:
+      - '接入站名称(?:\s*\|?\s*接入站名称)?\s*[|：:]?\s*(?P<value>(?:[0-9]+\s*kV)?[^|，。；;\n]{1,12}?变电站)'
+      prefer_any:
+        接入站名称: 80
+        变电站: 80
+    - name: 电气一次正文接入目标名称
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: string
+      value_group: value
+      section_include: [电气]
+      section_exclude: [财务]
+      require_any: [接入, 接至, 送至]
+      patterns:
+      - '(?:接入|接至|送至)\s*(?P<value>[^，。；;\n]{1,20}?变)\s*(?:[0-9]+\s*kV)?\s*母线'
+      - '(?:接入|接至|送至)\s*(?P<value>[^，。；;\n]{1,20}?变)(?:。|，|；|;|\n)'
+      - '(?:线路|主变升压后|最终)[^，。；;\n]{0,30}?(?:接入|接至|送至)\s*(?P<value>(?:[0-9]+\s*kV)?[^，。；;\n]{1,30}?变电站)'
+      - '(?:接入|接至|送至|至)\s*(?P<value>(?:[0-9]+\s*kV)?[^，。；;\n]{1,30}?变电站)'
+      - '接入(?:到|至)?\s*(?!本工程|本风电场|场内|配套新建)(?P<value>(?:[0-9]+\s*kV)?[^，。；;\n]{1,30}?升压站)'
+      prefer_any:
+        变电站: 80
+        线路: 40
+        升压站: 10
+        接入到: 30
+        接入至: 20
+      penalize_any:
+        母线: 80
+        箱式升压变电站: 40
+  accessibleCapacity:
+    name: 可接入容量
+    value_type: number
+    standard_unit: MVA
+    sections:
+      include: [电气一次, 接入系统, 风电场接入系统方式]
+      exclude: [财务]
+    aliases: [可接入容量, 主变容量, 主变]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 电气一次接入系统主变容量
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      unit: MVA
+      score: 260
+      section_include: [电气一次, 电气, 接入系统, 风电场接入系统方式, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [主变]
+      reject_any: [SVG, Mvar, MVar, MVAR, 动态无功, 单价, 万元, 箱式变压器]
+      patterns:
+      - '(?:升压站)?[^，。；;\n]{0,30}?选用\s*[0-9]+\s*台\s*容量为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>MVA(?![A-Za-z])|兆伏安)[^，。；;\n]{0,20}?主变'
+      - '(?:[0-9]+\s*[台×xX]\s*)?容量为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>MVA(?![A-Za-z])|兆伏安)[^，。；;\n]{0,30}?主变'
+      - '(?:[0-9]+\s*[台×xX]\s*)?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>MVA(?![A-Za-z])|兆伏安)[^，。；;\n]{0,30}?主变'
+      - '主变[^，。；;\n]{0,40}?(?:容量|规模)?[^0-9]{0,12}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>MVA(?![A-Za-z])|兆伏安)'
+      prefer_any:
+        容量为: 80
+        110kV升压站: 60
+        选用: 40
+      validators:
+        min: 0
+        max: 10000
+  connectionType:
+    name: 主接线形式
+    value_type: string
+    sections:
+      include: [电气一次, 主接线]
+      exclude: [财务]
+    aliases: [主接线形式, 线变组, 单母线接线]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 电气一次正文主接线形式
+      source_types: [document, pdf_page_text]
+      value_type: string
+      value_group: value
+      require_any: [接线]
+      patterns:
+      - '(?P<value>110\s*kV\s*接线型式仍为单母线接线)'
+      - '(?P<value>110\s*kV[^。；;\n]{0,80}?为单母线接线)'
+      - '(?P<value>110\s*kV\s*主接线形式\s*线变组接线)'
+      - '(?P<value>35\s*kV\s*主接线形式\s*单母线接线)'
+      - '(?P<value>110\s*kV\s*主接线形式[\s|]*线变组接线)'
+      - '(?P<value>35\s*kV\s*主接线形式[\s|]*单母线接线)'
+      - '(?P<value>110\s*kV[^。；;\n]{0,60}?线变组接线(?:方式|形式|型式)?)'
+      - '(?P<value>110\s*kV\s*侧[^。；;\n]{0,80}?接线(?:方案|形式))'
+      join_patterns:
+      - '(35\s*kV[^。；;\n]{0,40}?本期35\s*kV\s*为单母线接线)'
+      - '(35\s*kV[^。；;\n]{0,80}?为单母线接线)'
+      - '(35\s*kV\s*主接线形式\s*单母线接线)'
+      - '(35\s*kV\s*主接线形式[\s|]*单母线接线)'
+      - '(35\s*kV[^。；;\n]{0,60}?单母线接线(?:方式|形式|型式)?)'
+      - '(35\s*kV\s*侧[^。；;\n]{0,80}?接线(?:方案|形式))'
+      prefer_any:
+        线变组: 60
+        单母线: 40
+        双段母线: 40
+  plannedCapacity:
+    name: 升压站电气主接线规划总规模
+    value_type: number
+    standard_unit: MW
+    scalar_from_patterns: true
+    sections:
+      include: [电气一次, 主接线, 解析数据, 工程概况, 总论]
+      exclude: [财务]
+    aliases: [规划总规模, 规划容量, 总容量, 总装机容量, 规划总装机容量]
+    patterns:
+    - '(?:升压站电气主接线)?(?:规划总规模|规划容量|总容量|总装机容量|规划总装机容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(MW|兆瓦)?'
+    - '本项目[^。；;\n]{0,30}?(?:规划总规模|规划容量|总容量|总装机容量|规划总装机容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(MW|兆瓦)?'
+    validators:
+      min: 0
+      max: 10000
+  currentCapacity:
+    name: 升压站电气主接线本期规模
+    value_type: number
+    standard_unit: MW
+    scalar_from_patterns: true
+    sections:
+      include: [电气一次, 主接线, 解析数据, 工程概况, 总论]
+      exclude: [财务]
+    aliases: [本期规模, 本期容量, 规划容量, 总容量, 总装机容量, 规划总装机容量]
+    patterns:
+    - '(?:升压站电气主接线)?(?:本期规模|本期容量|规划容量|总容量|总装机容量|规划总装机容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(MW|兆瓦)?'
+    - '本项目[^。；;\n]{0,30}?(?:本期规模|本期容量|规划容量|总容量|总装机容量|规划总装机容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(MW|兆瓦)?'
+    validators:
+      min: 0
+      max: 10000
+  substationMainConnectionPlannedCapacity:
+    name: 升压站电气主接线规划总规模
+    value_type: number
+    standard_unit: MW
+    sections:
+      include:
+        - 电气一次
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 升压站电气主接线规划总规模
+      - 规划总规模
+      - 规划容量
+      - 总容量
+      - 本期容量
+      - 本期规模
+    unit_aliases:
+      - MW
+      - 兆瓦
+    patterns:
+      - (?:\u89c4\u5212\u5bb9\u91cf|\u603b\u5bb9\u91cf).{0,20}?([0-9]+(?:\.[0-9]+)?)\s*(MW|\u5146\u74e6)?
+      - \u672c\u9879\u76ee\u89c4\u5212\u5bb9\u91cf\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*(MW|\u5146\u74e6)?
+    value_headers:
+      - 建设规模
+      - 规模
+      - 容量
+    validators:
+      min: 0
+      max: 10000
+  substationMainConnectionCurrentCapacity:
+    name: 升压站电气主接线本期规模
+    value_type: number
+    standard_unit: MW
+    sections:
+      include:
+        - 电气一次
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 升压站电气主接线本期规模
+      - 本期规模
+      - 规划容量
+      - 总容量
+      - 本期容量
+    unit_aliases:
+      - MW
+      - 兆瓦
+    patterns:
+      - (?:\u672c\u671f\u89c4\u6a21|\u672c\u671f\u5bb9\u91cf).{0,20}?([0-9]+(?:\.[0-9]+)?)\s*(MW|\u5146\u74e6)?
+      - \u672c\u9879\u76ee\u89c4\u5212\u5bb9\u91cf\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*(MW|\u5146\u74e6)?
+    value_headers:
+      - 建设规模
+      - 规模
+      - 容量
+    validators:
+      min: 0
+      max: 10000
+  mainConnectionType:
+    name: 主接线形式
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 主接线
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 主接线形式
+      - 线变组
+      - 单母线接线
+    patterns:
+      - (?:主接线形式(?:（[^）]*）)?|主变压器接线形式)[:：\s]*([^，。；;\n]{2,80})
+    preferred_values:
+      - 单母线接线
+      - 单母线分段接线
+      - 线变组接线
+  mainTransformerType:
+    name: 主变压器
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 主变压器
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 主变压器
+      - 主变型式
+      - 主变类型
+    patterns:
+      - (?:主变压器)[:：\s]*([^，。；;\n]{2,100})
+    preferred_values:
+      - 三相双绕组油浸自冷式有载调压变压器
+      - 三相双绕组油浸自冷式变压器
+      - 油浸自冷式有载调压变压器
+  mainTransformerRatio:
+    name: 主变压器变比
+    value_type: string
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex
+      - table_lookup
+    sections:
+      include:
+        - 电气一次
+        - 主变压器
+        - 解析数据
+        - 主要电气一次设备表
+        - 主要电气设备参数
+      exclude:
+        - 财务
+    aliases:
+      - 主变压器变比
+      - 变比
+      - 额定电压
+      - 短路阻抗
+      - 接线组别
+    patterns:
+      - ([0-9]+\s*[^0-9A-Za-z\s]\s*[0-9]+\s*[^0-9A-Za-z\s]\s*[0-9.]+%\s*/\s*[0-9]+\s*kV)
+    validators:
+      allow_pattern: '/\s*[0-9]+\s*kV'
+      reject_patterns:
+        - '^\s*[0-9]+(?:\.[0-9]+)?\s*$'
+    source_priority:
+      sections:
+        主要电气一次设备表: 1.4
+        主要电气设备参数: 1.0
+    coarse_table_rule_enabled: false
+  svgReactiveCompensationCapacity:
+    name: SVG无功补偿装置容量
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 无功补偿
+        - SVG
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - SVG无功补偿装置容量
+      - SVG容量
+      - 无功补偿
+      - SVG
+    patterns:
+      - (?:SVG|\u65e0\u529f\u8865\u507f).{0,40}?([^0-9\s]?[0-9]+(?:\.[0-9]+)?)\s*(Mvar)
+      - (?:[0-9]+\s*[^0-9A-Za-z\s]\s*)?([^0-9\s]?[0-9]+(?:\.[0-9]+)?)\s*(Mvar)
+    coarse_table_rule_enabled: false
+    value_map: {}
+    standard_unit: Mvar
+    unit_aliases:
+      - Mvar
+      - MVar
+      - MVAR
+    validators:
+      allow_pattern: ^[^0-9\s]?[0-9]+(?:\.[0-9]+)?$
+  groundingTransformerCapacity35kv:
+    name: 35kV接地变用变容量
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 接地变
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 35kV接地变用变容量
+      - 接地变用变容量
+      - 接地变容量
+      - DKSC-500
+    patterns:
+      - \u63a5\u5730\u53d8\u5bb9\u91cf[:\uff1a]\s*([0-9]+)\s*(kVA)
+      - DKSC-([0-9]+)\s*kVA?\s*[-/]?35kV
+      - DKSC-([0-9]+)/35
+    unit_aliases:
+      - kVA
+      - 千伏安
+    standard_unit: kVA
+    coarse_table_rule_enabled: false
+    value_map:
+      接地变容量：800/315kVA: 800/315
+    validators:
+      reject_contains:
+        - /
+  groundingStationTransformerCapacity35kv:
+    name: 35kV接地变兼站用变容量
+    value_type: string
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex
+      - table_lookup
+    sections:
+      include:
+        - 电气一次
+        - 接地变
+        - 站用变
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 35kV接地变兼站用变容量
+      - 接地变兼站用变容量
+      - 站用变容量
+      - DKSC-800
+    patterns:
+      - \u63a5\u5730\u53d8\u5bb9\u91cf[:\uff1a]\s*([0-9]+/[0-9]+)\s*(kVA)
+      - DKSC-([0-9]+\s*kVA\s*-\s*[0-9]+\s*kVA)
+      - DKSC-([0-9]+/35-[0-9]+/0\.4)
+    value_map:
+      800kVA-315kVA: 800/315
+      800/35-315/0.4: 800/315
+    validators:
+      allow_pattern: '[0-9]+\s*(?:/|-)\s*(?:[0-9]+|[0-9]+\s*kVA)'
+      reject_patterns:
+        - '^\s*[0-9]+(?:\.[0-9]+)?\s*$'
+    unit_aliases:
+      - kVA
+      - 千伏安
+    standard_unit: kVA
+    coarse_table_rule_enabled: false
+  stationTransformerCapacity10kv:
+    name: 10kV站用变容量
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 站用变
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 10kV站用变容量
+      - 站用变容量
+    patterns:
+      - (?:10kV站用变容量|站用变容量)[:：\s]*([^，。；;\n]{1,60})
+  dcBatteryConfiguration:
+    name: 直流蓄电池配置
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 电气二次
+        - 直流
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 直流蓄电池配置
+      - 蓄电池配置
+    patterns:
+      - (?:直流蓄电池配置|蓄电池配置)[:：\s]*([^，。；;\n]{1,80})
+  upsPowerConfiguration:
+    name: UPS电源配置
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 电气二次
+        - UPS
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - UPS电源配置
+      - UPS配置
+    patterns:
+      - (?:UPS电源配置|UPS配置)[:：\s]*([^，。；;\n]{1,100})
+  independentLightningRodCount:
+    name: 独立避雷针个数
+    value_type: number
+    standard_unit: 座
+    sections:
+      include:
+        - 电气一次
+        - 防雷
+        - 避雷针
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 独立避雷针个数
+      - 独立避雷针
+    unit_aliases:
+      - 座
+      - 个
+      - 根
+    patterns:
+      - '(?P<value>[0-9]+)\s*(?P<unit>座|个|根)\s*(?:[0-9]+\s*m)?\s*独立避雷针'
+      - '(?P<value>[0-9]+)\s*(?P<unit>座|个|根)\s*[0-9]+\s*m\s*独立避雷针'
+      - '独立避雷针[^。；;\n]{0,30}?(?P<value>[0-9]+)\s*(?P<unit>座|个|根)'
+    coarse_table_rule_enabled: false
+    validators:
+      min: 0
+      max: 100
+    scalar_rules:
+    - name: 电气一次正文独立避雷针数量
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: 座
+      value_group: value
+      section_include: [电气]
+      section_exclude: [财务]
+      require_any: [独立避雷针]
+      patterns:
+      - '配置的(?P<value>[0-9]+)\s*(?P<unit>根|支|座|个)\s*(?:[0-9]+\s*m)?\s*独立避雷针'
+      - '(?P<value>[0-9]+)\s*(?P<unit>根|支|座|个)\s*(?:[0-9]+\s*m)?\s*独立避雷针'
+      - '(?P<value>[0-9]+)\s*(?P<unit>根|座|个)\s*[0-9]+\s*m\s*独立避雷针'
+      - '独立避雷针[^。；;\n]{0,30}?(?P<value>[0-9]+)\s*(?P<unit>根|座|个)'
+      validators:
+        min: 0
+        max: 10
+  frameLightningRodCount:
+    name: 构架避雷针个数
+    value_type: number
+    standard_unit: 座
+    sections:
+      include:
+        - 电气一次
+        - 防雷
+        - 避雷针
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 构架避雷针个数
+      - 构架避雷针
+      - 架构避雷针
+    unit_aliases:
+      - 座
+      - 个
+      - 根
+      - 支
+    patterns:
+      - '(?P<value>[0-9]+)\s*(?P<unit>座|个|根|支)\s*(?:[0-9]+\s*m)?\s*(?:构架|架构)避雷针'
+      - '(?:构架|架构)避雷针[^。；;\n]{0,30}?(?P<value>[0-9]+)\s*(?P<unit>座|个|根|支)'
+    coarse_table_rule_enabled: false
+    validators:
+      min: 0
+      max: 100
+    scalar_rules:
+    - name: 电气一次正文构架避雷针数量
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: 座
+      value_group: value
+      section_include: [电气]
+      section_exclude: [财务]
+      require_any: [构架避雷针, 架构避雷针]
+      patterns:
+      - '配置的[0-9]+\s*(?:根|支|座|个)\s*独立避雷针和(?P<value>[0-9]+)\s*(?P<unit>根|支|座|个)\s*(?:构架|架构)避雷针'
+      - '(?P<value>[0-9]+)\s*(?P<unit>根|支|座|个)\s*(?:[0-9]+\s*m)?\s*(?:构架|架构)避雷针'
+      - '(?:构架|架构)避雷针[^。；;\n]{0,30}?(?P<value>[0-9]+)\s*(?P<unit>根|支|座|个)'
+      validators:
+        min: 0
+        max: 10
+  communicationPowerDesign:
+    name: 通讯电源设计
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 电气二次
+        - 通讯
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 通讯电源设计
+      - 通信电源设计
+      - 通信电源
+      - 通信电源柜
+      - 48V 蓄电池组
+    patterns:
+      - (?:通讯电源设计|通信电源设计)[:：\s]*([^，。；;\n]{1,100})
+    scalar_rules:
+    - name: 电气二次正文通讯电源设计
+      source_types: [paragraph, table, document, pdf_page_text]
+      value_type: string
+      value_group: value
+      section_include: [电气, 通信, 通讯]
+      section_exclude: [财务]
+      require_any: [蓄电池]
+      patterns:
+      - '(?P<value>通信设备采用直流不停电方式供电[^。；;\n]{0,120}?一组\s*48\s*V[、,，/]\s*100\s*Ah\s*阀控式铅酸免维护蓄电池[^。；;\n]{0,40}?电源防雷柜)'
+      - '(?P<value>一台智能型高频开关电源设备和一组\s*48\s*V[、,，/]\s*100\s*Ah\s*阀控式铅酸免维护蓄电池)'
+      - '(?P<value>48\s*V[、,，/]\s*100\s*Ah\s*阀控式铅酸免维护蓄电池)'
+      - '(?P<value>二、通信电源[\s\S]{0,160}?48\s*V\s*蓄电池组[\s\S]{0,160}?通信电源柜[\s\S]{0,80}?48\s*V\s*蓄电池充馈电柜)'
+      - '(?P<value>200\s*Ah\s*免维护蓄电池\s*1\s*组及\s*1\s*套\s*DC\s*/\s*DC\s*电源转换装置)'
+      - '(?P<value>1\s*组\s*200\s*Ah\s*免维护蓄电池[^。；;\n]{0,30}?DC\s*/\s*DC\s*电源转换装置\s*1\s*套)'
+      - '(?P<value>48\s*V\s*/\s*200\s*Ah[^。；;\n]{0,50})'
+      - '(?P<value>48\s*V\s*蓄电池组[^。；;\n|]{0,80}?300\s*Ah[^。；;\n|]{0,80}?组架安装)'
+      - '(?P<value>通信电源[^。；;\n|]{0,120}?48\s*V[^。；;\n|]{0,120}?蓄电池[^。；;\n|]{0,120}?300\s*Ah[^。；;\n|]{0,120}?通信电源柜[^。；;\n|]{0,80})'
+      - '(?P<value>48\s*V\s*蓄电池充馈电柜)'
+      prefer_any:
+        通信电源: 80
+        48V: 50
+        300Ah: 50
+        DC/DC: 50
+        免维护蓄电池: 30
+  circuitBreakerSpec:
+    name: 断路器
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 断路器
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 断路器
+      - SF6断路器
+    patterns:
+      - (?:断路器)[:：\s]*([^，。；;\n]{2,120})
+  disconnectorSpec:
+    name: 隔离开关
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 隔离开关
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 隔离开关
+    patterns:
+      - (?:隔离开关)[:：\s]*([^，。；;\n]{2,120})
+  currentTransformerSpec:
+    name: 电流互感器
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 电气二次
+        - 电流互感器
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 电流互感器
+    patterns:
+      - (?:电流互感器)[:：\s]*([^，。；;\n]{2,160})
+  voltageTransformerSpec:
+    name: 电压互感器
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - 电气二次
+        - 电压互感器
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 电压互感器
+    patterns:
+      - (?:电压互感器)[:：\s]*([^，。；;\n]{2,160})
+  ptSpec:
+    name: Pt
+    value_type: string
+    sections:
+      include:
+        - 电气一次
+        - PT
+        - Pt
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - Pt
+      - PT
+    patterns:
+      - (?:Pt|PT)[:：\s]*([^，。；;\n]{1,120})
+  collectorLineNames:
+    name: 线路名称
+    value_type: string
+    sections:
+      include:
+        - 集电线路
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 线路名称
+      - A线
+      - B线
+    patterns:
+      - (?:线路名称)[:：\s]*([^。；;\n]{2,160})
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文线路名称
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: string
+      value_group: value
+      section_include: [集电线路, 通信, 综合说明, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [回]
+      section_fallback_require_all: [A回, B回]
+      patterns:
+      - '分别为[（(]?\s*(?P<value>A\s*回[、,，]\s*B\s*回)\s*[）)]?'
+      - '分为\s*2\s*个回路[（(]?\s*(?P<value>A\s*回[、,，]\s*B\s*回)\s*[）)]?'
+      compact: true
+      prefer_any:
+        A回: 80
+        B回: 80
+    table_list:
+      header_rows: 1
+      column_aliases:
+        - 线路名称
+      reject_any:
+        - 总长
+        - 合计
+        - 小计
+      format: alpha_range
+  collectorVoltage:
+    name: 集电线路电压
+    value_type: number
+    standard_unit: kv
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [集电线路电压, 集电线路电压等级, 额定电压]
+    scalar_rules:
+    - name: 集电线路正文电压
+      source_types: [paragraph, table]
+      value_type: number
+      unit: kv
+      value_group: value
+      section_include: [集电线路]
+      section_exclude: [财务]
+      require_any: [集电线路]
+      patterns:
+      - '(?P<value>[0-9]+(?:\.[0-9]+)?)\s*kV\s*集电线路'
+      - '集电线路[^。；;\n]{0,40}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*kV'
+  circuitCount:
+    name: 回路数
+    value_type: number
+    standard_unit: 回
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [回路数, 共建设, 本期共建设]
+    scalar_rules:
+    - name: 集电线路正文回路数
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: 回
+      value_group: value
+      section_include: [集电线路, 综合说明, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [回]
+      section_fallback_require_all: [A回, B回]
+      patterns:
+      - '将\s*[0-9]+\s*台(?:箱式变电站|风电机组)[^。；;\n]{0,20}?分为\s*(?P<value>[0-9]+)\s*(?:回接线|个回路)'
+      - '分为\s*(?P<value>[0-9]+)\s*(?:回接线|个回路)[^。；;\n]{0,40}?A\s*回[^。；;\n]{0,20}?B\s*回'
+      - '(?:集电线路)?[^。；;\n]{0,40}?本期共建设\s*(?P<value>[0-9]+)\s*回'
+      - '(?:设|建设|共建设?|回路数[^0-9]{0,8})(?P<value>[0-9]+)\s*回'
+      prefer_any:
+        A回: 100
+        B回: 100
+        箱式变电站: 60
+        风电机组: 60
+      validators:
+        min: 1
+        max: 20
+  newRouteLength:
+    name: 新建线路路径长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [新建线路路径长度, 集电线路总长度, 集电线路路径长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文新建线路路径长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [集电线路, 综合说明, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [集电线路]
+      patterns:
+      - '(?<!单回)(?<!双回)集电线路路径长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '集电线路总长度约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '(?:全线线路总计长度[:：]?)?\s*(?:新建)?集电线路路径(?:长度|长)?约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      prefer_any:
+        集电线路总长度: 100
+        新建: 40
+      validators:
+        min: 0.001
+        max: 500
+  totalCollectorRouteLength:
+    name: 全线集电线路路径长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [全线集电线路路径长度, 集电线路总长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文全线路径长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [集电线路, 综合说明, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [集电线路]
+      patterns:
+      - '(?<!单回)(?<!双回)集电线路路径长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '集电线路总长度约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '全线集电线路路径(?:长度|长)?约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      prefer_any:
+        总长度: 100
+      validators:
+        min: 0.001
+        max: 500
+  newOverheadLineLength:
+    name: 新建架空线路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [新建架空线路长度, 架空集电线路路径长]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文新建架空线路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [集电线路, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [架空]
+      patterns:
+      - '架空集电线路路径长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '(?:新建)?架空(?:集电)?线路(?:路径)?(?:长度|长)?约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      validators:
+        min: 0.001
+        max: 500
+  newSingleCircuitLineLength:
+    name: 新建单回路线路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [新建单回路线路长度, 单回路长]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文新建单回路线路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [集电线路, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [单回]
+      patterns:
+      - '其中单回路长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '单回(?:路)?(?:架空)?(?:集电)?线路(?:路径)?(?:长度|长)?约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      validators:
+        min: 0.001
+        max: 500
+  newCableLineLength:
+    name: 新建电缆线路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [新建电缆线路长度, 电缆线路长度]
+    scalar_selection:
+      strategy: sum
+    scalar_rules:
+    - name: 集电线路材料表电缆长度合计
+      source_types: [pdf_page_text]
+      value_type: number
+      value_group: value
+      dedupe_by: [value, unit, page, matched_pattern, matched_text]
+      section_include: []
+      section_exclude: [财务]
+      require_any: [电缆]
+      patterns:
+      - 'ZR[-－]?YJY?22[^\n。；;]{0,80}?(?P<unit>米|m)\s+(?P<value>[0-9]+(?:\.[0-9]+)?)(?![0-9])'
+      validators:
+        min: 0.001
+        max: 100000
+  singleCircuitOverheadRouteLength:
+    name: 单回架空线路路径长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [单回架空线路路径长度, 单回架空集电线路路径长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文单回架空路径长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: km
+      value_group: value
+      section_include: [集电线路, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [单回, 架空]
+      patterns:
+      - '其中单回路长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '单回(?:架空)?集电线路路径长约?\s*[0-9]+(?:\.[0-9]+)?\s*km[（(]架空路径长\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*km'
+      - '单回集电线路路径长约?\s*[0-9]+(?:\.[0-9]+)?\s*km[（(][^）)]{0,30}?架空路径长\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*km'
+      - '单回(?:路)?架空(?:线路|集电线路)?(?:路径)?(?:长度|长)?[^0-9]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*km'
+      - '架空线路[^。；;\n]{0,80}?单回[^0-9]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*km'
+      prefer_any:
+        全线: 80
+        架空路径长: 60
+  newDoubleCircuitLineLength:
+    name: 新建双回路线路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [新建双回路线路长度, 新建双回路线路路径长度, 双回路线路长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文新建双回路线路长度
+      source_types: [paragraph, table, document, pdf_page_text]
+      value_type: number
+      unit: km
+      value_group: value
+      section_include: [集电线路, 综合说明, 设计概算, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [双回路]
+      patterns:
+      - '双回集电线路路径长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '双回路长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '其中单回路长约\s*[0-9]+(?:\.[0-9]+)?\s*(?:km|公里|千米|m|米)[，,、\s]*双回路长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '新建\s*双回路(?:架空)?(?:集电)?线路(?:路径)?(?:长度|长)?\s*约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '35\s*kV\s*双回路(?:架空)?线路\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      prefer_any:
+        新建: 80
+        双回路: 80
+        集电线路: 40
+        35kV: 20
+      validators:
+        min: 0.001
+        max: 500
+  doubleCircuitOverheadRouteLength:
+    name: 双回架空线路路径长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [双回架空线路路径长度, 双回路架空线路长度, 双回路架空集电线路路径长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路正文双回架空线路路径长度
+      source_types: [paragraph, table, document, pdf_page_text]
+      value_type: number
+      unit: km
+      value_group: value
+      section_include: [集电线路, 综合说明, 设计概算, 风电场年上网电量估算]
+      section_exclude: [财务]
+      require_any: [双回]
+      patterns:
+      - '双回架空路径长\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '双回集电线路路径长约?\s*[0-9]+(?:\.[0-9]+)?\s*km[，,、\s]*双回架空路径长\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*km'
+      - '其中单回路长约\s*[0-9]+(?:\.[0-9]+)?\s*(?:km|公里|千米|m|米)[，,、\s]*双回路长约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '(?:35\s*kV\s*)?双回路?\s*架空(?:集电)?线路(?:路径)?(?:长度|长)?\s*约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '新建\s*双回路\s*线路(?:路径)?(?:长度|长)?\s*约?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      prefer_any:
+        双回架空路径长: 300
+        架空: 100
+        双回: 80
+        35kV: 30
+        新建: 20
+      validators:
+        min: 0.001
+        max: 500
+  boxToTerminalTowerCableRouteLength:
+    name: 箱变至终端塔电缆路径长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [箱变至终端塔电缆路径长度, 35kV电缆长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路材料表箱变至终端塔电缆长度
+      source_types: [pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: []
+      section_exclude: [财务]
+      require_any: [电缆]
+      patterns:
+      - 'ZR[-－]?YJY?22[^\n。；;]{0,40}?3\s*[*×]\s*70[^\n。；;]{0,40}?(?P<unit>米|m)\s+(?P<value>[0-9]+(?:\.[0-9]+)?)(?![0-9])'
+      validators:
+        min: 0.001
+        max: 100000
+  doubleCircuitCableRouteLength:
+    name: 双回路电缆路径长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [集电线路]
+      exclude: [财务]
+    aliases: [双回路电缆路径长度, 进站电缆路径长度]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 集电线路材料表进站电缆长度
+      source_types: [pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: []
+      section_exclude: [财务]
+      require_any: [电缆]
+      patterns:
+      - 'ZR[-－]?YJY?22[^\n。；;]{0,40}?3\s*[*×]\s*400[^\n。；;]{0,40}?(?P<unit>米|m)\s+(?P<value>[0-9]+(?:\.[0-9]+)?)(?![0-9])'
+      validators:
+        min: 0.001
+        max: 100000
+  collectorCircuitType:
+    name: 回路
+    value_type: string
+    sections:
+      include:
+        - 集电线路
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 回路
+      - 双回架空线路
+      - 单回架空线路
+    patterns:
+      - ([^\u3002\uff1b;\n]*\u53cc\u56de\u67b6\u7a7a\u7ebf\u8def[^\u3002\uff1b;\n]*\u5355\u56de\u67b6\u7a7a\u7ebf\u8def[^\u3002\uff1b;\n]*)
+    value_map:
+      双回架空线路: 单/双回路架设
+  doubleCircuitOverheadLength:
+    name: 双回架空线路路径长
+    value_type: string
+    sections:
+      include:
+        - 集电线路
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 双回架空线路路径长
+    patterns:
+      - (?:双回架空线路路径长).{0,30}?([^，。；;\n]{1,40})
+  singleCircuitOverheadLength:
+    name: 单回架空线路路径长
+    value_type: string
+    sections:
+      include:
+        - 集电线路
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 单回架空线路路径长
+    patterns:
+      - (?:单回架空线路路径长).{0,30}?([^，。；;\n]{1,40})
+  towerFoundationCount:
+    name: 全线共用铁塔基数
+    value_type: number
+    standard_unit: 基
+    sections:
+      include:
+        - 集电线路
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 全线共用铁塔基数
+      - 全线共用铁塔
+      - 铁塔基数
+    unit_aliases:
+      - 基
+    patterns:
+      - (?:\u5168\u7ebf\u5171\u7528\u94c1\u5854|\u94c1\u5854\u57fa\u6570).{0,10}?([0-9]+)\s*(\u57fa)?
+    table_aggregate:
+      op: sum
+      header_rows: 1
+      value_headers:
+        - 数量
+      require_any:
+        - 铁塔组立
+      min_values: 2
+      precision: 0
+      unit: 基
+  substationTotalArea:
+    name: 总占地面积
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 土建升压站
+        - 升压站
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 总占地面积
+    unit_aliases:
+      - ㎡
+      - m²
+      - m2
+      - 平方米
+    patterns:
+      - (?:总占地面积).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(㎡|m²|m2|平方米)?
+  substationInsideWallArea:
+    name: 围墙内占地面积
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 土建升压站
+        - 升压站
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 围墙内占地面积
+    unit_aliases:
+      - ㎡
+      - m²
+      - m2
+      - 平方米
+    patterns:
+      - (?:围墙内占地面积).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(㎡|m²|m2|平方米)?
+  substationVerticalDesign:
+    name: 站区竖向设计
+    value_type: string
+    sections:
+      include:
+        - 土建升压站
+        - 升压站
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 站区竖向设计
+      - 战区竖向设计
+      - 竖向设计
+    patterns:
+      - (?:站区竖向设计|战区竖向设计|竖向设计)[:：\s]*([^，。；;\n]{1,60})
+  substationRoadLayoutType:
+    name: 升压站内道路布置类型
+    value_type: string
+    sections:
+      include:
+        - 土建升压站
+        - 升压站
+        - 道路
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 升压站内道路布置类型
+      - 道路布置类型
+      - 环形道路
+    patterns:
+      - (\u73af\u5f62\u9053\u8def)
+      - \u9053\u8def[^\u3002\uff1b;\n]{0,20}\u5e03\u7f6e\u4e3a([^\uff0c\u3002\uff1b;\n]{2,20}\u9053\u8def)
+    preferred_values:
+      - 环形道路
+  substationFunctionalZones:
+    name: 升压站包含生活区和生产区
+    value_type: string
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex
+    sections:
+      include:
+        - 土建升压站
+        - 升压站
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 升压站包含生活区和生产区
+      - 生活区
+      - 生产区
+    patterns:
+      - (\u5347\u538b\u7ad9[^\u3002\uff1b;\n]{0,40}(?:\u5305\u542b|\u5305\u62ec)[^\u3002\uff1b;\n]{0,40}\u751f\u6d3b\u533a[^\u3002\uff1b;\n]{0,40}\u751f\u4ea7\u533a[^\u3002\uff1b;\n]*)
+    value_map:
+      生活区: 包含生活区和生产区
+      生产区: 包含生活区和生产区
+    validators:
+      require_evidence_all:
+        - 生活区
+        - 生产区
+      allow_pattern: '生活区|生产区|包含|包括'
+  foundationCapBottomRadius:
+    name: 基础承台底面半径
+    value_type: number
+    standard_unit: m
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex_derived
+      - regex
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 基础承台底面半径
+      - 承台底面
+      - 底部直径
+      - 承台具体尺寸
+    unit_aliases:
+      - m
+      - 米
+    patterns:
+      - (?:\u57fa\u7840\u627f\u53f0\u5e95\u9762\u534a\u5f84|\u627f\u53f0\u5e95\u9762\u534a\u5f84).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m|\u7c73)?
+    derived_patterns:
+      - pattern: \u5e95\u90e8\u76f4\u5f84\s*([0-9]+(?:\.[0-9]+)?)\s*(m|\u7c73)?
+        multiplier: 0.5
+        unit: m
+  foundationBuriedDepth:
+    name: 基础埋深
+    value_type: number
+    standard_unit: m
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 基础埋深
+    unit_aliases:
+      - m
+      - 米
+    patterns:
+      - (?:基础埋深).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m|米)?
+  pileSectionRadius:
+    name: 桩界面半径
+    value_type: number
+    standard_unit: m
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 桩界面半径
+      - 桩截面半径
+    unit_aliases:
+      - m
+      - 米
+    patterns:
+      - (?:桩界面半径|桩截面半径).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m|米)?
+  pileRingCount:
+    name: 桩圈数
+    value_type: string
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 桩圈数
+      - 分两圈布置
+      - 两圈
+    patterns:
+      - (\u4e24\u5708)\u5e03\u7f6e
+      - \u5206([^\uff0c\u3002\uff1b;\n]{1,10}\u5708)\u5e03\u7f6e
+    validators:
+      allow_pattern: '圈'
+      reject_patterns:
+        - '^\s*[0-9]+(?:\.[0-9]+)?\s*$'
+  pilesPerRing:
+    name: 每圈桩数
+    value_type: string
+    extraction_policy: rule_first
+    preferred_methods:
+      - regex
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 每圈桩数
+      - 第一圈布置
+      - 第二圈布置
+    patterns:
+      - (\u7b2c\u4e00\u5708\u5e03\u7f6e[0-9]+\u6839[^\u3002\uff1b;\n]{0,30}\u7b2c\u4e8c\u5708\u5e03\u7f6e[0-9]+\u6839)
+    validators:
+      allow_pattern: '第一圈.*第二圈|第二圈.*第一圈'
+  foundationExcavationQuantity:
+    name: 基础开挖量
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 基础开挖量
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - (?:基础开挖量).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m³|m3|立方米)?
+  foundationBackfillQuantity:
+    name: 基础回填量
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 基础回填量
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - (?:基础回填量).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m³|m3|立方米)?
+  windFoundationConcreteQuantity:
+    name: 风机基础混凝土量
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 箱变基础
+        - 财务
+    aliases:
+      - 混凝土量（C40、C20）
+      - 风机基础混凝土量
+      - 混凝土量
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - (?:混凝土量（C40、C20）|风机基础混凝土量|混凝土量).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m³|m3|立方米)?
+  windFoundationRebarQuantity:
+    name: 风机基础钢筋工程量
+    value_type: number
+    standard_unit: t
+    sections:
+      include:
+        - 风机基础
+        - 解析数据
+      exclude:
+        - 箱变基础
+        - 财务
+    aliases:
+      - 钢筋工程量
+      - 风机基础钢筋工程量
+    unit_aliases:
+      - t
+      - 吨
+    patterns:
+      - (?:钢筋工程量|风机基础钢筋工程量).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(t|吨)?
+  boxFoundationConcreteC25Quantity:
+    name: 箱变基础混凝土量C25
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 箱变基础
+        - 解析数据
+        - 箱式变电站基础
+        - 风机基础
+      exclude:
+        - 财务
+    aliases:
+      - 混凝土量（C25）
+      - 箱变基础混凝土量
+      - 混凝土（C25）
+      - 混凝土C25
+      - C25混凝土
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - (?:混凝土量（C25）|箱变基础混凝土量).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m³|m3|立方米)?
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 混凝土（C25）
+        - 混凝土C25
+        - C25混凝土
+      row_label_columns: 1
+      row_label_match: contains
+      column_aliases:
+        - 工程量
+  boxFoundationRebarQuantity:
+    name: 箱变基础钢筋工程量
+    value_type: number
+    standard_unit: t
+    sections:
+      include:
+        - 箱变基础
+        - 解析数据
+        - 箱式变电站基础
+        - 风机基础
+      exclude:
+        - 财务
+        - 施工
+        - 吊装
+    aliases:
+      - 钢筋工程量
+      - 箱变基础钢筋工程量
+      - 钢筋
+      - 钢筋（HPB300、HRB400）
+    unit_aliases:
+      - t
+      - 吨
+    patterns:
+      - \u94a2\u7b4b\uff08HPB300\u3001HRB400\uff09\s*\|\s*t\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 钢筋
+        - 钢筋（HPB300、HRB400）
+      row_label_columns: 1
+      row_label_match: contains
+      column_aliases:
+        - 工程量
+    coarse_table_rule_enabled: false
+  accessRoadLength:
+    name: 进站道路工程量
+    value_type: number
+    standard_unit: km
+    sections:
+      include:
+        - 道路
+        - 解析数据
+        - 道路设计
+        - 土建工程
+        - 施工组织设计
+      exclude:
+        - 财务
+        - 概算
+        - 材料
+    aliases:
+      - 进站道路工程量
+      - 进站道路
+    unit_aliases:
+      - km
+      - 公里
+      - 千米
+      - m
+      - 米
+    patterns:
+      - '(?:进站道路工程量|进站道路|进升压站道路)[^。；;\n]{0,30}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路表格进站道路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [道路, 施工组织, 交通运输, 综合说明]
+      section_exclude: [财务, 材料]
+      require_any: [进站道路, 进升压站道路]
+      section_fallback_require_all: [进站道路]
+      patterns:
+      - '进站道路\s*\|\s*(?P<unit>km|公里|千米|m|米)\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '(?:进站道路|进升压站道路)(?:长(?:度)?|约|为|共|合计)?[^0-9。；;\n（(]{0,16}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)(?![^。；;\n]{0,12}(?:采用|路面|混凝土|泥结|碎石))'
+      prefer_any:
+        进站道路: 120
+      penalize_any:
+        无需新建进站道路: 200
+      validators:
+        min: 0.001
+        max: 50
+    value_headers:
+      - 数量
+      - 数  量
+      - 推荐方案
+    validators:
+      min: 0.001
+      max: 50
+  siteEntryRoadLength:
+    name: 进场道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include:
+        - 道路
+        - 解析数据
+        - 道路设计
+        - 土建工程
+        - 施工组织设计
+        - 交通运输
+      exclude:
+        - 财务
+        - 概算
+        - 材料
+    aliases:
+      - 进场道路长度
+      - 进场道路
+    unit_aliases:
+      - km
+      - 公里
+      - 千米
+      - m
+      - 米
+    patterns:
+      - '进场道路[^。；;\n]{0,30}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文进场道路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [道路, 施工组织, 交通运输, 综合说明]
+      section_exclude: [财务, 材料]
+      require_any: [进场道路]
+      section_fallback_require_all: [进场道路]
+      patterns:
+      - '进场道路[（(][^）)]{0,80}?[）)]\s*(?P<unit>km|公里|千米|m|米)\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '进场道路\s*\|\s*(?P<unit>km|公里|千米|m|米)\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '进场道路(?:长(?:度)?|约|为|共|合计)?[^0-9。；;\n（(]{0,16}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)(?![^。；;\n]{0,12}(?:采用|路面|混凝土|泥结|碎石))'
+      penalize_any:
+        进场道路改造: 120
+        无需新建进场道路: 200
+      validators:
+        min: 0.001
+        max: 500
+    value_headers:
+      - 数量
+      - 数  量
+      - 推荐方案
+    validators:
+      min: 0.001
+      max: 500
+  accessRoadSubgradeWidth:
+    name: 进站道路路基宽度
+    value_type: number
+    standard_unit: m
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文进站道路路基宽度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: m
+      value_group: value
+      section_include: [道路, 施工组织, 交通运输]
+      section_fallback_require_all: [进场道路, 路基]
+      section_exclude: [财务]
+      require_any: [道路]
+      patterns:
+      - '进场道路[（(][^）)]{0,80}?路基\s*宽\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      - '(?:进站道路|进升压站道路|进场道路)[^。；;\n]{0,80}?路基(?:设计)?宽(?:度)?(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      prefer_any:
+        进场道路（路面宽: 100
+      validators:
+        min: 2
+        max: 12
+    validators:
+      min: 2
+      max: 12
+  accessRoadPavementWidth:
+    name: 进站道路路面宽度
+    value_type: number
+    standard_unit: m
+    validators:
+      min: 2
+      max: 12
+  newRoadLength:
+    name: 新建道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [道路, 场内道路, 交通运输, 施工组织, 施工组织设计]
+      exclude: [财务, 概算, 材料]
+    aliases: [新建道路长度, 新建道路, 新建场内道路, 新修道路]
+    unit_aliases: [km, 公里, 千米, m, 米]
+    patterns:
+      - '(?:新建道路长度|新建道路|新建场内道路|新修道路)[^。；;\n]{0,30}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文新建道路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      value_group: value
+      section_include: [道路, 施工组织, 交通运输]
+      section_exclude: [财务, 概算, 材料]
+      require_any: [新建, 道路]
+      section_fallback_require_all: [新建, 道路]
+      patterns:
+      - '其中新建道路为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '(?:场内新建道路|新建道路)\s*\|\s*(?P<unit>km|公里|千米|m|米)\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)\s*为新建道路'
+      - '(?:新建|新修)[^。；;\n]{0,12}?道路(?:长(?:度)?|约|为|共|合计)?[^0-9。；;\n]{0,16}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      prefer_any:
+        其中新建道路为: 120
+        修建施工道路: 80
+      penalize_any:
+        征地: 160
+        按3m: 160
+      validators:
+        min: 0.001
+        max: 500
+    validators:
+      min: 0.001
+      max: 500
+  rebuiltRoadLength:
+    name: 改建道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [道路, 场内道路, 交通运输, 施工组织, 施工组织设计]
+      exclude: [财务, 概算, 材料]
+    aliases: [改建道路长度, 改建道路, 改扩建道路, 扩建道路, 现有土路改造, 场内现有土路改造]
+    unit_aliases: [km, 公里, 千米, m, 米]
+    patterns:
+      - '(?:改建道路长度|改建道路|改扩建道路|扩建道路|现有土路改造|场内现有土路改造)[^。；;\n]{0,30}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文改建道路长度
+      source_types: [paragraph, table]
+      value_type: number
+      value_group: value
+      section_include: [道路, 施工组织, 交通运输]
+      section_exclude: [财务, 概算, 材料]
+      require_any: [道路]
+      section_fallback_require_all: [进场道路, 道路改造, 改建长度]
+      patterns:
+      - '改建长度约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '(?:场内现有土路改造|现有土路改造|场内道路改造|改建道路|改扩建道路|扩建道路)\s*\|\s*(?P<unit>km|公里|千米|m|米)\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)\s*为(?:改建|改扩建|扩建)道路'
+      - '(?:改建|改扩建|扩建|现有土路改造)[^。；;\n]{0,12}?道路?(?:长(?:度)?|约|为|共|合计)?[^0-9。；;\n]{0,16}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      validators:
+        min: 0.001
+        max: 500
+    validators:
+      min: 0.001
+      max: 500
+  subgradeWidth:
+    name: 路基宽度
+    value_type: number
+    standard_unit: m
+    validators:
+      min: 2
+      max: 12
+  siteRoadLength:
+    name: 场内道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include: [道路, 场内道路, 土建]
+      exclude: [财务, 概算, 投资, 施工组织]
+    aliases: [场内道路长度, 场内运输道路]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文场内道路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: km
+      value_group: value
+      section_include: [道路, 场内道路, 土建]
+      section_exclude: [财务, 概算, 投资, 施工组织]
+      require_any: [场内]
+      patterns:
+      - '道路\s*\|\s*km\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '场内[^。；;\n]{0,20}?(?:运输道路|道路)[^。；;\n]{0,12}?约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      - '场内通往各风机点位的运输道路约\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米|m|米)'
+      prefer_any:
+        运输道路: 100
+        道路工程量: 60
+      penalize_any:
+        施工: 120
+        施工组织: 120
+      validators:
+        min: 0.1
+        max: 500
+    validators:
+      min: 0.1
+      max: 500
+  maintenanceRoadLength:
+    name: 检修道路长度
+    value_type: number
+    standard_unit: km
+    coarse_table_rule_enabled: false
+    sections:
+      include: [道路, 场内道路, 土建, 施工组织]
+      exclude: [财务, 概算, 投资]
+    aliases: [检修道路长度, 检修道路]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文检修道路长度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: km
+      value_group: value
+      section_include: [道路, 场内道路, 土建, 施工组织]
+      section_exclude: [财务, 概算, 投资]
+      require_any: [检修道路]
+      patterns:
+      - '(?:场内[^。；;\n]{0,24}?)?检修道路(?:长(?:度)?|长度|约)[^0-9。；;\n]{0,16}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>km|公里|千米)'
+      validators:
+        min: 0.001
+        max: 500
+    validators:
+      min: 0.001
+      max: 500
+  maintenanceRoadSubgradeWidth:
+    name: 检修道路路基宽度
+    value_type: number
+    standard_unit: m
+    sections:
+      include: [道路, 场内道路, 土建, 施工组织]
+      exclude: [财务, 概算, 投资]
+    aliases: [检修道路路基宽度, 检修道路路基宽, 检修道路路基]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文检修道路路基宽度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: m
+      value_group: value
+      section_include: [道路, 场内道路, 土建, 施工组织]
+      section_exclude: [财务, 概算, 投资]
+      require_any: [检修道路, 路基]
+      patterns:
+      - '修复成\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m\s*宽作为检修道路路基'
+      - '检修道路[^。；;\n]{0,100}?按路基宽\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      - '检修道路[^。；;\n]{0,100}?路基(?:设计)?宽(?:度)?(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      validators:
+        min: 2
+        max: 12
+    validators:
+      min: 2
+      max: 12
+  maintenanceRoadPavementWidth:
+    name: 检修道路路面宽度
+    value_type: number
+    standard_unit: m
+    sections:
+      include: [道路, 场内道路, 土建, 施工组织]
+      exclude: [财务, 概算, 投资]
+    aliases: [检修道路路面宽度, 检修道路路面宽, 检修道路路面]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文检修道路路面宽度
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: m
+      value_group: value
+      section_include: [道路, 场内道路, 土建, 施工组织]
+      section_exclude: [财务, 概算, 投资]
+      require_any: [检修道路, 路面]
+      patterns:
+      - '检修道路[^。；;\n]{0,140}?路面(?:宽(?:度)?|为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m(?:宽)?'
+      - '作为检修道路路基[^。；;\n]{0,60}?路面(?:宽(?:度)?|为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m(?:宽)?'
+      validators:
+        min: 2
+        max: 12
+    validators:
+      min: 2
+      max: 12
+  totalLandArea:
+    name: 总占地面积
+    value_type: number
+    standard_unit: ㎡
+    sections:
+      include: [土建升压站, 升压站, 土建, 总平面]
+      exclude: [财务, 概算, 投资]
+    aliases: [总占地面积, 升压站占地面积, 站区占地面积]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 土建升压站正文占地面积
+      source_types: [paragraph, table, pdf_page_text]
+      value_type: number
+      unit: ㎡
+      value_group: value
+      section_include: [土建, 升压站, 总平面]
+      section_exclude: [财务, 概算, 投资]
+      require_any: [占地面积]
+      patterns:
+      - '(?:升压站|站区)[^。；;\n]{0,20}?占地面积(?:为|约|：|:)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m²|m2|㎡|平方米)'
+      - '(?:总占地面积|占地面积)(?:为|约|：|:)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m²|m2|㎡|平方米)'
+      prefer_any:
+        升压站: 100
+        站区: 80
+        总平面: 40
+      validators:
+        min: 1
+        max: 1000000
+  pavementWidth:
+    name: 路面宽度
+    value_type: number
+    standard_unit: m
+    sections:
+      include: [道路, 施工组织设计, 土建, 风机基础]
+      exclude: [财务, 概算, 材料]
+    aliases: [路面宽度, 路面宽]
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 道路正文路面宽度
+      source_types: [paragraph, table]
+      value_type: number
+      unit: m
+      value_group: value
+      section_include: [道路, 施工组织, 土建, 风机基础]
+      section_exclude: [财务, 概算, 材料]
+      require_any: [路面]
+      patterns:
+      - '施工道路[^。；;\n]{0,60}?路面(?:宽度|宽)\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      - '施工期路基宽度[^。；;\n]{0,40}?路面(?:宽度|宽)\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      - '场内道路路面宽度\s*\|\s*m\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      - '保留\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m\s*宽路面作为检修道路路面'
+      - '路面\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m(?:\s*宽)?作为检修道路路面'
+      - '路面(?:宽度|宽)\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m'
+      prefer_any:
+        施工道路: 80
+        施工期: 60
+        场内道路: 30
+      validators:
+        min: 2
+        max: 12
+  permanentLandWindFoundationArea:
+    name: 永久占地-风机基础
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 永久性占地项目
+    aliases:
+      - 风机基础
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:风机基础).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m²|m2|㎡|平方米)?
+  permanentLandBoxTransformerArea:
+    name: 永久占地-箱变基础
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 永久性占地项目
+    aliases:
+      - 箱变基础
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:箱变基础).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m²|m2|㎡|平方米)?
+  permanentLandSubstationArea:
+    name: 永久占地-110kV升压站
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 永久性占地项目
+    aliases:
+      - 110kV升压站
+      - 升压站
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:110kV升压站|升压站).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m²|m2|㎡|平方米)?
+  permanentLandCollectorTowerArea:
+    name: 永久占地-集电线路杆塔征地
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 永久性占地项目
+    aliases:
+      - 集电线路杆塔征地
+      - 杆塔征地
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:集电线路杆塔征地|杆塔征地).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m²|m2|㎡|平方米)?
+  permanentLandAccessRoadArea:
+    name: 永久占地-进升压站道路
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 永久性占地项目
+    aliases:
+      - 进升压站道路
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:进升压站道路).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m²|m2|㎡|平方米)?
+  permanentLandTotalArea:
+    name: 永久占地合计
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 永久性占地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 长期租地
+        - 临时性占地
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 永久性占地项目
+    aliases:
+      - 合计
+      - 永久性占地合计
+      - 永久占地合计
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+      - 亩
+    patterns:
+      - (?:永久性占地项目|永久占地).{0,120}?合计.{0,20}?([0-9]+(?:\.[0-9]+)?)
+  longTermLeaseCableBuriedArea:
+    name: 长期租地-电缆直埋征地
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 长期租地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 长期租地
+    aliases:
+      - 电缆直埋征地
+      - 电缆直埋征地（宽1m）
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:电缆直埋征地(?:（宽1m）)?).{0,30}?([0-9]+(?:\.[0-9]+)?)
+    value_headers:
+      - 面积
+  longTermLeasePermanentRoadArea:
+    name: 长期租地-场内永久道路
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 长期租地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 长期租地
+    aliases:
+      - 场内永久道路
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:场内永久道路).{0,30}?([0-9]+(?:\.[0-9]+)?)
+    value_headers:
+      - 面积
+  longTermLeaseAccessRoadArea:
+    name: 长期租地-进站道路
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 长期租地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 长期租地
+    aliases:
+      - 进站道路
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:进站道路).{0,30}?([0-9]+(?:\.[0-9]+)?)
+    value_headers:
+      - 面积
+  longTermLeaseTotalArea:
+    name: 长期租地合计
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 长期租地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 永久性占地
+        - 临时性占地
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 长期租地
+    aliases:
+      - 合计
+      - 长期租地合计
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+      - 亩
+    patterns:
+      - (?:长期租地项目|长期租地).{0,120}?合计.{0,20}?([0-9]+(?:\.[0-9]+)?)
+  temporaryLandPlatformArea:
+    name: 临时占地-场内平整安装平台
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 临时性占地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 临时性占地项目
+    aliases:
+      - 场内平整（安装平台）
+      - 安装平台
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:场内平整（安装平台）|安装平台).{0,30}?([0-9]+(?:\.[0-9]+)?)
+    value_headers:
+      - 面积
+  temporaryLandConstructionRoadArea:
+    name: 临时占地-临时施工道路
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 临时性占地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 临时性占地项目
+    aliases:
+      - 临时施工道路
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:临时施工道路).{0,30}?([0-9]+(?:\.[0-9]+)?)
+    value_headers:
+      - 面积
+  temporaryLandLivingArea:
+    name: 临时占地-生活临建
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 临时性占地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 临时性占地项目
+    aliases:
+      - 生活临建
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+    patterns:
+      - (?:生活临建).{0,30}?([0-9]+(?:\.[0-9]+)?)
+    value_headers:
+      - 面积
+  temporaryLandTotalArea:
+    name: 临时性占地合计
+    value_type: number
+    standard_unit: m2
+    sections:
+      include:
+        - 用地面积
+        - 临时性占地
+        - 解析数据
+        - 工程占地
+        - 施工组织
+        - 用地
+      exclude:
+        - 永久性占地
+        - 长期租地
+        - 财务
+        - 土石方
+        - 材料
+        - 电气
+        - 概算
+    row_context:
+      require_any:
+        - 工程占地
+        - 用地面积
+      row_require_any:
+        - 临时性占地项目
+    aliases:
+      - 合计
+      - 临时性占地合计
+      - 临时占地合计
+    value_headers:
+      - 面积
+    unit_aliases:
+      - m²
+      - m2
+      - ㎡
+      - 平方米
+      - 亩
+    patterns:
+      - (?:临时性占地项目|临时性占地|临时占地).{0,120}?合计.{0,20}?([0-9]+(?:\.[0-9]+)?)
+  roadEarthworkExcavation:
+    name: 道路土方开挖
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 道路
+    value_headers:
+      - 土方开挖
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 道路\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|
+  roadEarthworkBackfill:
+    name: 道路土方回填
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 道路
+    value_headers:
+      - 土方回填
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 道路\s*\|\s*[0-9]+(?:\.[0-9]+)?\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+  windPlatformEarthworkExcavation:
+    name: 风机平台土方开挖
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 风机平台
+    value_headers:
+      - 土方开挖
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 风机平台\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|
+  windPlatformEarthworkBackfill:
+    name: 风机平台土方回填
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 风机平台
+    value_headers:
+      - 土方回填
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 风机平台\s*\|\s*[0-9]+(?:\.[0-9]+)?\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+  windFoundationEarthworkExcavation:
+    name: 风机基础土方开挖
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 风机基础
+    value_headers:
+      - 土方开挖
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 风机基础\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|
+  windFoundationEarthworkBackfill:
+    name: 风机基础土方回填
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 风机基础
+    value_headers:
+      - 土方回填
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 风机基础\s*\|\s*[0-9]+(?:\.[0-9]+)?\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+  boxFoundationEarthworkExcavation:
+    name: 箱变基础土方开挖
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 箱变基础
+    value_headers:
+      - 土方开挖
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 箱变基础\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|
+  boxFoundationEarthworkBackfill:
+    name: 箱变基础土方回填
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 箱变基础
+    value_headers:
+      - 土方回填
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 箱变基础\s*\|\s*[0-9]+(?:\.[0-9]+)?\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+  substationEarthworkExcavation:
+    name: 升压站土方开挖
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 升压站
+    value_headers:
+      - 土方开挖
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 升压站\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|
+    row_label_aliases:
+      - 升压站
+    row_label_match: exact
+    row_label_columns: 1
+    coarse_table_rule_enabled: true
+  substationEarthworkBackfill:
+    name: 升压站土方回填
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 升压站
+    value_headers:
+      - 土方回填
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 升压站\s*\|\s*[0-9]+(?:\.[0-9]+)?\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+    row_label_aliases:
+      - 升压站
+    row_label_match: exact
+    row_label_columns: 1
+    coarse_table_rule_enabled: true
+  totalEarthworkExcavation:
+    name: 合计土方开挖
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 合计
+    value_headers:
+      - 土方开挖
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 合计\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|
+  totalEarthworkBackfill:
+    name: 合计土方回填
+    value_type: number
+    standard_unit: m3
+    sections:
+      include:
+        - 土石方平衡
+        - 解析数据
+      exclude:
+        - 财务
+    row_context:
+      require_any:
+        - 土石方平衡
+        - 土方开挖
+        - 土方回填
+      reject_any:
+        - 工程占地
+        - 用地面积
+        - 主要材料
+        - 电气材料
+    aliases:
+      - 合计
+    value_headers:
+      - 土方回填
+    unit_aliases:
+      - m³
+      - m3
+      - 立方米
+    patterns:
+      - 合计\s*\|\s*[0-9]+(?:\.[0-9]+)?\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+  totalProjectCost:
+    name: 总费用
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include:
+        - 技经概算
+        - 解析数据
+        - 主要技术经济指标
+        - 结论
+        - 设计概算
+      exclude:
+        - 财务
+    aliases:
+      - 总费用
+      - 工程总投资
+      - 动态工程总投资
+    unit_aliases:
+      - 万元
+    patterns:
+      - (?:总费用).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(万元)?
+    value_headers:
+      - 合计
+      - 数量
+      - 数  量
+  installationCost:
+    name: 安装费
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include:
+        - 技经概算
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 安装费
+      - 设备及安装工程
+    unit_aliases:
+      - 万元
+    patterns:
+      - \u7b2c\u4e8c\u90e8\u5206\s*\u8bbe\u5907\u53ca\u5b89\u88c5\u5de5\u7a0b.{0,160}?([0-9]+(?:\.[0-9]+)?)\s*(\u4e07\u5143)?
+    row_context:
+      require_any:
+        - 设备及安装工程
+      row_require_any:
+        - 设备及安装工程
+    table_lookup:
+      header_rows: 3
+      row_aliases:
+        - 第二部分 设备及安装工程
+      row_label_columns: 2
+      row_label_match: contains
+      column_aliases:
+        - 安装费
+      column_occurrence: 2
+  constructionCost:
+    name: 施工费
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include:
+        - 技经概算
+        - 解析数据
+        - 主要技术经济指标
+        - 结论
+        - 设计概算
+      exclude:
+        - 财务
+    aliases:
+      - 第一部分施工辅助工程
+      - 施工费
+      - 施工辅助工程
+      - 建筑及安装工程费
+    unit_aliases:
+      - 万元
+    patterns:
+      - (?:施工费).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(万元)?
+    value_headers:
+      - 合计
+    row_context:
+      require_any:
+        - 施工辅助工程
+      row_require_any:
+        - 施工辅助工程
+  mainEquipmentUnitPrice:
+    name: 主要设备单价
+    value_type: string
+    sections:
+      include:
+        - 技经概算
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 主要设备单价
+    patterns:
+      - (?:主要设备单价)[:：\s]*([^，。；;\n]{1,80})
+  materialPriceLevel:
+    name: 材料价格水平
+    value_type: string
+    sections:
+      include:
+        - 技经概算
+        - 解析数据
+      exclude:
+        - 财务
+    aliases:
+      - 材料价格水平
+    patterns:
+      - (?:材料价格水平)[:：\s]*([^，。；;\n]{1,80})
+  unitKwStaticInvestment:
+    name: 单位千瓦静态投资
+    value_type: number
+    standard_unit: 元/kW
+    sections:
+      include:
+        - 技经概算
+        - 投资估算
+        - 解析数据
+        - 综合说明
+        - 设计概算
+        - 主要技术经济指标
+      exclude:
+        - 风资源
+        - 机组选型
+    aliases:
+      - 单位千瓦静态投资
+    unit_aliases:
+      - 元/kW
+      - 元/千瓦
+    patterns:
+      - (?:单位千瓦静态投资).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(元/kW|元/千瓦)?
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 单位千瓦静态投资
+      row_label_columns: 2
+      row_label_match: contains
+      column_aliases:
+        - 数  量
+        - 数量
+    validators:
+      min: 0
+      max: 30000
+  constructionPeriodYears:
+    name: 建设期
+    value_type: number
+    standard_unit: 年
+    sections:
+      include:
+        - 财务
+        - 解析数据
+        - 综合说明
+      exclude:
+        - 风资源
+        - 敏感性分析
+        - 资产负债
+        - 借款
+    aliases:
+      - 建设期
+    unit_aliases:
+      - 年
+    patterns:
+      - \u5efa\u8bbe\u671f\s*([0-9]+(?:\.[0-9]+)?)\s*(\u5e74)
+      - \u5176\u4e2d\u5efa\u8bbe\u671f\s*([0-9]+(?:\.[0-9]+)?)\s*(\u5e74)
+    validators:
+      min: 0
+      max: 10
+  loanInterestRate:
+    name: 贷款利率
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+        - 设计概算
+        - 建设期利息
+      exclude:
+        - 风资源
+        - 敏感性分析
+        - 贷款利率变化分析
+    aliases:
+      - 贷款利率
+      - 建设期利息
+    unit_aliases:
+      - '%'
+    patterns:
+      - \u8d37\u6b3e\u5229\u7387\s*([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)
+      - \u5efa\u8bbe\u671f\u5229\u606f\u6309\u8d37\u6b3e\u5229\u7387\s*([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)
+    coarse_table_rule_enabled: false
+    validators:
+      min: 0
+      max: 30
+  constructionFundLoanRatio:
+    name: 建设资金贷款比例
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 建设资金贷款比例
+      - 银行贷款
+      - 国内银行贷款
+    unit_aliases:
+      - '%'
+    patterns:
+      - ([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)\s*(?:\u56fd\u5185)?\u94f6\u884c\u8d37\u6b3e
+      - ([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)\s*\u91c7\u7528\u94f6\u884c\u8d37\u6b3e
+  repaymentPeriod:
+    name: 偿还年限
+    value_type: number
+    standard_unit: 年
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 偿还年限
+      - 借款偿还期
+      - 还贷期
+    unit_aliases:
+      - 年
+    patterns:
+      - (?:\u501f\u6b3e\u507f\u8fd8\u671f|\u507f\u8fd8\u5e74\u9650).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(\u5e74)?
+      - \u8fd8\u8d37\u671f\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*(\u5e74)
+    validators:
+      min: 0
+      max: 50
+  annualLoanInterestRate:
+    name: 年贷款利率
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 年贷款利率
+    unit_aliases:
+      - '%'
+    patterns:
+      - (?:年贷款利率).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+  staffingCount:
+    name: 定员人数
+    value_type: number
+    standard_unit: 人
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 定员人数
+      - 定员
+      - 生产单位定员
+    unit_aliases:
+      - 人
+    patterns:
+      - \u5171\u8ba1\s*([0-9]+)\s*(\u4eba)
+      - \u5b9a\u5458\s*([0-9]+)\s*(\u4eba)
+      - \u751f\u4ea7\u5355\u4f4d\u5b9a\u5458\s*\|\s*\u4eba\s*\|\s*([0-9]+)
+    validators:
+      min: 0
+      max: 1000
+  staffSalary:
+    name: 人员工资
+    value_type: string
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 人员工资
+      - 人均年工资
+    patterns:
+      - (?:人员工资|人均年工资)[:：\s]*([^，。；;\n]{1,80})
+  welfareOtherRatio:
+    name: 职工福利费及其他占比
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 职工福利费及其他占比
+      - 职工福利费
+      - 劳保统筹费
+      - 住房基金
+    unit_aliases:
+      - '%'
+    patterns:
+      - \u804c\u5de5\u798f\u5229\u8d39[^\u3002\uff1b;\n]{0,40}\u6309\s*([0-9]+(?:\.[0-9]+)?)\s*(%)
+      - \u52b3\u4fdd\u7edf\u7b79\u8d39[^\u3002\uff1b;\n]{0,40}\u6309\s*([0-9]+(?:\.[0-9]+)?)\s*(%)
+    validators:
+      min: 0
+      max: 100
+  insuranceRate:
+    name: 保险费率
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 保险费率
+    unit_aliases:
+      - '%'
+    patterns:
+      - (?:保险费率).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+  materialCost:
+    name: 材料费
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 材料费
+    unit_aliases:
+      - 万元
+    patterns:
+      - (?:材料费).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(万元)?
+  landUseTax:
+    name: 土地使用税
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 土地使用税
+    unit_aliases:
+      - 万元
+    patterns:
+      - (?:土地使用税).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(万元)?
+  incomeTax:
+    name: 所得税
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 所得税
+    unit_aliases:
+      - 万元
+    patterns:
+      - (?<!\u524d)(?<!\u540e)\u6240\u5f97\u7a0e\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+      - \u6240\u5f97\u7a0e[^\u524d\u540e\u3002\uff1b;\n]{0,20}?([0-9]+(?:\.[0-9]+)?)\s*(\u4e07\u5143)?
+    row_label_aliases:
+      - 所得税
+    row_label_match: exact
+    row_label_columns: 2
+    row_label_reject_any: &id001
+      - 所得税前
+      - 所得税后
+      - 调整所得税
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 所得税
+      row_label_columns: 2
+      row_label_match: exact
+      row_label_reject_any: *id001
+      column_aliases:
+        - 合计
+    coarse_table_rule_enabled: true
+  projectInvestmentIrrBeforeTax:
+    name: 项目投资财务内部收益率所得税前
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 所得税前
+      - 项目投资财务内部收益率所得税前
+    unit_aliases:
+      - '%'
+    patterns:
+      - (?:所得税前)[:：\s]*([0-9]+(?:\.[0-9]+)?)
+  projectInvestmentIrrAfterTax:
+    name: 项目投资财务内部收益率所得税后
+    value_type: number
+    standard_unit: '%'
+    sections:
+      include:
+        - 财务
+        - 解析数据
+      exclude:
+        - 风资源
+    aliases:
+      - 所得税后
+      - 项目投资财务内部收益率所得税后
+    unit_aliases:
+      - '%'
+    patterns:
+      - (?:所得税后)[:：\s]*([0-9]+(?:\.[0-9]+)?)

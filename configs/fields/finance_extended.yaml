@@ -1,0 +1,136 @@
+﻿fields:
+  projectCapitalRatio:
+    name: 项目资本金比例
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务评价, 资金筹措, 投资估算, 主要技术经济指标]
+      exclude: [风资源]
+    aliases:
+      - 资本金比例
+      - 项目资本金比例
+      - 资本金占比
+      - 资本金占总投资
+      - 企业自筹
+      - 建设资本金比例
+      - 建设资金资本金比例
+    unit_aliases: ["%"]
+    patterns:
+      - \u8d44\u672c\u91d1\u5360\u603b\u6295\u8d44\u7684\s*([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)
+      - ([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)\s*\u4f01\u4e1a\u81ea\u7b79
+      - \u8d44\u672c\u91d1\u5360\u52a8\u6001\u6295\u8d44\u7684\s*([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)
+    prefer_evidence_contains:
+      - 资本金占动态投资
+      - 资本金占总投资
+      - 企业自筹
+    reject_evidence_contains:
+      - 总投资收益率
+      - 投资利税率
+      - 财务内部收益率
+    validators:
+      min: 0
+      max: 100
+
+  loanRatio:
+    name: 贷款比例
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务评价, 资金筹措, 投资估算, 概述, 建设资金来源]
+      exclude: [风资源]
+    aliases:
+      - 贷款比例
+      - 债务资金比例
+      - 银行贷款比例
+      - 银行贷款
+      - 国内银行贷款
+      - 建设资金贷款比例
+    unit_aliases: ["%"]
+    patterns:
+      - \u603b\u6295\u8d44\u7684\s*([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)\s*(?:\u91c7\u7528|\u4f7f\u7528|\u7531)?\u94f6\u884c\u8d37\u6b3e
+      - ([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)\s*(?:\u56fd\u5185)?\u94f6\u884c\u8d37\u6b3e
+      - ([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)\s*\u91c7\u7528\u94f6\u884c\u8d37\u6b3e
+      - \u94f6\u884c\u8d37\u6b3e[^\u3002\uff1b;\n]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*(%|\uff05)
+    prefer_evidence_contains:
+      - 银行贷款
+      - 建设资金来源
+      - 贷款年利率
+    reject_evidence_contains:
+      - 资本金占动态投资
+      - 总投资收益率
+      - 投资利税率
+    validators:
+      min: 0
+      max: 100
+      require_evidence_any:
+        - 银行贷款
+        - 贷款
+
+  annualRevenue:
+    name: 年营业收入
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [财务评价, 营业收入, 经济评价]
+      exclude: [风资源]
+    aliases: [年营业收入, 营业收入, 年销售收入]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:年营业收入|营业收入|年销售收入).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  annualProfit:
+    name: 年利润总额
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [财务评价, 利润, 经济评价]
+      exclude: [风资源]
+    aliases: [年利润总额, 利润总额]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:年利润总额|利润总额).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: -100000
+
+  netPresentValue:
+    name: 财务净现值
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [财务评价, 财务净现值, 经济评价, 主要技术经济指标]
+      exclude: [风资源]
+    aliases: [财务净现值, 净现值, FNPV]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:财务净现值|净现值|FNPV).{0,30}?([-+]?[0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: -100000
+
+  debtServiceCoverageRatio:
+    name: 偿债备付率
+    value_type: number
+    sections:
+      include: [财务评价, 偿债能力, 经济评价]
+      exclude: [风资源]
+    aliases: [偿债备付率, DSCR]
+    patterns:
+      - "(?:偿债备付率|DSCR).{0,30}?([0-9]+(?:\\.[0-9]+)?)"
+    validators:
+      min: 0
+
+  assetLiabilityRatio:
+    name: 资产负债率
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务评价, 清偿能力, 经济评价]
+      exclude: [风资源]
+    aliases: [资产负债率]
+    unit_aliases: ["%"]
+    patterns:
+      - "(?:资产负债率).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(%)?"
+    validators:
+      min: 0
+      max: 100

@@ -1,0 +1,16 @@
+units:
+  wind_speed:
+    standard: m/s
+    aliases: [m/s, 米/秒, m·s-1]
+
+  capacity:
+    standard: MW
+    aliases: [MW, 兆瓦, 万kW]
+
+  energy:
+    standard: 万kWh
+    aliases: [万kWh, 万千瓦时]
+
+  percent:
+    standard: "%"
+    aliases: ["%", 百分比]

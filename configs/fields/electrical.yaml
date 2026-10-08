@@ -1,0 +1,61 @@
+fields:
+  voltageLevel:
+    name: 电压等级
+    value_type: string
+    standard_unit: kV
+    sections:
+      include: [电气, 升压站, 接入系统]
+      exclude: [风资源, 财务评价]
+    aliases: [电压等级, 接入电压, 升压站电压]
+    unit_aliases: [kV, 千伏]
+    patterns:
+      - "(?:电压等级|接入电压|升压站电压).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(kV|千伏)?"
+    validators:
+      min: 0
+
+  turbineCapacity:
+    name: 单机容量
+    value_type: number
+    standard_unit: MW
+    sections:
+      include: [工程概况, 机组选型, 风力发电机组, 主要技术经济指标]
+      exclude: [财务评价]
+    aliases: [单机容量, 风机单机容量, 机组容量]
+    unit_aliases: [MW, 兆瓦]
+    patterns:
+      - "(?:单机容量|风机单机容量|机组容量).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(MW|兆瓦)?"
+    validators:
+      min: 0
+
+  turbineCount:
+    name: 风机台数
+    value_type: number
+    standard_unit: 台
+    sections:
+      include:
+        - 工程概况
+        - 机组选型
+        - 风力发电机组
+        - 主要技术经济指标
+        - 工程招标
+        - 综合说明
+      exclude: [财务评价]
+    aliases:
+      - 风机台数
+      - 风力发电机组台数
+      - 安装台数
+      - 拟安装
+      - 风力发电机组
+      - 装机容量
+    unit_aliases: [台]
+    patterns:
+      - "(?:风机台数|风力发电机组台数|安装台数).{0,30}?([0-9]+)\\s*(台)?"
+    validators:
+      min: 0
+    derived_patterns:
+      - pattern: 
+          (?:\u62df\u5b89\u88c5|\u5b89\u88c5)[^\u3002\uff1b;\n]{0,20}?([0-9]+)\s*\u53f0[^\u3002\uff1b;\n]{0,30}?\u548c\s*([0-9]+)\s*\u53f0[^\u3002\uff1b;\n]{0,80}\u98ce\u529b\u53d1\u7535\u673a\u7ec4
+        op: sum_groups
+        unit: 台
+    regex_fallback_enabled: false
+    coarse_table_rule_enabled: false

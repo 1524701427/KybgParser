@@ -1,0 +1,166 @@
+code	name	status	value	unit	confidence	evidence
+annualEnergy	年上网电量	PASS	47521.1	None	0.99	[{'source_type': 'table', 'text': '6 | 年上网电量 | 万kW·h | 47521.1', 'score': 2.6, 'block_id': None, 'ta
+roadLength	道路长度	PASS	122.8	km	0.99	[{'source_type': 'paragraph', 'text': '本项目新建进站道路0.4km（进站道路前20m采用混凝土路面，路基宽6.0m，路面宽4.0m；其余路段设计标准同场内道路）
+newRoadLength	新建道路长度	PASS	23.1	km	0.99	[{'source_type': 'table', 'text': '1.2.1 | ① | 新建道路 | km | 23.1 | ', 'score': 2.6, 'block_id': None,
+rebuiltRoadLength	改建道路长度	PASS	99.7	km	0.99	[{'source_type': 'paragraph', 'text': '本项目新建进站道路0.4km（进站道路前20m采用混凝土路面，路基宽6.0m，路面宽4.0m；其余路段设计标准同场内道路）
+constructionPeriod	建设工期	PASS	12	月	0.99	[{'source_type': 'paragraph', 'text': '本项目施工场地开阔、建设地点分散。根据工程施工强度和业主意见，确定施工工期为12个月。', 'score': 3.4873
+voltageLevel	电压等级	PASS	35	kV	0.99	[{'source_type': 'paragraph', 'text': '根据风电场的装机规模及风电机组的布置位置，本工程箱式变电站的高压侧选用35kV的电压等级。本工程风电机组与箱式变电站采用“
+mainTransformerCapacity	主变容量	PASS	200	MVA	0.99	[{'source_type': 'paragraph', 'text': '升压站内均设一座水泵房（生活及消防共用），泵房内设置一座生活水箱、一套生活变频恒压供水设备（含两台生活供水泵，互为备用）和
+waterSoilConservationInvestment	水土保持投资	PASS	104.3	万元	0.99	[{'source_type': 'paragraph', 'text': '本期工程所需的环境保护投资为715万元，水土保持投资为104.3万元，水保设施补偿费190.66万元。', 'score'
+capitalIRR	资本金财务内部收益率	PASS	12.09	%	0.99	[{'source_type': 'paragraph', 'text': '财务评价结果表明：投资回收期为11.02年，总投资收益率为5.54%，投资利税率为4.44%，资本金净利润率为11.57%
+paybackPeriod	投资回收期	PASS	11.02	年	0.99	[{'source_type': 'paragraph', 'text': '财务评价结果表明：投资回收期为11.02年，总投资收益率为5.54%，投资利税率为4.44%，资本金净利润率为11.57%
+equivalentHours	等效满负荷小时数	PASS	2376	h	0.99	[{'source_type': 'paragraph', 'text': '陕西华电靖边韩家沟200MW风电项目推荐方案年上网电量为47521.1万kW·h，年等效满负荷小时数为2376h。', '
+stationTransformerCapacity10kv	10kV站用变容量	PASS	315	None	0.99	[{'source_type': 'paragraph', 'text': '接地变变压器选用三相接地变压器，电阻柜选用成套设备，电阻丝采用优质材料。同时1#接地变考虑兼带站用变，站用变容量为315k
+substationTotalArea	总占地面积	PASS	6700	m2	0.99	[{'source_type': 'paragraph', 'text': '升压站总占地面积为6700㎡，围墙内占地面积5952㎡，其中生活区布置有生活预制舱、停车位、备品备件间、水泵房及消防水池、
+substationInsideWallArea	围墙内占地面积	PASS	5952	m2	0.99	[{'source_type': 'paragraph', 'text': '升压站总占地面积为6700㎡，围墙内占地面积5952㎡，其中生活区布置有生活预制舱、停车位、备品备件间、水泵房及消防水池、
+loanInterestRate	贷款利率	PASS	4.2	%	0.99	[{'source_type': 'paragraph', 'text': '工程固定资产静态投资为126411.41万元，建设资金来源为资本金和银行贷款。资本金占静态投资的30%，其余的资金由银行借
+annualLoanInterestRate	年贷款利率	PASS	4.2	%	0.99	[{'source_type': 'paragraph', 'text': '工程固定资产静态投资为126411.41万元，建设资金来源为资本金和银行贷款。资本金占静态投资的30%，其余的资金由银行借
+terrainType	地形地貌	PASS	较复杂	None	0.99	[{'source_type': 'paragraph', 'text': '（2）场地抗震设防烈度为6度，地形地貌较复杂，属于对建筑抗震不利地段，地下水埋藏较深，未见崩塌、滑坡等不良地质现象，场地等
+seismicIntensity	抗震设防烈度	PASS	6	度	0.99	[{'source_type': 'paragraph', 'text': '（2）Ⅱ类场区50年超越概率10%的基本地震动峰值加速度为0.05g，建筑场地类别为Ⅲ类，场地地震动峰值加速度调整系数Fa
+hubHeight	轮毂高度	PASS	110	m	0.99	[{'source_type': 'table', 'text': '5 | 轮毂高度 | m | 110 | 110 | 110 | 110 | 113 | 113 | 110 | 110', 's
+circuitBreakerSpec	断路器	PASS	126	None	0.99	[{'source_type': 'table', 'text': '110kV出线间隔 | 126kV，2000A，40kA/3s\n | SF6断路器：126kV，2000A，40kA/3s，配弹
+mainConnectionType	主接线形式	PASS	简单清晰	None	0.99	[{'source_type': 'table', 'text': ' | 单母线接线\n主要特点 | 接线简单清晰，继电保护简单； 设备较少，有效减少投资； 接地变容量小，仅考虑一台主变对应电容电流
+constructionInstallationCost	建筑安装工程费	PASS	1542.64	万元	0.99	[{'source_type': 'table', 'text': '建筑及安装工程费（万元） | 1542.64', 'score': 2.6, 'block_id': None, 'table_i
+installedCapacity	装机容量	PASS	200	MW	0.99	[{'source_type': 'paragraph', 'text': '从地区能源资源方面分析，榆林市具备风能资源开发的条件，当地风能资源的储量完全能够建设装机容量200MW的风电场；从电力系统
+accessRoadLength	进站道路工程量	PASS	0.4	km	0.99	[{'source_type': 'paragraph', 'text': '本项目新建进站道路0.4km（进站道路前20m采用混凝土路面，路基宽6.0m，路面宽4.0m；其余路段设计标准同场内道路）
+projectLocation	建设地点	PASS	荒漠草原地带	None	0.99	[{'source_type': 'paragraph', 'text': '本风场运行中不产生大量的有毒、有害物质，SF6断路器远离工作人员布置，因此其对作业人员的影响较小。该工程在运行过程中，不会
+collectorCircuitType	回路	PASS	单/双回路	None	0.99	[{'source_type': 'paragraph', 'text': '（2）回路：单/双回路架设。', 'score': 3.2711373499572147, 'block_id': 'p_
+projectAltitude	场址海拔	PASS	1500	m	0.99	[{'source_type': 'paragraph', 'text': '场址区位于靖边县西南部的黄土台地上，属黄土高原台地、黄土梁地貌。风机多位于黄土台地、黄土梁顶部，梁顶地势较为开阔、平缓，平
+maxWindSpeed50Year	50年一遇最大风速	PASS	37.5	m/s	0.99	[{'source_type': 'paragraph', 'text': '风电场110m的50年一遇最大风速小于37.5m/s。50～90m高度15m/s风速段湍流强度介于0.117～0.164之
+foundationType	风机基础型式	PASS	箱型	None	0.99	[{'source_type': 'table', 'text': '基础形式 | 箱型', 'score': 2.6, 'block_id': None, 'table_id': 't_0153',
+turbineCapacity	单机容量	PASS	5000	None	0.99	[{'source_type': 'table', 'text': '2 | 单机容量 | kW | 5000 | 5000 | 5000 | 5000 | 5000 | 5500/5000 | 62
+collectorLineLength	集电线路长度	PASS	16	None	0.99	[{'source_type': 'table', 'text': '2 | 35kV集电线路电能表 |  | 块 | 16 | ', 'score': 2.6, 'block_id': None, 
+lcoe	度电成本	PASS	6.2	None	0.99	[{'source_type': 'table', 'text': '上网电价电价市场化变化分析（%） | 12.25 | 6.2 | 8.86 | 12.25', 'score': 2.6, 'bl
+annualProfit	年利润总额	PASS	112719.61	万元	0.99	[{'source_type': 'table', 'text': '9 | 利润总额 | 万元 | 112719.61', 'score': 2.6, 'block_id': None, 'tabl
+netPresentValue	财务净现值	PASS	20316.61	万元	0.99	[{'source_type': 'table', 'text': '17 | 项目投资财务净现值（所得税后） | 万元 | 20316.61', 'score': 2.6, 'block_id': 
+debtServiceCoverageRatio	偿债备付率	PASS	0	None	0.99	[{'source_type': 'table', 'text': ' | 偿债备付率 |  | 0 | 1.31 | 1.34 | 1.38 | 1.36 | 1.41 | 1.44 | 1.41 
+assetLiabilityRatio	资产负债率	PASS	70.44	%	0.99	[{'source_type': 'table', 'text': '23 | 资产负债率（最大值） | % | 70.44', 'score': 2.6, 'block_id': None, 'ta
+unitKwInvestment	单位千瓦投资	PASS	4460.81	元/kW	0.99	[{'source_type': 'table', 'text': ' | 单位千瓦投资\x0b（元/kW） |  |  |  | 4460.81 | ', 'score': 2.6, 'block_
+staticInvestment	静态投资	PASS	126411.41	万元	0.99	[{'source_type': 'table', 'text': '工程静态投资 | 万元 | 126411.41 |  | 钢结构 | t | 36', 'score': 2.6, 'block_
+dynamicInvestment	动态投资	PASS	6415.7	None	0.99	[{'source_type': 'table', 'text': '单位千瓦动态投资 | 元/kW | 6415.7 | 总工期 | 月 | 12', 'score': 2.6, 'block_id
+equipmentPurchaseCost	设备购置费	PASS	48826.4	万元	0.99	[{'source_type': 'table', 'text': '设备购置费（万元） | 48826.40', 'score': 2.6, 'block_id': None, 'table_id'
+otherCost	其他费用	PASS	9083.63	万元	0.99	[{'source_type': 'table', 'text': '其他费用\x0b（万元） | 9083.63', 'score': 2.6, 'block_id': None, 'table_i
+reserveFund	基本预备费	PASS	110	None	0.99	[{'source_type': 'table', 'text': '基本预备费 | 110KV送出工程(含对侧改造)34.48km，单回路，双分裂导线型号JL/G1A-300/40、        
+constructionInterest	建设期利息	PASS	1902.56	万元	0.99	[{'source_type': 'table', 'text': '建设期利息 | 万元 | 1902.56 |  | 灌注桩混凝土 | m3 | 17837', 'score': 2.6, 'bl
+workingCapital	流动资金	PASS	1600	万元	0.99	[{'source_type': 'table', 'text': '5 | 流动资金 | 万元 | 1600.00', 'score': 2.6, 'block_id': None, 'table_
+projectName	项目名称	PASS	200	None	0.99	[{'source_type': 'table', 'text': '工程名称 | 靖边韩家沟200MW风电项目 | 风电机组设备价格 | 元/kW | 1578', 'score': 2.6, 'b
+landArea	用地面积	WARNING	2	m2	0.99	[{'source_type': 'table', 'text': '名   称 | 占地面积（m2）', 'score': 2.6, 'block_id': None, 'table_id': 't
+mainTransformerType	主变压器	PASS	480	None	0.99	[{'source_type': 'table', 'text': '主变压器 | 480 | 550 | 530 | 200 | 185', 'score': 2.6, 'block_id': No
+disconnectorSpec	隔离开关	PASS	126	None	0.99	[{'source_type': 'table', 'text': '隔离开关：126kV，2000A，40kA/3s，100kA，含微动开关 | 接地开关：126kV，40kA/3s，100kA',
+currentTransformerSpec	电流互感器	PASS	5	None	0.99	[{'source_type': 'table', 'text': '电流互感器，600/1A 0.2S/0.5/5P30/5P30/5P30 | 避雷器，YH5WZ-51/134', 'score'
+voltageTransformerSpec	电压互感器	PASS	110	None	0.99	[{'source_type': 'table', 'text': '电容式电压互感器（出线PT） | 额定电压：110V', 'score': 2.6, 'block_id': None, 'tab
+ptSpec	Pt	PASS	126	None	0.99	[{'source_type': 'table', 'text': '母线PT间隔 | 126kV，2000A，40kA/3s', 'score': 2.6, 'block_id': None, 't
+collectorLineNames	线路名称	PASS	线路长度 (km)	None	0.99	[{'source_type': 'table', 'text': '线路名称 | 线路长度 (km) | 连接风机号', 'score': 2.6, 'block_id': None, 'table
+foundationBuriedDepth	基础埋深	PASS	2.8	m	0.99	[{'source_type': 'table', 'text': '基础埋深 | m | 2.8', 'score': 2.6, 'block_id': None, 'table_id': 't_0
+constructionPeriodYears	建设期	PASS	1902.56	None	0.99	[{'source_type': 'table', 'text': '4 | 建设期利息 | 万元 | 1902.56', 'score': 2.6, 'block_id': None, 'table
+materialCost	材料费	PASS	3800	None	0.99	[{'source_type': 'table', 'text': '1 | 材料费 | 3800 | 0 | 100 | 100 | 100 | 100 | 100 | 220 | 220 | 22
+incomeTax	所得税	PASS	8.95	None	0.99	[{'source_type': 'table', 'text': '投资回收期(所得税后) (年) | 8.95', 'score': 2.6, 'block_id': None, 'table_i
+projectInvestmentIrrBeforeTax	项目投资财务内部收益率所得税前	PASS	8.76	%	0.99	[{'source_type': 'table', 'text': '14 | 项目投资财务内部收益率（所得税前） | % | 8.76', 'score': 2.6, 'block_id': Non
+projectInvestmentIrrAfterTax	项目投资财务内部收益率所得税后	PASS	8.95	None	0.99	[{'source_type': 'table', 'text': '投资回收期(所得税后) (年) | 8.95', 'score': 2.6, 'block_id': None, 'table_i
+geologyCondition	工程地质条件	PASS	链式开沟机；水平定向钻机；专用接地挖掘机；	None	0.99	[{'source_type': 'table', 'text': '接地 | 1、地质条件； 2、道路通行情况。 | 链式开沟机；水平定向钻机；专用接地挖掘机；', 'score': 2.6, 'b
+rotorDiameter	风轮直径	PASS	2	m	0.99	[{'source_type': 'table', 'text': '叶轮直径 (m) | 2.叶片', 'score': 2.6, 'block_id': None, 'table_id': 't_
+cutInWindSpeed	切入风速	PASS	2.5	m/s	0.99	[{'source_type': 'table', 'text': '切入风速 (m/s) | 2.5 | 3 | 2.5 | 3 | 2.5 | 3 | 2.5 | 3', 'score': 2.6
+ratedWindSpeed	额定风速	PASS	8.9	m/s	0.99	[{'source_type': 'table', 'text': '额定风速 (m/s) | 8.9 | 9.6 | 9.5 | 8.5 | 9.2 | 8.9 | 9.7 | 9.4', 'sco
+cutOutWindSpeed	切出风速	PASS	20	m/s	0.99	[{'source_type': 'table', 'text': '切出风速 (m/s) | 20 | 25 | 25 | 25 | 20 | 20 | 24 | 20', 'score': 2.6
+avgWindSpeed	平均风速	PASS	1.9	m/s	0.99	[{'source_type': 'table', 'text': '平均风速（m/s） | 1.9 | 2.2 | 2.5 | 2.6 | 2.5 | 2.3 | 2.2 | 2.0 | 2.0 |
+gridConnectionPoint	接入点	PASS	最终以接入系统审查意见为准	None	0.99	[{'source_type': 'paragraph', 'text': '接入系统方案最终以接入系统审查意见为准', 'score': 2.5, 'block_id': 'p_0176', 'ta
+noiseControlMeasure	噪声防治措施	PASS	87	None	0.890081226825714	[{'source_type': 'paragraph', 'text': '噪声控制设计规范》（GBJ87-1985）规定，结合本电场的特点，限制在60～70dB', 'score': 2.5, '
+ownerCompany	建设单位	PASS	与施工单位若未明确各自的安全生产责任	None	0.99	[{'source_type': 'paragraph', 'text': '建设单位与施工单位若未明确各自的安全生产责任', 'score': 2.5, 'block_id': 'p_4118', 
+independentLightningRodCount	独立避雷针个数	PASS	1	座	0.99	[{'source_type': 'paragraph', 'text': '独立避雷针及1座', 'score': 2.5, 'block_id': 'p_0960', 'table_id': No
+frameLightningRodCount	构架避雷针个数	PASS	110	None	0.99	[{'source_type': 'paragraph', 'text': '构架避雷针进行联合保护。110', 'score': 2.5, 'block_id': 'p_0960', 'table_
+doubleCircuitOverheadLength	双回架空线路路径长	PASS	2	None	0.99	[{'source_type': 'paragraph', 'text': '双回架空线路路径长约2×3.6km', 'score': 2.5, 'block_id': 'p_1538', 'tabl
+singleCircuitOverheadLength	单回架空线路路径长	PASS	1	None	0.99	[{'source_type': 'paragraph', 'text': '单回架空线路路径长约1×78km', 'score': 2.5, 'block_id': 'p_1538', 'table
+substationVerticalDesign	站区竖向设计	PASS	采取平坡式	None	0.99	[{'source_type': 'paragraph', 'text': '站区竖向设计采取平坡式', 'score': 2.5, 'block_id': 'p_3109', 'table_id':
+staffSalary	人员工资	PASS	23.84	None	0.99	[{'source_type': 'paragraph', 'text': '人均年工资按23.84万元计', 'score': 2.5, 'block_id': 'p_4902', 'table_i
+basicWindPressure	基本风压	PASS	50	None	0.99	[{'source_type': 'paragraph', 'text': '风压公式订正到标准空气密度条件下。经计算，标准空气密度条件下50', 'score': 2.5, 'block_id': 
+boxTransformerCapacity	箱变容量	PASS	1	None	0.8431918561458588	[{'source_type': 'paragraph', 'text': '（1）主变压器容量及台数选择', 'score': 2.5, 'block_id': 'p_0893', 'table_i
+environmentalInvestment	环保投资	PASS	715	万元	0.99	[{'source_type': 'paragraph', 'text': '本期工程所需的环境保护投资为715万元，水土保持投资为104.3万元，水保设施补偿费190.66万元。', 'score'
+annualRevenue	年营业收入	PASS	344.4	None	0.99	[{'source_type': 'paragraph', 'text': '2016年8月，中国华电集团有限公司在“2016中国企业500强”中排名第77位。2018年11月23日，社科院发布201
+nonWakeLossFactor	不考虑尾流效应的折减系数	PASS	98	%	0.99	[{'source_type': 'paragraph', 'text': '因此根据本风电场的气候特征，考虑凝冻等气候因素影响，本次取气候影响停机折减系数98%。', 'score': 2.4716
+hubHeightAnnualAverageWindSpeed	轮毂高度年平均风速	PASS	[3]	m/s	0.9554188214242461	[{'source_type': 'table', 'text': ' |  |  | 切入风速 | m/s | 3 | ', 'score': 1.6, 'block_id': None, 'tab
+selectedTurbineSafetyClass	最终宜选机型	PASS	风力发电机	None	0.9234046344120032	[{'source_type': 'paragraph', 'text': '风电场110m的50年一遇最大风速小于37.5m/s。50～90m高度15m/s风速段湍流强度介于0.117～0.164之
+constructionScale	建设规模	PASS	2	None	0.99	[{'source_type': 'table', 'text': '建设规模 | 2×100MVA', 'score': 1.6, 'block_id': None, 'table_id': 't_
+representativeTurbulenceIntensity	最大高度处代表性湍流强度	PASS	0.219	None	0.99	[{'source_type': 'table', 'text': '平均湍流强度 | 0.219', 'score': 1.6, 'block_id': None, 'table_id': 't_0
+windShearExponent	综合风切变	PASS	0.043	None	0.99	[{'source_type': 'table', 'text': '大风切变 | 0.043', 'score': 1.6, 'block_id': None, 'table_id': 't_001
+permanentLandWindFoundationArea	永久占地-风机基础	PASS	34262	None	0.9022352144122125	[{'source_type': 'table', 'text': '风机基础 | 34262 | 16687 | 17575 | ', 'score': 1.6, 'block_id': None,
+permanentLandBoxTransformerArea	永久占地-箱变基础	PASS	1200	m2	0.99	[{'source_type': 'table', 'text': '箱变基础 | m2 | 1200 | ', 'score': 1.6, 'block_id': None, 'table_id':
+permanentLandSubstationArea	永久占地-110kV升压站	PASS	110	None	0.6833853691816331	[{'source_type': 'table', 'text': '升压站电气主接线图 | 110kV出线间隔断面图', 'score': 1.6, 'block_id': None, 'table
+permanentLandCollectorTowerArea	永久占地-集电线路杆塔征地	PASS	10584	m2	0.99	[{'source_type': 'table', 'text': '集电线路杆塔征地 | m2 | 10584 | ', 'score': 1.6, 'block_id': None, 'table
+permanentLandAccessRoadArea	永久占地-进升压站道路	PASS	120	m2	0.99	[{'source_type': 'table', 'text': '进升压站道路 | m2 | 120 | ', 'score': 1.6, 'block_id': None, 'table_id'
+permanentLandTotalArea	永久占地合计	PASS	18	None	0.938139232993126	[{'source_type': 'table', 'text': '合计 | 18', 'score': 1.6, 'block_id': None, 'table_id': 't_0021', '
+longTermLeaseCableBuriedArea	长期租地-电缆直埋征地	PASS	2373	m2	0.99	[{'source_type': 'table', 'text': '电缆直埋征地(宽1m） | m2 | 2373 | 1m宽', 'score': 1.6, 'block_id': None, '
+longTermLeasePermanentRoadArea	长期租地-场内永久道路	PASS	103950	m2	0.99	[{'source_type': 'table', 'text': '场内永久道路 | m2 | 103950 | ', 'score': 1.6, 'block_id': None, 'table_
+longTermLeaseAccessRoadArea	长期租地-进站道路	PASS	25	None	0.9531775318086149	[{'source_type': 'table', 'text': '进站道路 | C25混凝土路面', 'score': 1.6, 'block_id': None, 'table_id': 't_
+longTermLeaseTotalArea	长期租地合计	PASS	18	None	0.9241811871528627	[{'source_type': 'table', 'text': '合计 | 18', 'score': 1.6, 'block_id': None, 'table_id': 't_0021', '
+temporaryLandPlatformArea	临时占地-场内平整安装平台	PASS	91501	m2	0.99	[{'source_type': 'table', 'text': '场地平整（安装平台） | m2 | 91501 | 每个平台占地2743平米，实际可利用面积2400平米', 'score': 1
+temporaryLandConstructionRoadArea	临时占地-临时施工道路	PASS	314900	m2	0.99	[{'source_type': 'table', 'text': '临时施工道路 | m2 | 314900 | 施工道路宽度减去永久道路宽度', 'score': 1.6, 'block_id':
+temporaryLandLivingArea	临时占地-生活临建	PASS	9600	m2	0.99	[{'source_type': 'table', 'text': '生活临建 | m2 | 9600 | ', 'score': 1.6, 'block_id': None, 'table_id':
+temporaryLandTotalArea	临时性占地合计	PASS	18	None	0.9401025116443635	[{'source_type': 'table', 'text': '合计 | 18', 'score': 1.6, 'block_id': None, 'table_id': 't_0021', '
+roadEarthworkExcavation	道路土方开挖	PASS	110	None	0.9411733478307726	[{'source_type': 'table', 'text': '道路总平面布置图 | 110kV升压站竖向布置图', 'score': 1.6, 'block_id': None, 'table
+roadEarthworkBackfill	道路土方回填	PASS	110	None	0.847804617136717	[{'source_type': 'table', 'text': '道路总平面布置图 | 110kV升压站竖向布置图', 'score': 1.6, 'block_id': None, 'table
+windPlatformEarthworkExcavation	风机平台土方开挖	PASS	327450	None	0.7879122868180277	[{'source_type': 'table', 'text': '风机平台 | 327450 | 245588 | 81862 | ', 'score': 1.6, 'block_id': Non
+windPlatformEarthworkBackfill	风机平台土方回填	PASS	245588	None	0.9382763855159284	[{'source_type': 'table', 'text': '风机平台 | 327450 | 245588 | 81862 | ', 'score': 1.6, 'block_id': Non
+windFoundationEarthworkExcavation	风机基础土方开挖	PASS	34262	None	0.9384919725358487	[{'source_type': 'table', 'text': '风机基础 | 34262 | 16687 | 17575 | ', 'score': 1.6, 'block_id': None,
+windFoundationEarthworkBackfill	风机基础土方回填	PASS	16687	None	0.9403419300913811	[{'source_type': 'table', 'text': '风机基础 | 34262 | 16687 | 17575 | ', 'score': 1.6, 'block_id': None,
+boxFoundationEarthworkExcavation	箱变基础土方开挖	PASS	1200	None	0.940494315326214	[{'source_type': 'table', 'text': '箱变基础 | m2 | 1200 | ', 'score': 1.6, 'block_id': None, 'table_id':
+boxFoundationEarthworkBackfill	箱变基础土方回填	PASS	1400	None	0.938836868852377	[{'source_type': 'table', 'text': '箱变基础 | 2400 | 1400 | 1000 | ', 'score': 1.6, 'block_id': None, 't
+substationEarthworkExcavation	升压站土方开挖	PASS	110	None	0.7136091068387033	[{'source_type': 'table', 'text': '升压站电气主接线图 | 110kV出线间隔断面图', 'score': 1.6, 'block_id': None, 'table
+substationEarthworkBackfill	升压站土方回填	PASS	6	None	0.7499190241098405	[{'source_type': 'table', 'text': '3 | 升压站电气主接线图 | 附图6-1 | 1', 'score': 1.6, 'block_id': None, 'tabl
+totalEarthworkExcavation	合计土方开挖	PASS	18	None	0.9384826630353929	[{'source_type': 'table', 'text': '合计 | 18', 'score': 1.6, 'block_id': None, 'table_id': 't_0021', '
+totalEarthworkBackfill	合计土方回填	PASS	18	None	0.9382786050438882	[{'source_type': 'table', 'text': '合计 | 18', 'score': 1.6, 'block_id': None, 'table_id': 't_0021', '
+installationCost	安装费	PASS	398066.46	None	0.99	[{'source_type': 'table', 'text': '安装费 | 398066.46', 'score': 1.6, 'block_id': None, 'table_id': 't_
+unitKwStaticInvestment	单位千瓦静态投资	PASS	6320.57	元/kW	0.99	[{'source_type': 'table', 'text': ' | 单位千瓦静态投资 | 元/kW | 6320.57 | ', 'score': 1.6, 'block_id': None,
+landUseTax	土地使用税	PASS	45.6	None	0.99	[{'source_type': 'table', 'text': ' | 土地使用税（4元/㎡/年） | 亩 | 45.60 | 0.27 | 12.17', 'score': 1.6, 'bloc
+airDensityAtHeight	高度对应的空气密度	PASS	[3]	None	0.7921483397483824	[{'source_type': 'paragraph', 'text': '空气密度kg/m3', 'score': 1.5, 'block_id': 'p_0315', 'table_id': N
+hubHeightWindPowerDensity	轮毂高度平均风功率密度	PASS	[163]	None	0.9381765268743036	[{'source_type': 'paragraph', 'text': '平均风功率密度为163', 'score': 1.5, 'block_id': 'p_0375', 'table_id':
+constructionStartDate	开工时间	PASS	12	None	0.8332554578781127	[{'source_type': 'paragraph', 'text': '本项目施工场地开阔、建设地点分散。根据工程施工强度和业主意见，确定施工工期为12个月。', 'score': 1.9308
+theoreticalAnnualEnergy	年理论发电量	PASS	5.1	None	0.6059734128415585	[{'source_type': 'paragraph', 'text': '根据比选机型最终布置方案，采用各测风塔年测风数据，依据风机厂商提供的当地空气密度下的动态功率曲线和推力系数曲线，采用WT软
+foundationCapBottomRadius	基础承台底面半径	PASS	17	m	0.593304327428341	[{'source_type': 'paragraph', 'text': '根据基桩布置要求和桩基承台构造要求，经试算拟定承台具体尺寸为：底部直径17.0m，高1.0m的圆柱；中部为底面直径17.0
+turbineCount	风机台数	PASS	1.5	None	0.4998846411705018	[{'source_type': 'paragraph', 'text': '1.5 风电机组选型、布置及风电场发电量估算', 'score': 1.0, 'block_id': 'p_0168', 
+collectorVoltageLevel	集电线路电压等级	PASS	1.6	None	0.3434281289577485	[{'source_type': 'paragraph', 'text': '1.6 电气', 'score': 1.0, 'block_id': 'p_0173', 'table_id': None
+boxTransformerCount	箱变数量	PASS	1.6	None	0.2858554556965829	[{'source_type': 'paragraph', 'text': '1.6 电气', 'score': 1.0, 'block_id': 'p_0173', 'table_id': None
+substationVoltageLevel	升压站电压等级	PASS	1.6	None	0.33883797526359566	[{'source_type': 'paragraph', 'text': '1.6 电气', 'score': 1.0, 'block_id': 'p_0173', 'table_id': None
+allInvestmentAfterTaxIRR	全投资税后财务内部收益率	PASS	1.15	None	0.3381078891456128	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+projectCapitalRatio	项目资本金比例	PASS	1.15	None	0.3391280315816403	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+loanRatio	贷款比例	PASS	1.15	None	0.3381795018911362	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+wakeLossPercent	尾流平均折减	PASS	1.5	None	0.19601382538676265	[{'source_type': 'paragraph', 'text': '1.5 风电机组选型、布置及风电场发电量估算', 'score': 1.0, 'block_id': 'p_0168', 
+substationMainConnectionPlannedCapacity	升压站电气主接线规划总规模	PASS	6.3	None	0.2755821958184243	[{'source_type': 'paragraph', 'text': '6.3 电气一次', 'score': 1.0, 'block_id': 'p_0811', 'table_id': No
+substationMainConnectionCurrentCapacity	升压站电气主接线本期规模	PASS	6.3	None	0.2753803081810475	[{'source_type': 'paragraph', 'text': '6.3 电气一次', 'score': 1.0, 'block_id': 'p_0811', 'table_id': No
+towerFoundationCount	全线共用铁塔基数	PASS	6.6	None	0.2897186420857907	[{'source_type': 'paragraph', 'text': '6.6 集电线路', 'score': 1.0, 'block_id': 'p_1511', 'table_id': No
+pileSectionRadius	桩界面半径	PASS	9.4	None	0.14502460360527042	[{'source_type': 'paragraph', 'text': '9.4.3 风机基础设计方案', 'score': 1.0, 'block_id': 'p_2930', 'table_i
+foundationExcavationQuantity	基础开挖量	PASS	9.4	None	0.27506492882967004	[{'source_type': 'paragraph', 'text': '9.4.3 风机基础设计方案', 'score': 1.0, 'block_id': 'p_2930', 'table_i
+foundationBackfillQuantity	基础回填量	PASS	9.4	None	0.36867002248764047	[{'source_type': 'paragraph', 'text': '9.4.3 风机基础设计方案', 'score': 1.0, 'block_id': 'p_2930', 'table_i
+windFoundationConcreteQuantity	风机基础混凝土量	PASS	9.4	None	0.2889797113835812	[{'source_type': 'paragraph', 'text': '9.4.3 风机基础设计方案', 'score': 1.0, 'block_id': 'p_2930', 'table_i
+windFoundationRebarQuantity	风机基础钢筋工程量	PASS	9.4	None	0.27877022027969367	[{'source_type': 'paragraph', 'text': '9.4.3 风机基础设计方案', 'score': 1.0, 'block_id': 'p_2930', 'table_i
+constructionFundLoanRatio	建设资金贷款比例	PASS	1.15	None	0.27517272084951405	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+repaymentPeriod	偿还年限	PASS	1.15	None	0.14412565454840665	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+staffingCount	定员人数	PASS	1.15	None	0.15851544886827473	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+welfareOtherRatio	职工福利费及其他占比	PASS	1.15	None	0.13745543435215957	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+insuranceRate	保险费率	PASS	1.15	None	0.2370265677571297	[{'source_type': 'paragraph', 'text': '1.15 财务评价', 'score': 1.0, 'block_id': 'p_0229', 'table_id': N
+basicSnowPressure	基本雪压	PASS	1.3	None	0.2602158528752625	[{'source_type': 'paragraph', 'text': '1.3 工程地质', 'score': 1.0, 'block_id': 'p_0152', 'table_id': No
+nearestRoadDistance	距既有道路距离	PASS	3.4	None	0.1572428107261658	[{'source_type': 'paragraph', 'text': '3.4 场址区基本工程地质条件', 'score': 1.0, 'block_id': 'p_0513', 'table_
+operationDate	投产时间	MISSING	None	None	0.0	
+ecologicalImpactConclusion	生态环境影响结论	MISSING	None	None	0.0	
+projectNature	项目性质	MISSING	None	None	0.0	
+metTowerCode	测风塔编号	MISSING	None	None	0.0	
+hubHeightMainWindDirection	轮毂高度处的主风向	MISSING	None	None	0.0	
+hubHeightMainWindEnergyDirection	轮毂高度处的主风能方向	MISSING	None	None	0.0	
+generationCalculationUsed	发电量计算是否使用	MISSING	None	None	0.0	
+mainTransformerRatio	主变压器变比	MISSING	None	None	0.0	
+svgReactiveCompensationCapacity	SVG无功补偿装置容量	MISSING	None	None	0.0	
+groundingTransformerCapacity35kv	35kV接地变用变容量	MISSING	None	None	0.0	
+groundingStationTransformerCapacity35kv	35kV接地变兼站用变容量	MISSING	None	None	0.0	
+dcBatteryConfiguration	直流蓄电池配置	MISSING	None	None	0.0	
+upsPowerConfiguration	UPS电源配置	MISSING	None	None	0.0	
+communicationPowerDesign	通讯电源设计	MISSING	None	None	0.0	
+substationRoadLayoutType	升压站内道路布置类型	MISSING	None	None	0.0	
+substationFunctionalZones	升压站包含生活区和生产区	MISSING	None	None	0.0	
+pileRingCount	桩圈数	MISSING	None	None	0.0	
+pilesPerRing	每圈桩数	MISSING	None	None	0.0	
+boxFoundationConcreteC25Quantity	箱变基础混凝土量C25	MISSING	None	None	0.0	
+boxFoundationRebarQuantity	箱变基础钢筋工程量	MISSING	None	None	0.0	
+totalProjectCost	总费用	MISSING	None	None	0.0	
+constructionCost	施工费	MISSING	None	None	0.0	
+mainEquipmentUnitPrice	主要设备单价	MISSING	None	None	0.0	
+materialPriceLevel	材料价格水平	MISSING	None	None	0.0	
+turbineModel	风机型号	MISSING	None	None	0.0	

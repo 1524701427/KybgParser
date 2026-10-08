@@ -1,0 +1,1198 @@
+# Final JSON output schema. This controls required sections, fields, original
+# document tables, passthrough table names, and enabled combined-table builders.
+
+section_order:
+  - 通用
+  - 资源章节
+  - 发电量章节
+  - 地勘章节
+  - 电气一次
+  - 电气二次
+  - 集电线路
+  - 土建升压站
+  - 风机基础
+  - 箱变基础
+  - 道路
+  - 用地面积
+  - 土石方平衡
+  - 环保水保
+  - 技经概算
+  - 财务
+
+common_section_fields:
+  - projectName
+  - investmentOwnerCompany
+  - projectAddressCity
+  - projectAddressCounty
+  - projectAddressTown
+  - projectAddressDetail
+  - designUnit
+  - designUnitQualification
+
+sections:
+  - name: 通用
+    fields: [projectName, investmentOwnerCompany, projectAddressCity, projectAddressCounty, projectAddressTown, projectAddressDetail, designUnit, designUnitQualification]
+    tables: []
+  - name: 资源章节
+    fields:
+      - selectedTurbineSafetyClass
+      - maxWindSpeed50Year
+      - windResourceTowerCodes
+      - windTowerLongitude
+      - windTowerLatitude
+      - windMeasurementPeriod
+      - windFarmAirDensities
+      - windResourceAirDensities
+      - windResourceAirDensity10m
+      - windResourceAirDensity160m
+      - windResourceAirDensityRecords
+      - hubHeightAnnualAverageWindSpeed
+      - hubHeightWindPowerDensity
+      - hubHeightAverageWindSpeedRecords
+      - hubHeightAverageWindPowerDensityRecords
+      - windResourceMainWindDirections
+      - windResourceSecondaryWindDirections
+      - windResourceMainWindEnergyDirections
+      - windResourceSecondaryWindEnergyDirections
+      - representativeTurbulenceIntensity
+      - windResourceTurbulenceIntensityRecords
+      - windPowerDensityGrade
+      - windShearExponent
+      - windResourceGenerationUses
+    tables: []
+    optional_tables:
+      - windResourceTowerBasic
+      - windResourceShearStatistics
+      - windResourceSpeedPowerStatistics
+      - windResourceSectorDistribution
+      - windResourceDirectionEnergyFrequency
+      - windResourceTurbulenceComparison
+      - windResourceTurbulenceIntensity
+    optional_table_prefixes:
+      - windResourceEnergyParameter
+      - windResourceSpeedPower
+      - windResourceShear
+      - windResourceTurbulence
+      - windResourceGenericEnergyParameter
+      - windResourceGenericShear
+      - windResourceGenericTurbulence
+      - resourceOriginalTable
+  - name: 发电量章节
+    fields:
+      - installedCapacity
+      - turbineCount
+      - turbineCapacity
+      - generationHubHeight
+      - nonWakeLossFactor
+      - gridAnnualEnergy
+      - equivalentFullLoadHours
+      - generationSingleTurbineLabels
+      - generationSingleTurbineXMeters
+      - generationSingleTurbineYMeters
+      - generationSingleTurbineZMeters
+      - generationSingleTurbineHubHeights
+      - generationSingleTurbineTheoreticalEnergyMwh
+      - generationSingleTurbineAverageWindSpeeds
+      - generationSingleTurbineWakeLossFactors
+      - generationSingleTurbineWakeAdjustedEnergyMwh
+      - generationSingleTurbineFinalOnGridEnergyMwh
+      - generationSingleTurbineEquivalentHours
+      - generationSingleTurbineAverageWakeReductionRates
+    tables: []
+    optional_tables:
+      - generationSummary
+      - singleTurbineAnnualEnergy
+    optional_table_prefixes: [generationOriginalTable]
+  - name: 地勘章节
+    fields: [projectGeomorphology, surfaceVegetationType, siteElevationRange]
+    tables: []
+  - name: 电气一次
+    fields:
+      - accessStationName
+      - accessibleVoltage
+      - accessibleCapacity
+      - plannedCapacity
+      - currentCapacity
+      - connectionType
+      - electricalPrimaryCurrentOutgoingLineCount
+      - electricalPrimaryFutureOutgoingLineCount
+      - mainTransformerType
+      - mainTransformerModel
+      - mainTransformerRatedCapacity
+      - mainTransformerNum
+      - futureMainTransformerCount
+      - mainTransformerVoltageRatio
+      - connectionGroupType
+      - groundingStationTransformerModel
+      - groundingStationTransformerVoltage
+      - groundingStationTransformerCapacity
+      - groundingStationTransformerQuantity
+      - groundingStationTransformerUnit
+      - groundingStationTransformerResistance
+      - groundingTransformerModel
+      - groundingTransformerVoltage
+      - groundingTransformerCapacity
+      - groundingTransformerQuantity
+      - groundingTransformerUnit
+      - groundingTransformerResistance
+      - electricalPrimaryGisModelInfo
+      - electricalPrimaryGisQuantity
+      - electricalPrimaryGisUnit
+      - electricalPrimaryGisRemark
+      - electricalPrimaryCircuitBreakerModel
+      - electricalPrimaryDisconnectorModel
+      - electricalPrimaryCurrentTransformerModel
+      - electricalPrimaryVoltageTransformerModel
+      - electricalPrimaryTransformerSpec
+      - electricalPrimarySvgSpec
+      - electricalPrimarySvgUnit
+      - electricalPrimarySvgQuantity
+      - electricalPrimaryGroundingTransformerSetSpec
+      - electricalPrimaryExternalPowerTransformerSpec
+      - electricalPrimaryFrameLightningRodHeight
+      - electricalPrimaryIndependentLightningRodHeight
+      - electricalPrimaryBoxTransformerType
+      - electricalPrimaryBoxTransformerModel
+      - electricalPrimaryBoxTransformerVoltageLevel
+      - electricalPrimaryBoxTransformerCapacity
+      - electricalPrimaryBoxTransformerHighVoltageSideConfig
+      - electricalPrimaryBoxTransformerLowVoltageSideConfig
+      - electricalPrimaryGridConnectionDistance
+      - electricalPrimaryGridConnectionLineType
+      - electricalPrimarySubstationConstructionType
+      - electricalPrimaryExpandedSubstationName
+      - electricalPrimarySubstationVoltageLevel
+      - stationTransformerCapacity10kv
+      - groundingTransformerCapacity35kv
+      - groundingStationTransformerCapacity35kv
+      - svgReactiveCompensationCapacity
+      - independentLightningRodCount
+      - frameLightningRodCount
+    tables: []
+    optional_tables:
+      - electricalPrimaryStationScale
+      - electricalPrimaryEquipmentMaterial
+    optional_table_prefixes: [electricalPrimaryOriginalTable]
+  - name: 电气二次
+    fields: [communicationPowerDesign, communicationPowerUnitType, communicationPowerQuantityValue, communicationPowerDesignDescription, dcBatteryConfiguration, upsPowerConfiguration, electricalSecondaryBatterySpec, electricalSecondaryBatteryUnit, electricalSecondaryBatteryQuantity, electricalSecondaryUpsSpec, electricalSecondaryUpsUnit, electricalSecondaryUpsQuantity]
+    tables: []
+    optional_tables:
+      - electricalSecondaryMainEquipment
+      - electricalSecondaryCommunicationEquipment
+    optional_table_prefixes: [electricalSecondaryOriginalTable]
+  - name: 集电线路
+    fields:
+      - collectorLineNames
+      - collectorVoltage
+      - circuitCount
+      - newRouteLength
+      - newOverheadLineLength
+      - newSingleCircuitLineLength
+      - newDoubleCircuitLineLength
+      - newCableLineLength
+      - totalCollectorRouteLength
+      - doubleCircuitOverheadRouteLength
+      - singleCircuitOverheadRouteLength
+      - boxToTerminalTowerCableRouteLength
+      - singleCircuitCableRouteLength
+      - doubleCircuitCableRouteLength
+      - collectorCableCoreMaterial
+      - collectorLayingMethod
+    tables: []
+    optional_tables:
+      - collectorElectricalMaterial
+      - collectorTowerMaterial
+      - collectorFoundationMaterial
+      - collectorOpticalCableMaterial
+      - collectorCableMaterial
+      - collectorTowerGroundingMaterial
+      - collectorMainEquipmentMaterial
+    optional_table_prefixes: [collectorLineOriginalTable]
+  - name: 土建升压站
+    fields: [totalLandArea, insideWallLandArea]
+    tables: []
+    optional_tables: [substationCivil]
+    optional_table_prefixes: [substationCivilOriginalTable]
+  - name: 风机基础
+    fields:
+      - windFoundationType
+      - windFoundationExcavationQuantity
+      - windFoundationBackfillQuantity
+      - windFoundationC15Concrete
+      - windFoundationC20Concrete
+      - windFoundationC40Concrete
+      - windFoundationC45Concrete
+      - foundationCapDiameter
+      - foundationColumnDiameter
+      - foundationCapBottomRadius
+      - foundationTopRadius
+      - foundationColumnRadius
+      - foundationOuterEdgeHeight
+      - foundationConeHeight
+      - foundationColumnHeight
+      - foundationBuriedDepth
+      - pileOuterDiameter
+      - pileCount
+      - pileLength
+      - pileRingCount
+    tables: []
+    optional_tables: [windFoundationConstruction]
+    optional_table_prefixes: [windFoundationOriginalTable]
+  - name: 箱变基础
+    fields: []
+    tables: []
+    optional_tables: [boxFoundationTechnical]
+    optional_table_prefixes: [boxFoundationOriginalTable]
+  - name: 道路
+    fields:
+      - accessRoadLength
+      - siteEntryRoadLength
+      - accessRoadSubgradeWidth
+      - accessRoadPavementWidth
+      - newRoadLength
+      - rebuiltRoadLength
+      - subgradeWidth
+      - pavementWidth
+      - siteRoadLength
+      - maintenanceRoadLength
+      - maintenanceRoadSubgradeWidth
+      - maintenanceRoadPavementWidth
+      - offsiteTrafficConditionDescription
+    tables: []
+    optional_tables: [roadTechnical]
+    optional_table_prefixes: [roadOriginalTable]
+  - name: 用地面积
+    fields:
+      - permanentLandTotalArea
+      - permanentLandWindFoundationArea
+      - permanentLandBoxTransformerArea
+      - permanentLandSubstationArea
+      - permanentLandAccessRoadArea
+      - longTermLeaseTotalArea
+      - longTermLeaseMaintenanceRoadArea
+      - longTermLeaseAccessRoadArea
+      - longTermLeaseTowerFoundationArea
+      - temporaryLandTotalArea
+      - temporaryLandPlatformArea
+      - temporaryLandConstructionRoadArea
+      - temporaryLandDirectBuriedCableArea
+      - temporaryLandConstructionSiteArea
+    tables: []
+    optional_tables:
+      - permanentLandSummary
+      - temporaryLandSummary
+      - permanentLandArea
+      - landTotalAcquisition
+    optional_table_prefixes: [landOriginalTable]
+  - name: 土石方平衡
+    fields:
+      - roadEarthworkExcavation
+      - roadEarthworkBackfill
+      - windPlatformEarthworkExcavation
+      - windPlatformEarthworkBackfill
+      - windFoundationEarthworkExcavation
+      - windFoundationEarthworkBackfill
+      - boxFoundationEarthworkExcavation
+      - boxFoundationEarthworkBackfill
+      - collectorLineEarthworkExcavation
+      - collectorLineEarthworkBackfill
+      - substationEarthworkExcavation
+      - substationEarthworkBackfill
+      - totalEarthworkExcavation
+      - totalEarthworkBackfill
+      - spoilDisposalSiteCount
+      - spoilDisposalSiteArea
+    tables: []
+    optional_tables: [earthworkBalance]
+    optional_table_prefixes: [earthworkOriginalTable]
+  - name: 环保水保
+    fields:
+      - environmentalInvestment
+      - waterSoilConservationInvestment
+    tables: []
+  - name: 技经概算
+    fields:
+      - investmentCostStandard
+      - investmentQuotaSystem
+      - investmentPriceLevel
+      - investmentStaticPartTotal
+      - investmentTotalPartTotal
+      - investmentDeductibleVatWindFarm
+      - investmentOutgoingLineStaticInvestment
+      - investmentOutgoingLineConstructionInterest
+      - investmentOutgoingLineProjectTotal
+      - investmentDeductibleVatOutgoingLine
+      - investmentCaochengShareStaticInvestment
+      - investmentCaochengShareConstructionInterest
+      - investmentCaochengShareProjectTotal
+      - investmentSupportingCostStaticInvestment
+      - investmentSupportingCostConstructionInterest
+      - investmentSupportingCostProjectTotal
+      - investmentManagementBuildingStaticInvestment
+      - investmentManagementBuildingConstructionInterest
+      - investmentManagementBuildingProjectTotal
+      - investmentSmartWindFarmStaticInvestment
+      - investmentSmartWindFarmConstructionInterest
+      - investmentSmartWindFarmDynamicInvestment
+      - investmentStaticInvestmentTotal
+      - investmentConstructionInterestGrandTotal
+      - investmentDynamicInvestmentTotal
+      - investmentProjectTotalCost
+      - unitKwStaticInvestmentPartTotal
+      - unitKwInvestmentPartTotal
+      - unitKwStaticInvestmentEstimate
+      - unitKwDynamicInvestmentEstimate
+      - investmentSmartManagementPlatformTotal
+      - investment110kvOutgoingLineProjectTotal
+      - investmentOppositeBayExpansionTotal
+      - investment330kvOutgoingLineShareTotal
+      - investmentProductSupportingCostTotal
+      - investmentNewEnergyStationPerceptionEquipmentTotal
+      - investmentTechnologySpecialTotal
+      - investmentStaticTotalItoIv
+      - investmentConstructionInterestTotal
+      - investmentDynamicTotalItoIv
+      - windTurbineUnitPrice
+      - turbineTowerUnitPrice
+      - mainTransformerUnitPrice
+      - transformerCompleteSetUnitPrice
+      - windTurbineTowerUnitPrice
+      - anchorBoltUnitPrice
+      - containerSubstationUnitPrice
+      - cableBranchBoxUnitPrice
+      - disconnectorSwitchUnitPrice
+    tables: []
+    optional_tables:
+      - investmentTechnicalEconomicIndicators
+      - investmentEstimate
+      - investmentConstructionAuxiliary
+      - investmentEquipmentInstallation
+      - investmentBuilding
+      - investmentOtherCost
+    optional_table_prefixes: [investmentOriginalTable]
+  - name: 财务
+    fields:
+      - depreciationYears
+      - salvageRate
+      - repairCost
+      - materialCostPerKw
+      - constructionPeriodYears
+      - workingCapitalUnitKwIndicator
+      - workingCapitalLoanRatio
+      - workingCapitalCapitalRatio
+      - workingCapitalLoanInterestRate
+      - constructionCapitalRatio
+      - constructionFundLoanRatio
+      - repaymentMethod
+      - repaymentPeriod
+      - annualLoanInterestRate
+      - staffingCount
+      - staffSalary
+      - welfareOtherRatio
+      - financeWorkingCapitalUnit
+      - financeWorkingCapitalValue
+      - financeWindSystemCapacityUnit
+      - financeWindSystemCapacityValue
+      - financeAnnualOnGridEnergyUnit
+      - financeAnnualOnGridEnergyValue
+      - financeLaborWelfareTotal
+      - financeMaterialCostTotal
+      - financeMaterialCostYears1To13
+      - financeRepairCostTotal
+      - financeRepairCostYears1To13
+      - financeInsuranceCostTotal
+      - financeInsuranceRate
+      - financeOtherCostTotal
+      - financeLandUseTaxTotal
+      - financeMaterialCostYears14To21
+      - financeRepairCostYears14To21
+      - financeFixedAssetOriginalValueBuildYearAndYear1
+      - financeOnGridPriceWithoutTaxTotal
+      - financeOnGridPriceWithTaxTotal
+      - financeIncomeTaxTotal
+      - financeOnGridPriceWithoutTaxYears2To13
+      - financeOnGridPriceWithTaxYears2To13
+      - financeOnGridPriceWithoutTaxYears14To21
+      - financeOnGridPriceWithTaxYears14To21
+      - financeCurtailmentRateSingle
+      - financeCurtailmentRateSegments
+      - financeCurtailmentAnnualOnGridEnergyMwh
+      - financeCurtailmentEquivalentFullLoadHours
+      - windFarmGridPrice
+      - financeCapitalIrrWithoutOutgoing
+      - financeCapitalIrr
+    tables: []
+    optional_tables:
+      - financialIndicatorSummary
+      - financeInvestmentPlanFunding
+      - financeTotalCostEstimate
+      - financeTotalCostEstimateContinuation
+      - financeDepreciationAmortization
+      - financeDepreciationAmortizationContinuation
+      - financeProfitDistribution
+      - financeProfitDistributionContinuation
+      - financeLoanRepayment
+      - financeLoanRepaymentContinuation
+      - financeCashFlowPlan
+      - financeCashFlowPlanContinuation
+      - financeProjectInvestmentCashFlow
+      - financeProjectInvestmentCashFlowContinuation
+      - financeCapitalCashFlow
+      - financeCapitalCashFlowContinuation
+      - financeInvestorCashFlowParty1
+      - financeInvestorCashFlowParty1Continuation
+      - financeBalanceSheet
+      - financeBalanceSheetContinuation
+      - financeSensitivityAnalysis
+    optional_table_prefixes: [financeOriginalTable]
+
+fields:
+  foundationCapDiameter: {name: 承台直径, unit: m}
+  foundationColumnDiameter: {name: 台柱直径, unit: m}
+  projectName: {name: 项目名称}
+  investmentOwnerCompany: {name: 投资（建设）单位}
+  projectAddressCity: {name: 项目地址-所属市}
+  projectAddressCounty: {name: 项目地址-所属县区}
+  projectAddressTown: {name: 项目地址-所属乡镇}
+  projectAddressDetail: {name: 项目地址-详细地址}
+  designUnit: {name: 设计单位}
+  designUnitQualification: {name: 设计单位资质等级}
+  projectGeomorphology: {name: 项目地貌}
+  surfaceVegetationType: {name: 地表类型}
+  siteElevationRange: {name: 场区海拔高度, unit: m}
+  selectedTurbineSafetyClass: {name: 最终宜选机型}
+  maxWindSpeed50Year: {name: 50年一遇最大风速值, unit: m/s}
+  windResourceTowerCodes: {name: 测风塔编号}
+  windTowerLongitude: {name: 测风塔经度}
+  windTowerLatitude: {name: 测风塔纬度}
+  windMeasurementPeriod: {name: 测风周期}
+  windFarmAirDensities: {name: 该风电场的空气密度, unit: kg/m³}
+  windResourceAirDensities: {name: 高度对应的空气密度, unit: kg/m³}
+  windResourceAirDensity10m: {name: 10m高度空气密度, unit: kg/m³}
+  windResourceAirDensity160m: {name: 160m高度空气密度, unit: kg/m³}
+  windResourceAirDensityRecords: {name: 各测风塔各高度空气密度, unit: kg/m³}
+  hubHeightAnnualAverageWindSpeed: {name: 轮毂高度平均风速, unit: m/s}
+  hubHeightWindPowerDensity: {name: 轮毂高度平均风功率密度, unit: W/m²}
+  hubHeightAverageWindSpeedRecords: {name: 各测风塔轮毂高度平均风速, unit: m/s}
+  hubHeightAverageWindPowerDensityRecords: {name: 各测风塔轮毂高度平均风功率密度, unit: W/m²}
+  windResourceMainWindDirections: {name: 轮毂高度处的主风向}
+  windResourceSecondaryWindDirections: {name: 轮毂高度处的次风向}
+  windResourceMainWindEnergyDirections: {name: 轮毂高度处的主风能方向}
+  windResourceSecondaryWindEnergyDirections: {name: 轮毂高度处的次风能方向}
+  representativeTurbulenceIntensity: {name: 最大高度处代表性湍流强度}
+  windResourceTurbulenceIntensityRecords: {name: 各测风塔各高度湍流强度}
+  windPowerDensityGrade: {name: 风功率密度等级, unit: 级}
+  windShearExponent: {name: 综合风切变}
+  windResourceGenerationUses: {name: 发电量计算是否使用}
+  installedCapacity: {name: 装机容量, unit: MW}
+  turbineCount: {name: 风机台数, unit: 台}
+  turbineCapacity: {name: 单机容量, unit: KW}
+  generationHubHeight: {name: 轮毂高度, unit: m}
+  nonWakeLossFactor: {name: 不考虑尾流效应的折减系数, unit: "%"}
+  gridAnnualEnergy: {name: 年上网发电量, unit: 万kW·h}
+  equivalentFullLoadHours: {name: 年等效满负荷小时数, unit: h}
+  generationSingleTurbineLabels: {name: 标签}
+  generationSingleTurbineXMeters: {name: X（m）, unit: m}
+  generationSingleTurbineYMeters: {name: Y（m）, unit: m}
+  generationSingleTurbineZMeters: {name: Z（m）, unit: m}
+  generationSingleTurbineHubHeights: {name: H（m）, unit: m}
+  generationSingleTurbineTheoreticalEnergyMwh: {name: 理论发电量, unit: 兆瓦时/年}
+  generationSingleTurbineAverageWindSpeeds: {name: 平均风速, unit: m/s}
+  generationSingleTurbineWakeLossFactors: {name: 尾流系数, unit: "%"}
+  generationSingleTurbineWakeAdjustedEnergyMwh: {name: 考虑尾流效应的发电量, unit: 兆瓦时/年}
+  generationSingleTurbineFinalOnGridEnergyMwh: {name: 最终上网电量, unit: 兆瓦时/年}
+  generationSingleTurbineEquivalentHours: {name: 等效小时数, unit: h}
+  generationSingleTurbineAverageWakeReductionRates: {name: 尾流效应导致的平均折减率, unit: "%"}
+  accessStationName: {name: 接入站名称}
+  accessibleVoltage: {name: 可接入电压, unit: kv}
+  accessibleCapacity: {name: 可接入容量, unit: MVA}
+  plannedCapacity: {name: 升压站电气主接线规划总规模, unit: MW}
+  currentCapacity: {name: 升压站电气主接线本期规模, unit: MW}
+  connectionType: {name: 主接线形式}
+  electricalPrimaryCurrentOutgoingLineCount: {name: 升压站本期出线回数, unit: 回}
+  electricalPrimaryFutureOutgoingLineCount: {name: 升压站远期出线回数, unit: 回}
+  mainTransformerType: {name: 主变压器类型}
+  mainTransformerModel: {name: 主变压器型号}
+  mainTransformerRatedCapacity: {name: 主变压器额定容量, unit: kVA}
+  mainTransformerNum: {name: 主变本期台数, unit: 台}
+  futureMainTransformerCount: {name: 主变远期台数, unit: 台}
+  mainTransformerVoltageRatio: {name: 主变压器额定电压比}
+  connectionGroupType: {name: 主变压器接线组别}
+  groundingStationTransformerModel: {name: 接地变兼站用变型号}
+  groundingStationTransformerVoltage: {name: 接地变兼站用变电压, unit: kV}
+  groundingStationTransformerCapacity: {name: 接地变兼站用变容量, unit: kVA}
+  groundingStationTransformerQuantity: {name: 接地变兼站用变数量}
+  groundingStationTransformerUnit: {name: 接地变兼站用变单位}
+  groundingStationTransformerResistance: {name: 接地变兼站用变接地电阻}
+  groundingTransformerModel: {name: 接地变型号}
+  groundingTransformerVoltage: {name: 接地变电压, unit: kV}
+  groundingTransformerCapacity: {name: 接地变容量, unit: kVA}
+  groundingTransformerQuantity: {name: 接地变数量}
+  groundingTransformerUnit: {name: 接地变单位}
+  groundingTransformerResistance: {name: 接地变接地电阻}
+  electricalPrimaryGisModelInfo: {name: GIS型号信息}
+  electricalPrimaryGisQuantity: {name: 110kV架空出线间隔数量}
+  electricalPrimaryGisUnit: {name: 110kV架空出线间隔单位}
+  electricalPrimaryGisRemark: {name: 110kV架空出线间隔备注}
+  electricalPrimaryCircuitBreakerModel: {name: 断路器型号}
+  electricalPrimaryDisconnectorModel: {name: 隔离开关型号}
+  electricalPrimaryCurrentTransformerModel: {name: 电流互感器型号}
+  electricalPrimaryVoltageTransformerModel: {name: 电压互感器型号}
+  electricalPrimaryTransformerSpec: {name: 主变压器型号、规格及技术数据}
+  electricalPrimarySvgSpec: {name: 35kV SVG型号、规格及技术数据}
+  electricalPrimarySvgUnit: {name: 35kV SVG单位}
+  electricalPrimarySvgQuantity: {name: 35kV SVG数量}
+  electricalPrimaryGroundingTransformerSetSpec: {name: 35kV接地变成套装置型号、规格及技术数据}
+  electricalPrimaryExternalPowerTransformerSpec: {name: 站外电源变压器型号、规格及技术数据}
+  electricalPrimaryFrameLightningRodHeight: {name: 构架避雷针高度, unit: m}
+  electricalPrimaryIndependentLightningRodHeight: {name: 独立避雷针高度, unit: m}
+  electricalPrimaryBoxTransformerType: {name: 箱变类型}
+  electricalPrimaryBoxTransformerModel: {name: 箱变型号}
+  electricalPrimaryBoxTransformerVoltageLevel: {name: 箱变电压等级, unit: kV}
+  electricalPrimaryBoxTransformerCapacity: {name: 箱变容量, unit: kVA}
+  electricalPrimaryBoxTransformerHighVoltageSideConfig: {name: 高压侧配置信息}
+  electricalPrimaryBoxTransformerLowVoltageSideConfig: {name: 低压侧配置信息}
+  electricalPrimaryGridConnectionDistance: {name: 接入距离, unit: km}
+  electricalPrimaryGridConnectionLineType: {name: 接入站送出线路方式}
+  electricalPrimarySubstationConstructionType: {name: 升压站建设类型}
+  electricalPrimaryExpandedSubstationName: {name: 扩建升压站}
+  electricalPrimarySubstationVoltageLevel: {name: 升压站电压等级, unit: kV}
+  stationTransformerCapacity10kv: {name: 10kV站用变容量}
+  groundingTransformerCapacity35kv: {name: 35kV接地变容量}
+  groundingStationTransformerCapacity35kv: {name: 35kV接地变兼站用变容量}
+  svgReactiveCompensationCapacity: {name: SVG无功补偿装置容量}
+  independentLightningRodCount: {name: 独立避雷针座数, unit: 座}
+  frameLightningRodCount: {name: 构架避雷针座数, unit: 座}
+  communicationPowerDesign: {name: 通讯电源设计}
+  communicationPowerUnitType: {name: 通讯电源设计单位}
+  communicationPowerQuantityValue: {name: 通讯电源设计数量}
+  communicationPowerDesignDescription: {name: 通讯电源设计描述}
+  dcBatteryConfiguration: {name: 直流蓄电池配置}
+  upsPowerConfiguration: {name: UPS电源配置}
+  electricalSecondaryBatterySpec: {name: 蓄电池屏型号及规格}
+  electricalSecondaryBatteryUnit: {name: 蓄电池屏单位}
+  electricalSecondaryBatteryQuantity: {name: 蓄电池屏数量}
+  electricalSecondaryUpsSpec: {name: UPS电源屏型号及规格}
+  electricalSecondaryUpsUnit: {name: UPS电源屏单位}
+  electricalSecondaryUpsQuantity: {name: UPS电源屏数量}
+  collectorLineNames: {name: 线路名称}
+  collectorVoltage: {name: 集电线路电压, unit: kv}
+  circuitCount: {name: 回路数, unit: 回}
+  newRouteLength: {name: 新建线路路径长度, unit: km}
+  newOverheadLineLength: {name: 新建架空线路长度, unit: km}
+  newSingleCircuitLineLength: {name: 新建单回路线路长度, unit: km}
+  newDoubleCircuitLineLength: {name: 新建双回路线路长度, unit: km}
+  newCableLineLength: {name: 新建电缆线路长度, unit: km}
+  totalCollectorRouteLength: {name: 全线集电线路路径长度, unit: km}
+  doubleCircuitOverheadRouteLength: {name: 双回架空线路路径长度, unit: km}
+  singleCircuitOverheadRouteLength: {name: 单回架空线路路径长度, unit: km}
+  boxToTerminalTowerCableRouteLength: {name: 箱变至终端塔电缆路径长度, unit: km}
+  singleCircuitCableRouteLength: {name: 单回电缆线路路径长度, unit: km}
+  doubleCircuitCableRouteLength: {name: 双回路电缆路径长度, unit: km}
+  collectorCableCoreMaterial: {name: 电缆电芯材质}
+  collectorLayingMethod: {name: 敷设方式}
+  totalLandArea: {name: 总占地面积, unit: ㎡}
+  insideWallLandArea: {name: 围墙内占地面积, unit: ㎡}
+  permanentLandTotalArea: {name: 永久征地总面积, unit: ㎡}
+  permanentLandWindFoundationArea: {name: 风机基础征地面积, unit: ㎡}
+  permanentLandBoxTransformerArea: {name: 箱变基础征地面积, unit: ㎡}
+  permanentLandSubstationArea: {name: 升压站征地面积, unit: ㎡}
+  permanentLandAccessRoadArea: {name: 进站道路征地面积, unit: ㎡}
+  longTermLeaseTotalArea: {name: 长期征地总面积, unit: ㎡}
+  longTermLeaseMaintenanceRoadArea: {name: 检修道路征地总面积, unit: ㎡}
+  longTermLeaseAccessRoadArea: {name: 进站道路征地总面积, unit: ㎡}
+  longTermLeaseTowerFoundationArea: {name: 铁塔基础征地总面积, unit: ㎡}
+  temporaryLandTotalArea: {name: 临时征地总面积, unit: ㎡}
+  temporaryLandPlatformArea: {name: 施工吊装平台征地总面积, unit: ㎡}
+  temporaryLandConstructionRoadArea: {name: 施工道路征地总面积, unit: ㎡}
+  temporaryLandDirectBuriedCableArea: {name: 直埋电缆征地总面积, unit: ㎡}
+  temporaryLandConstructionSiteArea: {name: 临时施工区征地总面积, unit: ㎡}
+  accessRoadLength: {name: 进站道路长度, unit: km}
+  siteEntryRoadLength: {name: 进场道路长度, unit: km}
+  accessRoadSubgradeWidth: {name: 进站道路路基宽度, unit: m}
+  accessRoadPavementWidth: {name: 进站道路路面宽度, unit: m}
+  newRoadLength: {name: 新建道路长度, unit: km}
+  rebuiltRoadLength: {name: 改建道路长度, unit: km}
+  subgradeWidth: {name: 路基宽度, unit: m}
+  pavementWidth: {name: 路面宽度, unit: m}
+  siteRoadLength: {name: 场内道路长度, unit: km}
+  maintenanceRoadLength: {name: 检修道路长度, unit: km}
+  maintenanceRoadSubgradeWidth: {name: 检修道路路基宽度, unit: m}
+  maintenanceRoadPavementWidth: {name: 检修道路路面宽度, unit: m}
+  offsiteTrafficConditionDescription: {name: 场外交通运输条件描述}
+  windFoundationType: {name: 风机基础类型}
+  windFoundationExcavationQuantity: {name: 风机基础开挖量, unit: m³}
+  windFoundationBackfillQuantity: {name: 风机基础回填量, unit: m³}
+  windFoundationC15Concrete: {name: 风机基础-C15混凝土, unit: m³}
+  windFoundationC20Concrete: {name: 风机基础-C20混凝土, unit: m³}
+  windFoundationC40Concrete: {name: 风机基础-C40混凝土, unit: m³}
+  windFoundationC45Concrete: {name: 风机基础-C45混凝土, unit: m³}
+  roadEarthworkExcavation: {name: 道路土方开挖, unit: m3}
+  roadEarthworkBackfill: {name: 道路土方回填, unit: m3}
+  environmentalInvestment: {name: 环保总投资, unit: 万元}
+  waterSoilConservationInvestment: {name: 水保总投资, unit: 万元}
+  investmentCostStandard: {name: 费用标准}
+  investmentQuotaSystem: {name: 定额体系}
+  investmentPriceLevel: {name: 价格水平}
+  windPlatformEarthworkExcavation: {name: 风机平台土方开挖, unit: m3}
+  windPlatformEarthworkBackfill: {name: 风机平台土方回填, unit: m3}
+  windFoundationEarthworkExcavation: {name: 风机基础土方开挖, unit: m3}
+  windFoundationEarthworkBackfill: {name: 风机基础土方回填, unit: m3}
+  boxFoundationEarthworkExcavation: {name: 箱变基础土方开挖, unit: m3}
+  boxFoundationEarthworkBackfill: {name: 箱变基础土方回填, unit: m3}
+  collectorLineEarthworkExcavation: {name: 集电线路土方开挖, unit: m3}
+  collectorLineEarthworkBackfill: {name: 集电线路土方回填, unit: m3}
+  substationEarthworkExcavation: {name: 升压站土方开挖, unit: m3}
+  substationEarthworkBackfill: {name: 升压站土方回填, unit: m3}
+  totalEarthworkExcavation: {name: 合计土方开挖, unit: m3}
+  totalEarthworkBackfill: {name: 合计土方回填, unit: m3}
+  spoilDisposalSiteCount: {name: 弃渣场数量, unit: 个}
+  spoilDisposalSiteArea: {name: 弃渣场面积, unit: ㎡}
+  investmentStaticPartTotal: {name: 工程静态投资（一～五）部分合计, unit: 万元}
+  investmentTotalPartTotal: {name: 工程总投资（一～七）部分合计, unit: 万元}
+  investmentDeductibleVatWindFarm: {name: 可抵扣增值税（风电场工程）, unit: 万元}
+  investmentOutgoingLineStaticInvestment: {name: 110kV送出工程静态投资, unit: 万元}
+  investmentOutgoingLineConstructionInterest: {name: 110kV送出工程建设期利息, unit: 万元}
+  investmentOutgoingLineProjectTotal: {name: 110kV送出工程工程总投资, unit: 万元}
+  investmentDeductibleVatOutgoingLine: {name: 可抵扣增值税（110kV送出工程）, unit: 万元}
+  investmentCaochengShareStaticInvestment: {name: 接入曹城变电站分摊费用静态投资, unit: 万元}
+  investmentCaochengShareConstructionInterest: {name: 接入曹城变电站分摊费用建设期利息, unit: 万元}
+  investmentCaochengShareProjectTotal: {name: 接入曹城变电站分摊费用工程总投资, unit: 万元}
+  investmentSupportingCostStaticInvestment: {name: 配套费静态投资, unit: 万元}
+  investmentSupportingCostConstructionInterest: {name: 配套费建设期利息, unit: 万元}
+  investmentSupportingCostProjectTotal: {name: 配套费工程总投资, unit: 万元}
+  investmentManagementBuildingStaticInvestment: {name: 片区管理综合楼静态投资, unit: 万元}
+  investmentManagementBuildingConstructionInterest: {name: 片区管理综合楼建设期利息, unit: 万元}
+  investmentManagementBuildingProjectTotal: {name: 片区管理综合楼工程总投资, unit: 万元}
+  investmentSmartWindFarmStaticInvestment: {name: 智慧风场静态投资, unit: 万元}
+  investmentSmartWindFarmConstructionInterest: {name: 智慧风场建设期利息, unit: 万元}
+  investmentSmartWindFarmDynamicInvestment: {name: 智慧风场动态投资, unit: 万元}
+  investmentStaticInvestmentTotal: {name: 静态投资（部分）, unit: 万元}
+  investmentConstructionInterestGrandTotal: {name: 建设期利息合计, unit: 万元}
+  investmentDynamicInvestmentTotal: {name: 动态投资（部分）, unit: 万元}
+  investmentProjectTotalCost: {name: 工程总投资合计, unit: 万元}
+  unitKwStaticInvestmentPartTotal: {name: 单位千瓦静态投资（部分）, unit: 元/kW}
+  unitKwInvestmentPartTotal: {name: 单位千瓦动态投资（部分）, unit: 元/kW}
+  unitKwStaticInvestmentEstimate: {name: 单位千瓦静态投资, unit: 元/kW}
+  unitKwDynamicInvestmentEstimate: {name: 单位千瓦动态投资, unit: 元/kW}
+  investmentSmartManagementPlatformTotal: {name: 智慧管理平台合计, unit: 万元}
+  investment110kvOutgoingLineProjectTotal: {name: 110kV送出线路工程合计, unit: 万元}
+  investmentOppositeBayExpansionTotal: {name: 对侧间隔扩建工程合计, unit: 万元}
+  investment330kvOutgoingLineShareTotal: {name: 330kV送出线路分摊费合计, unit: 万元}
+  investmentProductSupportingCostTotal: {name: 产品配套费合计, unit: 万元}
+  investmentNewEnergyStationPerceptionEquipmentTotal: {name: 新能源场站感知设备合计, unit: 万元}
+  investmentTechnologySpecialTotal: {name: 科技专篇合计, unit: 万元}
+  investmentStaticTotalItoIv: {name: 静态投资, unit: 万元}
+  investmentConstructionInterestTotal: {name: 建设期利息合计, unit: 万元}
+  investmentDynamicTotalItoIv: {name: 动态投资, unit: 万元}
+  windTurbineUnitPrice: {name: 风机单价, unit: 万元}
+  turbineTowerUnitPrice: {name: 风机（含塔筒）单价, unit: 万元}
+  mainTransformerUnitPrice: {name: 主变单价, unit: 万元}
+  transformerCompleteSetUnitPrice: {name: 主变整套单价, unit: 万元}
+  windTurbineTowerUnitPrice: {name: 塔筒单价, unit: 万元}
+  anchorBoltUnitPrice: {name: 预应力锚栓单价, unit: 万元}
+  containerSubstationUnitPrice: {name: 箱变单价, unit: 万元}
+  cableBranchBoxUnitPrice: {name: 电缆分支箱单价, unit: 万元}
+  disconnectorSwitchUnitPrice: {name: 隔离开关单价, unit: 万元}
+  foundationCapBottomRadius: {name: 承台底面半径R, unit: m}
+  foundationTopRadius: {name: 棱台顶面半径R1, unit: m}
+  foundationColumnRadius: {name: 承台台柱半径R2, unit: m}
+  foundationOuterEdgeHeight: {name: 承台底板外缘高度H1, unit: m}
+  foundationConeHeight: {name: 承台底板棱台高度H2, unit: m}
+  foundationColumnHeight: {name: 台柱高度H3, unit: m}
+  foundationBuriedDepth: {name: 基础埋深Hd, unit: m}
+  pileOuterDiameter: {name: 桩截面外径(直径), unit: m}
+  pileCount: {name: 桩数, unit: 根}
+  pileLength: {name: 桩长, unit: m}
+  pileRingCount: {name: 桩圈数, unit: null}
+  depreciationYears: {name: 折旧年限, unit: 年}
+  salvageRate: {name: 残值率, unit: "%"}
+  repairCost: {name: 修理费}
+  materialCostPerKw: {name: 材料费（元/KW）}
+  constructionPeriodYears: {name: 建设期（月/年)}
+  workingCapitalUnitKwIndicator: {name: 流动资金单位千瓦指标, unit: 元/KW}
+  workingCapitalLoanRatio: {name: 流动资金贷款比例, unit: "%"}
+  workingCapitalCapitalRatio: {name: 流动资本金比例, unit: "%"}
+  workingCapitalLoanInterestRate: {name: 流动资金贷款利率, unit: "%"}
+  constructionCapitalRatio: {name: 建设资本金比例, unit: "%"}
+  constructionFundLoanRatio: {name: 建设资金贷款比例, unit: "%"}
+  repaymentMethod: {name: 还款方式}
+  repaymentPeriod: {name: 偿还年限, unit: 年}
+  annualLoanInterestRate: {name: 年贷款利率, unit: "%"}
+  staffingCount: {name: 定员人数, unit: 人}
+  staffSalary: {name: 人员工资, unit: 万元}
+  welfareOtherRatio: {name: 职工福利费及其他占比, unit: "%"}
+  financeWorkingCapitalUnit: {name: 流动资金单位}
+  financeWorkingCapitalValue: {name: 流动资金数值}
+  financeWindSystemCapacityUnit: {name: 风电系统容量单位}
+  financeWindSystemCapacityValue: {name: 风电系统容量数值}
+  financeAnnualOnGridEnergyUnit: {name: 风电系统年上网电量单位}
+  financeAnnualOnGridEnergyValue: {name: 风电系统年上网电量数值}
+  financeLaborWelfareTotal: {name: 人工工资及福利费合计, unit: 万元}
+  financeMaterialCostTotal: {name: 材料费合计, unit: 万元}
+  financeMaterialCostYears1To13: {name: 材料费第1年至第13年, unit: 万元}
+  financeRepairCostTotal: {name: 修理费合计, unit: 万元}
+  financeRepairCostYears1To13: {name: 修理费第1年至第13年, unit: 万元}
+  financeInsuranceCostTotal: {name: 保险费合计, unit: 万元}
+  financeInsuranceRate: {name: 保险费率, unit: "%"}
+  financeOtherCostTotal: {name: 其他费用合计, unit: 万元}
+  financeLandUseTaxTotal: {name: 其中：土地使用税合计, unit: 万元}
+  financeMaterialCostYears14To21: {name: 材料费第14年至第21年, unit: 万元}
+  financeRepairCostYears14To21: {name: 修理费第14年至第21年, unit: 万元}
+  financeFixedAssetOriginalValueBuildYearAndYear1: {name: 固定资产原值建设期及第1年, unit: 万元}
+  financeOnGridPriceWithoutTaxTotal: {name: 上网电价（不含税）合计}
+  financeOnGridPriceWithTaxTotal: {name: 上网电价（含税）合计}
+  financeIncomeTaxTotal: {name: 所得税合计, unit: 万元}
+  financeOnGridPriceWithoutTaxYears2To13: {name: 上网电价（不含税）第2年至第13年, unit: 元/kWh}
+  financeOnGridPriceWithTaxYears2To13: {name: 上网电价（含税）第2年至第13年, unit: 元/kWh}
+  financeOnGridPriceWithoutTaxYears14To21: {name: 上网电价（不含税）第14年至第21年, unit: 元/kWh}
+  financeOnGridPriceWithTaxYears14To21: {name: 上网电价（含税）第14年至第21年, unit: 元/kWh}
+  financeCurtailmentRateSingle: {name: 限电率（单一值）, unit: "%"}
+  financeCurtailmentRateSegments: {name: 限电率（分段值）, unit: "%"}
+  financeCurtailmentAnnualOnGridEnergyMwh: {name: 限电后年上网电量, unit: MWh}
+  financeCurtailmentEquivalentFullLoadHours: {name: 限电等效满负荷小时数, unit: h}
+  windFarmGridPrice: {name: 上网电价, unit: 元/kWh}
+  financeCapitalIrrWithoutOutgoing: {name: 资本金财务内部收益率(不含送出), unit: "%"}
+  financeCapitalIrr: {name: 资本金财务内部收益率, unit: "%"}
+
+generation_text_fields:
+  installedCapacity:
+    patterns:
+      - '(?:规划容量为|装机容量为|装机容量)\s*([0-9]+(?:\.[0-9]+)?)\s*MW'
+      - '(?:规划容量为|装机容量为|装机容量)\s*([0-9]+(?:\.[0-9]+)?)\s*万千瓦'
+  turbineCount:
+    patterns:
+      - '(?:安装|选择安装|拟建风电场安装|拟建风电场选择安装)\s*([0-9]+)\s*台'
+  turbineCapacity:
+    patterns:
+      - '单机容量为\s*([0-9]+(?:\.[0-9]+)?)\s*kW'
+  generationHubHeight:
+    patterns:
+      - '轮毂高度[^0-9]{0,12}([0-9]+(?:\.[0-9]+)?)\s*(?:m|米)'
+  nonWakeLossFactor:
+    patterns:
+      - '不考虑尾流效应的折减系数\D{0,12}?([0-9]+(?:\.[0-9]+)?)\s*%'
+      - '综合折减系数\D{0,12}?([0-9]+(?:\.[0-9]+)?)\s*%'
+  gridAnnualEnergy:
+    patterns:
+      - '年上网(?:发)?电量\D{0,12}?([0-9]+(?:\.[0-9]+)?)\s*万\s*kW\s*[·\.]?\s*h'
+      - '年上网(?:发)?电量\D{0,12}?([0-9]+(?:\.[0-9]+)?)\s*万\s*kWh'
+  equivalentFullLoadHours:
+    patterns:
+      - '年等效满负荷小时数\D{0,12}?([0-9]+(?:\.[0-9]+)?)\s*h'
+
+table_outputs:
+  windFoundationTechnical:
+    name: 风机基础参数表
+    headers:
+      - {key: capBottomRadius, name: 承台底面半径R}
+      - {key: topRadius, name: 棱台顶面半径R1}
+      - {key: columnRadius, name: 承台台柱半径R2}
+      - {key: outerEdgeHeight, name: 承台底板外缘高度H1}
+      - {key: coneHeight, name: 承台底板棱台高度H2}
+      - {key: columnHeight, name: 台柱高度H3}
+      - {key: buriedDepth, name: 基础埋深Hd}
+      - {key: pileDiameter, name: 桩截面外径(直径)}
+      - {key: pileCount, name: 桩数}
+      - {key: averagePileLength, name: 桩长}
+      - {key: pileRingCount, name: 桩圈数}
+  windResourceDirectionEnergyFrequency:
+    name: 测风塔风向风能频率统计成果表
+    headers: []
+
+original_table_groups:
+  - key_prefix: resourceOriginalTable
+    name: 资源章节原表
+    title_only: true
+    key_patterns:
+      - key: windResourceTowerBasic
+        patterns: ['测风塔基本情况表', '测风塔\s*基本情况表?']
+      - key_template: windResourceEnergyParameter{tower}
+        extraction_type: repeatable_original_table
+        patterns: ['(?P<tower>[A-Za-z0-9]+)#\s*测风塔.*(?:风能参数统计成果表|各高度风能参数)']
+      - key_template: windResourceSpeedPower{tower}
+        extraction_type: repeatable_original_table
+        patterns: ['(?P<tower>[A-Za-z0-9]+)#\s*测风塔.*(?:平均风速|风速).*风功率密度']
+      - key_template: windResourceShear{tower}
+        extraction_type: repeatable_original_table
+        patterns: ['(?P<tower>[A-Za-z0-9]+)#\s*测风塔.*(?:切变统计表|风切变指数)']
+      - key_template: windResourceTurbulence{speed}ms{tower}
+        extraction_type: repeatable_original_table
+        patterns: ['(?P<tower>[A-Za-z0-9]+)#\s*测风塔.*(?P<speed>10|15)\s*m/s\s*湍流(?:强度)?统计结果']
+      - key_template: windResourceTurbulence{tower}
+        extraction_type: repeatable_original_table
+        patterns: ['(?P<tower>[A-Za-z0-9]+)#\s*测风塔.*湍流(?:强度)?(?:统计结果|计算成果|比较)?表?']
+      - key: windResourceShearStatistics
+        patterns: ['风切变指数(?:计算成果|统计)?表', '测风塔.*风切变.*(?:计算成果|统计|结果|计算结果)']
+      - key: windResourceSpeedPowerStatistics
+        patterns: ['(?:平均风速|风速).*风功率密度']
+      - key: windResourceSectorDistribution
+        patterns: ['扇区.*(?:风向|风能).*分布']
+      - key: windResourceDirectionEnergyFrequency
+        patterns:
+          - '测风塔.*风向风能频率统计成果表'
+          - '风向风能频率统计成果表'
+          - '风向.*风能.*频率统计(?:成果)?表'
+      - key: windResourceTurbulenceComparison
+        patterns: ['湍流(?:强度)?(?:统计结果|计算成果|比较)?表']
+    patterns:
+      - '测风塔基本情况表'
+      - '测风塔\s*基本情况表?'
+      - '风切变指数(?:计算成果|统计)?表'
+      - '测风塔.*风切变.*(?:计算成果|统计|结果|计算结果)'
+      - '(?:平均风速|风速).*风功率密度'
+      - '扇区.*(?:风向|风能).*分布'
+      - '测风塔.*风向风能频率统计成果表'
+      - '风向风能频率统计成果表'
+      - '风向.*风能.*频率统计(?:成果)?表'
+      - '湍流(?:强度)?(?:统计结果|计算成果|比较)?表'
+      - '[A-Za-z0-9]+#.*测风塔.*(?:风能参数统计成果表|各高度风能参数|平均风速|风功率密度|风切变指数|切变统计表|湍流)'
+  - key_prefix: generationOriginalTable
+    name: 发电量章节原表
+    title_only: true
+    key_patterns:
+      - key: generationSummary
+        patterns: ['风电场工程.*(?:推荐方案)?(?:发电量|年上网电量)计算(?:成果)?表', '风电场发电量计算成果表']
+      - key: singleTurbineAnnualEnergy
+        patterns: ['推荐机型单机发电量统计表', '单台风机年上网电量计算成果表']
+    patterns:
+      - '风电场工程.*(?:推荐方案)?(?:发电量|年上网电量)计算(?:成果)?表'
+      - '风电场发电量计算成果表'
+      - '推荐机型单机发电量统计表'
+      - '单台风机年上网电量计算成果表'
+    exclude_patterns: ['备选机型', '5\.3-2[A-Za-z0-9]', '5\.4-2[A-Za-z0-9]']
+  - key_prefix: electricalPrimaryOriginalTable
+    name: 电气一次原表
+    title_only: true
+    key_patterns:
+      - key: electricalPrimaryStationScale
+        patterns: ['110\s*kV\s*升压站本期规模']
+      - key: electricalPrimaryEquipmentMaterial
+        patterns: ['升压站电气一次主要设备材料工程量表', '主要\s*电气\s*一次\s*设备', '电气一次.*(?:主要设备|设备材料|材料工程量)']
+    patterns:
+      - '110\s*kV\s*升压站本期规模'
+      - '升压站电气一次主要设备材料工程量表'
+      - '主要\s*电气\s*一次\s*设备'
+      - '电气一次.*(?:主要设备|设备材料|材料工程量)'
+  - key_prefix: electricalSecondaryOriginalTable
+    name: 电气二次原表
+    title_only: true
+    key_patterns:
+      - key: electricalSecondaryMainEquipment
+        patterns: ['升压站\s*电气\s*二次\s*主要设备表', '电气\s*二次\s*主要设备表', '电气\s*二次\s*设备材料清册表?']
+      - key: electricalSecondaryCommunicationEquipment
+        patterns: ['主要\s*通信\s*设备表', '通信.*设备表']
+    patterns:
+      - '升压站\s*电气\s*二次\s*主要设备表'
+      - '电气\s*二次\s*主要设备表'
+      - '电气\s*二次\s*设备材料清册表?'
+      - '主要\s*通信\s*设备表'
+      - '通信.*设备表'
+  - key_prefix: collectorLineOriginalTable
+    name: 集电线路原表
+    title_only: true
+    key_patterns:
+      - key: collectorElectricalMaterial
+        patterns: ['电气部分材料清册']
+      - key: collectorTowerMaterial
+        patterns: ['杆塔部分材料清册']
+      - key: collectorFoundationMaterial
+        patterns: ['基础部分材料清册']
+      - key: collectorOpticalCableMaterial
+        patterns: ['光缆部分材料清册']
+      - key: collectorCableMaterial
+        patterns: ['电缆部分材料清册']
+      - key: collectorTowerGroundingMaterial
+        patterns: ['铁塔接地装置材料']
+      - key: collectorMainEquipmentMaterial
+        patterns: ['集电线路.*(?:主要设备及材料清册|主要设备.*材料清册|设备及材料清册)']
+    patterns:
+      - '电气部分材料清册'
+      - '杆塔部分材料清册'
+      - '基础部分材料清册'
+      - '光缆部分材料清册'
+      - '电缆部分材料清册'
+      - '铁塔接地装置材料'
+      - '集电线路.*(?:主要设备及材料清册|主要设备.*材料清册|设备及材料清册)'
+  - key_prefix: substationCivilOriginalTable
+    name: 土建升压站原表
+    title_only: true
+    key_patterns:
+      - key: substationCivil
+        patterns: ['升压站\s*主要\s*土建\s*工程量表', '土建\s*主要\s*工程量表', '升压站\s*土建\s*清单']
+    patterns:
+      - '升压站\s*主要\s*土建\s*工程量表'
+      - '土建\s*主要\s*工程量表'
+      - '升压站\s*土建\s*清单'
+  - key_prefix: windFoundationOriginalTable
+    name: 风机基础原表
+    title_only: true
+    key_patterns:
+      - key: windFoundationConstruction
+        patterns: ['基础尺寸及参数表', '基础断面表', '风机基础工程量', '风电机组基础工程量', '风机基础工程量表']
+    patterns:
+      - '基础尺寸及参数表'
+      - '基础断面表'
+      - '风机基础工程量'
+      - '风电机组基础工程量'
+      - '风机基础工程量表'
+  - key_prefix: boxFoundationOriginalTable
+    name: 箱变基础原表
+    title_only: true
+    key_patterns:
+      - key: boxFoundationTechnical
+        patterns: ['箱变基础工程量表', '箱变基础单台工程量表(?:（配事故油池）)?', '箱变基础单台工程量表', '箱式变电站基础(?:工程量表|单台工程量表|指标表)?', '机组变压器基础(?:工程量表|单台工程量表|指标表)?', '(?:\d+(?:\.\d+)*\.?\s*)?风电场主要工程量清单']
+    patterns:
+      - '箱变基础工程量表'
+      - '箱变基础单台工程量表(?:（配事故油池）)?'
+      - '箱变基础单台工程量表'
+      - '^\s*(?:\d+(?:\.\d+)*\.?\s*)?箱变基础\s*$'
+      - '^\s*(?:\d+(?:\.\d+)*\.?\s*)?箱式变电站基础(?:工程量表|单台工程量表|指标表)?\s*$'
+      - '^\s*(?:\d+(?:\.\d+)*\.?\s*)?机组变压器基础(?:工程量表|单台工程量表|指标表)?\s*$'
+      - '(?:\d+(?:\.\d+)*\.?\s*)?风电场主要工程量清单'
+  - key_prefix: roadOriginalTable
+    name: 道路原表
+    title_only: true
+    key_patterns:
+      - key: roadTechnical
+        patterns: ['进站道路.*(?:主要工程数量表|工程数量表|主要工程量表)', '道路.*主要工程数量表']
+    patterns:
+      - '进站道路.*(?:主要工程数量表|工程数量表|主要工程量表)'
+      - '道路.*主要工程数量表'
+  - key_prefix: landOriginalTable
+    name: 用地面积原表
+    title_only: true
+    key_patterns:
+      - key: permanentLandSummary
+        patterns: ['工程永久征地面积汇总表']
+      - key: temporaryLandSummary
+        patterns: ['工程临时征地面积汇总表']
+      - key: permanentLandArea
+        patterns: ['工程征用地计算合计表']
+      - key: landTotalAcquisition
+        patterns: ['工程总征地', '工程面积汇总', '工程征用地']
+    patterns:
+      - '工程永久征地面积汇总表'
+      - '工程临时征地面积汇总表'
+      - '工程征用地计算合计表'
+      - '工程总征地'
+      - '工程面积汇总'
+      - '工程征用地'
+  - key_prefix: earthworkOriginalTable
+    name: 土石方平衡原表
+    title_only: true
+    key_patterns:
+      - key: earthworkBalance
+        patterns: ['场内土石方平衡', '土石方平衡表']
+    patterns:
+      - '场内土石方平衡'
+      - '土石方平衡表'
+  - key_prefix: investmentOriginalTable
+    name: 技经概算原表
+    title_only: true
+    key_patterns:
+      - key: investmentTechnicalEconomicIndicators
+        patterns: ['主要技术经济指标表']
+      - key: investmentEstimate
+        patterns: ['工程总概算表']
+      - key: investmentConstructionAuxiliary
+        patterns: ['施工辅助工程概算表']
+      - key: investmentEquipmentInstallation
+        patterns: ['设备及安装工程概算表']
+      - key: investmentBuilding
+        patterns: ['建筑工程概算表']
+      - key: investmentOtherCost
+        patterns: ['其他费用概算表']
+    patterns:
+      - '主要技术经济指标表'
+      - '工程总概算表'
+      - '施工辅助工程概算表'
+      - '设备及安装工程概算表'
+      - '建筑工程概算表'
+      - '其他费用概算表'
+  - key_prefix: financeOriginalTable
+    name: 财务原表
+    title_only: true
+    key_patterns:
+      - key: financialIndicatorSummary
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*财务指标汇总表']
+      - key: financeInvestmentPlanFunding
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目总投资使用计划与资金筹措表']
+      - key: financeTotalCostEstimate
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*总成本费用估算表(?![^\n]*续)']
+      - key: financeTotalCostEstimateContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*总成本费用估算表[^\n]*续']
+      - key: financeDepreciationAmortization
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*资产折旧摊销估算表(?![^\n]*续)']
+      - key: financeDepreciationAmortizationContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*资产折旧摊销估算表[^\n]*续']
+      - key: financeProfitDistribution
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*利润与利润分配表(?![^\n]*续)']
+      - key: financeProfitDistributionContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*利润与利润分配表[^\n]*续']
+      - key: financeLoanRepayment
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*借款还本付息计划表(?![^\n]*续)']
+      - key: financeLoanRepaymentContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*借款还本付息计划表[^\n]*续']
+      - key: financeCashFlowPlan
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*财务计划现金流量表(?![^\n]*续)']
+      - key: financeCashFlowPlanContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*财务计划现金流量表[^\n]*续']
+      - key: financeProjectInvestmentCashFlow
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目投资现金流量表(?![^\n]*续)']
+      - key: financeProjectInvestmentCashFlowContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目投资现金流量表[^\n]*续']
+      - key: financeCapitalCashFlow
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目资本金现金流量表(?![^\n]*续)']
+      - key: financeCapitalCashFlowContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目资本金现金流量表[^\n]*续']
+      - key: financeInvestorCashFlowParty1
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*投资各方现金流量表[^\n]*投资方\s*1(?![^\n]*续)']
+      - key: financeInvestorCashFlowParty1Continuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*投资各方现金流量表[^\n]*投资方\s*1[^\n]*续']
+      - key: financeBalanceSheet
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*资产负债表(?![^\n]*续)']
+      - key: financeBalanceSheetContinuation
+        patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*资产负债表[^\n]*续']
+      - key: financeSensitivityAnalysis
+        patterns:
+          - '敏感性分析表'
+    patterns:
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*财务指标汇总表'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目总投资使用计划与资金筹措表'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*总成本费用估算表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*资产折旧摊销估算表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*利润与利润分配表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*借款还本付息计划表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*财务计划现金流量表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目投资现金流量表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*项目资本金现金流量表(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*投资各方现金流量表[^\n]*投资方\s*1(?:[^\n]*续)?'
+      - '(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?\s*[：:]?\s*资产负债表(?:[^\n]*续)?'
+      - '敏感性分析表'
+
+original_tables: []
+repeatable_original_tables: []
+combined_tables:
+  - builder: resource_details
+  - builder: collector_line_combined
+  - builder: electrical_primary_details
+  - builder: electrical_secondary_details
+  - builder: substation_civil_combined
+  - builder: road_parameters
+
+combined_detail_field_mappings:
+  windResourceCombined:
+    multi: true
+    fields:
+      windResourceTowerCodes: 测风塔编号
+      windTowerLongitude: 测风塔经度
+      windTowerLatitude: 测风塔纬度
+      windMeasurementPeriod: 测风周期
+      windFarmAirDensities: 该风电场的空气密度
+      windResourceAirDensities: 高度对应的空气密度
+      windResourceAirDensity10m: 10m高度空气密度
+      windResourceAirDensity160m: 160m高度空气密度
+      hubHeightAnnualAverageWindSpeed: 轮毂高度平均风速m/s
+      hubHeightWindPowerDensity: 轮毂高度平均风功率密度W/m²
+      windResourceMainWindDirections: 轮毂高度处的主风向
+      windResourceSecondaryWindDirections: 轮毂高度处的次风向
+      windResourceMainWindEnergyDirections: 轮毂高度处的主风能方向
+      windResourceSecondaryWindEnergyDirections: 轮毂高度处的次风能方向
+      representativeTurbulenceIntensity: 最大高度处代表性湍流强度
+      windShearExponent: 综合风切变
+      windResourceGenerationUses: 发电量计算是否使用
+  electricalPrimaryAccessStationCombined:
+    fields:
+      accessStationName: accessStationName
+      accessibleVoltage: accessibleVoltage
+      accessibleCapacity: accessibleCapacity
+  electricalPrimaryMainConnectionCombined:
+    fields:
+      plannedCapacity: plannedCapacity
+      currentCapacity: currentCapacity
+      connectionType: connectionType
+  electricalPrimaryLightningRodCombined:
+    fields:
+      independentLightningRodCount: independentLightningRodCount
+      frameLightningRodCount: frameLightningRodCount
+  collectorLineCombined:
+    fields:
+      collectorVoltage: collectorVoltage
+      circuitCount: circuitCount
+      newRouteLength: newRouteLength
+      newOverheadLineLength: newOverheadLineLength
+      newSingleCircuitLineLength: newSingleCircuitLineLength
+      newDoubleCircuitLineLength: newDoubleCircuitLineLength
+      newCableLineLength: newCableLineLength
+      totalCollectorRouteLength: totalCollectorRouteLength
+      doubleCircuitOverheadRouteLength: doubleCircuitOverheadRouteLength
+      singleCircuitOverheadRouteLength: singleCircuitOverheadRouteLength
+      boxToTerminalTowerCableRouteLength: boxToTerminalTowerCableRouteLength
+      singleCircuitCableRouteLength: singleCircuitCableRouteLength
+      doubleCircuitCableRouteLength: doubleCircuitCableRouteLength
+  substationCivilCombined:
+    fields:
+      totalLandArea: totalLandArea
+      insideWallLandArea: insideWallLandArea
+  roadParameters:
+    fields:
+      accessRoadLength: accessRoadLength
+      accessRoadSubgradeWidth: accessRoadSubgradeWidth
+      accessRoadPavementWidth: accessRoadPavementWidth
+      newRoadLength: newRoadLength
+      rebuiltRoadLength: rebuiltRoadLength
+      subgradeWidth: subgradeWidth
+      pavementWidth: pavementWidth
+      siteRoadLength: siteRoadLength
+      maintenanceRoadLength: maintenanceRoadLength
+      maintenanceRoadSubgradeWidth: maintenanceRoadSubgradeWidth
+      maintenanceRoadPavementWidth: maintenanceRoadPavementWidth
+
+resource_table_key_patterns:
+  - key: windResourceTowerBasic
+    patterns: ['测风塔基本情况表']
+  - key: windResourceShearStatistics
+    patterns: ['风切变指数统计表']
+  - key: windResourceSpeedPowerStatistics
+    patterns: ['平均风速', '风功率密度']
+  - key: windResourceSectorDistribution
+    patterns: ['(?=.*扇区)(?=.*(?:风能|风向))']
+  - key: windResourceDirectionEnergyFrequency
+    patterns:
+      - '测风塔.*风向风能频率统计成果表'
+      - '风向风能频率统计成果表'
+      - '风向.*风能.*频率统计(?:成果)?表'
+  - key: windResourceTurbulenceComparison
+    patterns: ['湍流(?:强度)?(?:统计结果|计算成果|比较)?表']
+
+wind_resource_direction_table_rules:
+  - name: 测风塔风向风能频率统计成果表最大值
+    patterns: ['风向风能频率统计成果表', '风向.*风能.*频率', '风向.*风能.*分布']
+    layout: auto
+    direction_column_aliases: ['风向', '扇区', '方位']
+    tower_column_aliases: ['塔号', '测风塔', '编号']
+    grouped_header:
+      enabled: true
+      tower_pattern: '[A-Za-z0-9]{2,8}#'
+      direction_column_aliases: ['风向', '扇区', '方位']
+      metric_header_row_offset: 1
+    metrics:
+      - target: mainWindDirection
+        column_aliases: ['风向频率', '风向频次', '频率']
+      - target: mainWindEnergyDirection
+        column_aliases: ['风能频率', '风能频次', '风能']
+
+electrical_secondary_table_key_patterns:
+  - key: electricalSecondaryMainEquipment
+    patterns:
+      - '升压站\s*电气\s*二次\s*主要设备表'
+      - '电气\s*二次\s*主要设备表'
+      - '电气\s*二次\s*设备材料清册表?'
+      - '电气\s*二次.*(?:主要设备|设备材料清册)'
+  - key: electricalSecondaryCommunicationEquipment
+    patterns:
+      - '主要\s*通信\s*设备表'
+      - '通信.*设备表'
+
+

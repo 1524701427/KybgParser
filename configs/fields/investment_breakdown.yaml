@@ -1,0 +1,108 @@
+fields:
+  equipmentPurchaseCost:
+    name: 设备购置费
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 设备购置费, 概算, 主要技术经济指标]
+      exclude: [风资源]
+    aliases: [设备购置费, 设备费]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:设备购置费|设备费).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  constructionInstallationCost:
+    name: 建筑安装工程费
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 建筑安装工程费, 建安工程费, 概算]
+      exclude: [风资源]
+    aliases: [建筑安装工程费, 建安工程费, 建筑工程费, 安装工程费]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:建筑安装工程费|建安工程费|建筑工程费|安装工程费).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  otherCost:
+    name: 其他费用
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 其他费用, 概算]
+      exclude: [风资源]
+    aliases: [其他费用, 工程建设其他费用]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:其他费用|工程建设其他费用).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  reserveFund:
+    name: 基本预备费
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 预备费, 概算]
+      exclude: [风资源]
+    aliases: [基本预备费, 预备费]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:基本预备费|预备费).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  constructionInterest:
+    name: 建设期利息
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 建设期利息, 财务评价, 概算]
+      exclude: [风资源]
+    aliases: [建设期利息]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:建设期利息).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  workingCapital:
+    name: 流动资金
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [投资估算, 流动资金, 财务评价]
+      exclude:
+        - 风资源
+        - 借款
+        - 回收
+    aliases: [流动资金]
+    unit_aliases: [万元, 元]
+    patterns:
+      - (?<!\u56de\u6536)(?:\u6d41\u52a8\u8d44\u91d1)\s*\|\s*([0-9]+(?:\.[0-9]+)?)
+      - (?:\u6d41\u52a8\u8d44\u91d1)(?!\u501f\u6b3e).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(\u4e07\u5143|\u5143)?
+    validators:
+      min: 0
+      max: 1000000
+    row_label_aliases:
+      - 流动资金
+    row_label_match: exact
+    row_label_columns: 2
+    row_label_reject_any:
+      - 流动资金借款
+      - 回收流动资金
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 流动资金
+      row_label_columns: 2
+      row_label_match: exact
+      row_label_reject_any:
+        - 流动资金借款
+        - 回收流动资金
+      column_aliases:
+        - 合计
+    coarse_table_rule_enabled: false

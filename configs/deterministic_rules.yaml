@@ -1,0 +1,204 @@
+version: 1
+
+resource:
+  preferred_tower_patterns:
+    - '本期风电场内设有一座\s*(?P<value>[A-Za-z0-9]{2,8}#)\s*测风塔'
+    - '目前已有测风塔数据为[^\n。；;]{0,40}?(?P<value>[A-Za-z0-9]{2,8}#)\s*测风塔'
+    - '本期[^\n。；;]{0,80}?(?P<value>[A-Za-z0-9]{2,8}#)\s*测风塔'
+  summary_fields:
+    airDensity:
+      value_type: number
+      select: last
+      patterns:
+        - '空气密度(?:条件下)?(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:kg|km)\s*/?\s*m'
+        - '空气密度\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:kg|km)\s*/?\s*m'
+      validators: {min: 0.8, max: 1.4}
+    windSpeed:
+      value_type: number
+      select: last
+      require_keywords: ['风功率密度']
+      patterns:
+        - '(?:轮毂高度|[0-9]+\s*m\s*高度)[^\n。；;]{0,40}?年?平均风速(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s'
+        - '年?平均风速(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s'
+    powerDensity:
+      value_type: number
+      select: last
+      patterns:
+        - '年?平均风功率密度(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*W\s*/?\s*m'
+        - '风功率密度(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*W\s*/?\s*m'
+    turbulence:
+      value_type: number
+      select: last
+      reject_keywords: ['折减']
+      patterns:
+        - '湍流强度(?!\s*在\s*[0-9]+(?:\.[0-9]+)?\s*[~～〜-])(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+        - '代表性湍流强度[^\n。；;]{0,20}?(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      validators: {min: 0, max: 1}
+    shear:
+      value_type: number
+      select: last
+      patterns:
+        - '综合风切变(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+        - '风切变指数(?:取|为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
+      validators: {min: 0, max: 1}
+
+electrical_primary:
+  capacity_patterns:
+    - '新建\s*(?P<count>[0-9]+)\s*台\s*(?P<capacity>[0-9]+(?:\.[0-9]+)?)\s*MVA\s*主变'
+    - '选用\s*(?P<count>[0-9]+)\s*台容量为\s*(?P<capacity>[0-9]+(?:\.[0-9]+)?)\s*MVA\s*的主变压器'
+    - '主变压器\s*\|\s*(?P<count>[0-9]+)\s*[×xX]\s*(?P<capacity>[0-9]+(?:\.[0-9]+)?)\s*MVA'
+  connection_patterns:
+    - '110\s*kV[^\n。；;]{0,80}?线\s*[-－—]\s*变组接线(?:方式|形式|型式)?'
+    - '110\s*kV[^\n。；;]{0,60}?线变组接线(?:方式|形式|型式)'
+    - '110\s*kV[^\n。；;]{0,80}?单母线接线(?:方案|方式|形式|型式)?'
+    - '35\s*kV[^\n。；;]{0,80}?单母(?:线)?分段接线(?:方式|形式|型式)?'
+    - '35\s*kV[^\n。；;]{0,60}?单母线接线(?:方式|形式|型式)'
+    - '35\s*kV[^\n。；;]{0,80}?双段母线接线(?:方案|方式|形式|型式)?'
+  access_station_patterns:
+    - {score: 20, pattern: '接入到\s*(?P<value>[^\n，。；;]{1,50}?升压站)'}
+    - {score: 15, pattern: '接入至\s*(?P<value>[^\n，。；;]{1,50}?升压站)'}
+    - {score: 10, pattern: '接入\s*(?P<value>[^\n，。；;]{1,60}?升压站)'}
+    - {score: 5, pattern: '(?:接至|送至|至)\s*(?P<value>(?:330\s*kV)?[^\n，。;；]{0,30}?变电站)'}
+  invalid_access_station_patterns:
+    - '到升压站'
+    - '至升压站'
+    - '接入升压站'
+    - '对侧变电站'
+    - '对侧站'
+    - '线路接入对侧变电站'
+    - '[到至接入]{1,4}升压站'
+  text_fields:
+    svgReactiveCompensationCapacity:
+      name: SVG无功补偿装置容量
+      unit: null
+      evidence_keywords: ['SVG', '无功补偿']
+      normalize: electrical_text
+      patterns:
+        - '(?P<value>[0-9]+\s*套\s*容性\s*[0-9]+(?:\.[0-9]+)?\s*Mvar\s*[~～\-－—]\s*感性\s*[0-9]+(?:\.[0-9]+)?\s*Mvar\s*SVG\s*动态无功补偿装置)'
+        - '(?P<value>[0-9]+\s*套\s*感性\s*[0-9]+(?:\.[0-9]+)?\s*Mvar\s*[~～\-－—]\s*容性\s*[0-9]+(?:\.[0-9]+)?\s*Mvar\s*SVG\s*动态无功补偿装置)'
+        - '(?P<value>SVG\s*动态无功补偿装置[^\n。；;]{0,60}?容性\s*[0-9]+(?:\.[0-9]+)?\s*Mvar[^\n。；;]{0,30}?感性\s*[0-9]+(?:\.[0-9]+)?\s*Mvar)'
+        - '容量为\s*(?P<value>[±+\-]?\s*[0-9]+(?:\.[0-9]+)?\s*Mvar)\s*动态无功补偿装置'
+        - '无功补偿\s*\|\s*(?:[0-9]+\s*[×xX]\s*)?(?P<value>[±+\-]?\s*[0-9]+(?:\.[0-9]+)?\s*Mvar)'
+        - '连续调节范围\s*\|\s*感性\s*(?P<value>[0-9]+(?:\.[0-9]+)?\s*Mvar)[^\n。；;]{0,30}?容性'
+
+wind_foundation:
+  sections: ['风机基础']
+  fallback_keywords: ['风机基础', '风电机组基础', '补充逻辑', '承台直径', '承台底面半径', '台柱半径', '桩数', '桩径']
+  fields:
+    windFoundationType:
+      name: 风机基础类型
+      unit: null
+      value_type: text
+      evidence_keywords: ['风机基础', '采用', '基础']
+      patterns:
+        - '(?:本工程|本项目|风机基础)[^。；;\n]{0,30}?采用\s*(?P<value>[^。；;\n]{0,30}?基础)'
+        - '风机基础(?:型式|形式|类型)[为采用：:\s]*(?P<value>[^。；;\n]{0,30}?基础)'
+    foundationCapBottomRadius:
+      name: 基础承台底面半径
+      unit: m
+      value_type: number
+      evidence_keywords: ['承台底面半径']
+      patterns: ['(?:基础)?承台(?:底面)?半径\s*R?\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationTopRadius:
+      name: 棱台顶面半径R1
+      unit: m
+      value_type: number
+      evidence_keywords: ['顶面半径']
+      patterns: ['(?:基础圆台|棱台)?顶面半径\s*R1\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationColumnRadius:
+      name: 承台台柱半径R2
+      unit: m
+      value_type: number
+      evidence_keywords: ['台柱半径']
+      patterns: ['(?:承台)?台柱半径\s*R2\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationOuterEdgeHeight:
+      name: 承台底板外缘高度H1
+      unit: m
+      value_type: number
+      evidence_keywords: ['外缘高度']
+      patterns: ['(?:承台)?底板外缘高度\s*H1\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationConeHeight:
+      name: 承台底板棱台高度H2
+      unit: m
+      value_type: number
+      evidence_keywords: ['棱台高度']
+      patterns: ['(?:承台)?底板(?:棱台|台)高度\s*H2\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationColumnHeight:
+      name: 台柱高度H3
+      unit: m
+      value_type: number
+      evidence_keywords: ['台柱高度']
+      patterns: ['台柱高度\s*H3\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    pileCount:
+      name: 桩数
+      unit: 根
+      value_type: number
+      evidence_keywords: ['桩数']
+      patterns: ['桩数\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:根)?']
+    pileOuterDiameter:
+      name: 桩截面外径(直径)
+      unit: m
+      value_type: number
+      evidence_keywords: ['桩截面外径']
+      patterns:
+        - '桩截面外径(?:\s*[（(]直径[）)])?\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?'
+        - '桩径\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?'
+    pileLength:
+      name: 桩长
+      unit: m
+      value_type: number
+      evidence_keywords: ['桩长']
+      patterns:
+        - '单桩长(?:为)?\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?'
+        - '桩长(?:为)?\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?'
+    pileRingCount:
+      name: 桩圈数
+      unit: null
+      value_type: number
+      evidence_keywords: ['桩圈数']
+      patterns: ['桩圈数\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:圈)?']
+    foundationCapDiameter:
+      name: 承台直径
+      unit: m
+      value_type: number
+      evidence_keywords: ['承台直径']
+      patterns: ['承台直径(?:为)?\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationBuriedDepth:
+      name: 基础埋深Hd
+      unit: m
+      value_type: number
+      evidence_keywords: ['埋深']
+      patterns: ['(?:基础)?埋深\s*Hd?\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+    foundationColumnDiameter:
+      name: 台柱直径
+      unit: m
+      value_type: number
+      evidence_keywords: ['台柱直径']
+      patterns: ['台柱直径\s*[:：=＝]?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?:m|米)?']
+
+finance:
+  sections: ['财务']
+  fallback_keywords: ['材料费', '流动资金', '工资']
+  fields:
+    materialCostPerKw:
+      name: 材料费（元/KW）
+      unit: 元/KW
+      value_type: number
+      evidence_keywords: ['材料费']
+      patterns: ['材料费(?:定额)?取\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW']
+    workingCapitalUnitKwIndicator:
+      name: 流动资金单位千瓦指标
+      unit: 元/KW
+      value_type: number
+      evidence_keywords: ['流动资金']
+      patterns:
+        - '流动资金按\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW\s*估算'
+        - '流动资金[^。；;\n]{0,80}?估算指标为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW'
+    staffSalary:
+      name: 人员工资
+      unit: 万元
+      value_type: number
+      evidence_keywords: ['工资']
+      patterns:
+        - '(?:人年均工资|人均年工资|年工资)按\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*万元'
+        - '人员工资[^。；;\n]{0,40}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*万元'

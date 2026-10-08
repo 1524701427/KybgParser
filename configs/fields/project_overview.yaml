@@ -1,0 +1,150 @@
+fields:
+  projectName:
+    name: 项目名称
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 总论, 建设规模, 主要技术经济指标]
+      exclude: []
+    aliases: [项目名称, 工程名称, 本项目名称]
+    patterns:
+      - "(?:项目名称|工程名称)[:：\\s]*([^，。；;\\n]{4,80})"
+
+  projectLocation:
+    name: 建设地点
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 场址, 场址条件, 总论]
+      exclude: [投资估算, 财务评价]
+    aliases: [建设地点, 项目地点, 场址位置, 工程场址, 拟建场址]
+    patterns:
+      - "(?:建设地点|项目地点|场址位置|工程场址)[:：\\s]*([^，。；;\\n]{2,80})"
+
+  projectAddressCity:
+    name: 项目地址-所属市
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 场址, 场址条件, 总论]
+      exclude: [投资估算, 财务评价]
+    aliases: [项目位于, 工程位于, 场址位于, 建设地点, 项目地址]
+    patterns:
+      - "(?:项目|工程|场址|拟建场区)[^。；;\\n]{0,30}(?:位于|地处)[^。；;\\n]{0,40}?(?:[\\u4e00-\\u9fa5]{2,12}(?:省|自治区))?(?P<value>[\\u4e00-\\u9fa5]{2,12}市)"
+
+  projectAddressCounty:
+    name: 项目地址-所属县区
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 场址, 场址条件, 总论]
+      exclude: [投资估算, 财务评价]
+    aliases: [项目位于, 工程位于, 场址位于, 建设地点, 项目地址]
+    patterns:
+      - "(?:项目|工程|场址|拟建场区)[^。；;\\n]{0,30}(?:位于|地处)[^。；;\\n]{0,40}?(?:[\\u4e00-\\u9fa5]{2,12}(?:省|自治区))?(?:[\\u4e00-\\u9fa5]{2,12}市)?(?P<value>[\\u4e00-\\u9fa5]{1,12}(?:县|区|旗))"
+
+  projectAddressTown:
+    name: 项目地址-所属乡镇
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 场址, 场址条件, 总论]
+      exclude: [投资估算, 财务评价]
+    aliases: [项目位于, 工程位于, 场址位于, 建设地点, 项目地址]
+    patterns:
+      - "(?:项目|工程|场址|拟建场区)[^。；;\\n]{0,30}(?:位于|地处)[^。；;\\n]{0,40}?(?:[\\u4e00-\\u9fa5]{2,12}(?:省|自治区))?(?:[\\u4e00-\\u9fa5]{2,12}市)?(?:[\\u4e00-\\u9fa5]{1,12}(?:县|区|旗))?(?P<value>[\\u4e00-\\u9fa5]{1,16}(?:镇|乡|街道|苏木))"
+
+  projectAddressDetail:
+    name: 项目地址-详细地址
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 场址, 场址条件, 总论]
+      exclude: [投资估算, 财务评价]
+    aliases: [项目位于, 工程位于, 场址位于, 建设地点, 项目地址]
+    patterns:
+      - "(?:项目|工程|场址|拟建场区)[^。；;\\n]{0,30}(?:位于|地处)\\s*(?P<value>[^，。；;\\n]{2,100})"
+
+  ownerCompany:
+    name: 建设单位
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 总论]
+      exclude: [财务评价]
+    aliases: [建设单位, 项目法人, 项目单位, 业主单位]
+    patterns:
+      - "(?:建设单位|项目法人|项目单位|业主单位)[:：\\s]*([^，。；;\\n]{2,80})"
+
+  investmentOwnerCompany:
+    name: 投资（建设）单位
+    value_type: string
+    regex_requires_alias: false
+    sections:
+      include: [投资方及项目单位概况, 投资方, 项目单位概况, 工程概况, 项目概况, 总论]
+      exclude: [投资估算, 财务评价, 概算]
+    aliases: [投资方, 投资方及项目单位概况, 项目单位概况, 建设单位, 项目单位]
+    patterns:
+      - "(?:投资方|建设单位|项目单位)[:：\\s]*[为是]?\\s*(?P<value>[\\u4e00-\\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))"
+      - "(?P<value>[\\u4e00-\\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))"
+
+  designUnit:
+    name: 设计单位
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 总论, 封面, 手页, 解析数据]
+      exclude: [财务评价]
+    aliases: [设计单位, 设计院, 设计单位名称]
+    patterns:
+      - '(?:设计单位|设计院|设计单位名称)[:：\s]*([^\n，。；;]{2,120})'
+
+  designUnitQualification:
+    name: 设计单位资质等级
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 总论, 封面, 手页, 解析数据]
+      exclude: [财务评价]
+    aliases: [设计单位资质等级, 设计资质等级, 资质等级]
+    patterns:
+      - '(?:设计单位资质等级|设计资质等级|资质等级)[:：\s]*([^\n，。、;]{1,40})'
+
+  projectNature:
+    name: 项目性质
+    value_type: string
+    sections:
+      include: [工程概况, 项目概况, 总论]
+      exclude: []
+    aliases: [项目性质, 工程性质, 建设性质]
+    patterns:
+      - "(?:项目性质|工程性质|建设性质)[:：\\s]*([^，。；;\\n]{2,40})"
+
+  constructionScale:
+    name: 建设规模
+    value_type: string
+    sections:
+      include: [工程概况, 建设规模, 主要技术经济指标, 总论]
+      exclude: [投资估算, 财务评价]
+    aliases: [建设规模, 工程规模, 规划规模]
+    patterns:
+      - "(?:建设规模|工程规模|规划规模)[:：\\s]*([^，。；;\\n]{2,80})"
+
+  landArea:
+    name: 用地面积
+    value_type: number
+    standard_unit: 亩
+    sections:
+      include: [工程占地, 用地, 总布置, 施工组织, 主要技术经济指标]
+      exclude: [财务评价]
+    aliases: [用地面积, 永久用地, 工程占地, 占地面积]
+    unit_aliases: [亩, hm2, 公顷, m2, 平方米]
+    patterns:
+      - "(?:用地面积|永久用地|工程占地|占地面积).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(亩|hm2|公顷|m2|平方米)?"
+    validators:
+      min: 0
+
+  projectAltitude:
+    name: 场址海拔
+    value_type: number
+    standard_unit: m
+    sections:
+      include: [场址, 地形地貌, 工程地质, 风资源]
+      exclude: [投资估算, 财务评价]
+    aliases: [海拔, 场址海拔, 高程]
+    unit_aliases: [m, 米]
+    patterns:
+      - "(?:场址海拔|海拔|高程).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(m|米)?"
+    validators:
+      min: 0

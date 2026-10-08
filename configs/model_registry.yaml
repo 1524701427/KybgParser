@@ -1,0 +1,25 @@
+models:
+  bge:
+    name: BAAI/bge-base-zh-v1.5
+    task: 字段语义匹配
+    mode: shadow
+
+  uie:
+    name: uie-base
+    task: 候选文本字段值抽取
+    mode: shadow
+
+  global_pointer:
+    name: feasibility-global-pointer
+    task: 专用字段值实体抽取
+    mode: shadow
+
+  heading_classifier:
+    name: heading-classifier
+    task: 标题级别识别
+    mode: shadow
+
+  candidate_ranker:
+    name: candidate-ranker
+    task: 候选排序
+    mode: shadow

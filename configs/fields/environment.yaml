@@ -1,0 +1,48 @@
+fields:
+  environmentalInvestment:
+    name: 环保总投资
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [环境保护, 环保投资, 投资估算, 主要技术经济指标]
+      exclude: [风资源]
+    aliases: [环保投资, 环境保护投资]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:环保投资|环境保护投资).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  waterSoilConservationInvestment:
+    name: 水保总投资
+    value_type: number
+    standard_unit: 万元
+    sections:
+      include: [水土保持, 水保投资, 投资估算, 主要技术经济指标]
+      exclude: [风资源]
+    aliases: [水土保持投资, 水保投资]
+    unit_aliases: [万元, 元]
+    patterns:
+      - "(?:水土保持投资|水保投资).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元|元)?"
+    validators:
+      min: 0
+
+  ecologicalImpactConclusion:
+    name: 生态环境影响结论
+    value_type: string
+    sections:
+      include: [环境保护, 生态环境, 环境影响]
+      exclude: [投资估算, 财务评价]
+    aliases: [生态环境影响, 环境影响结论, 环保结论]
+    patterns:
+      - "(?:生态环境影响|环境影响结论|环保结论)[:：\\s]*([^。；;\\n]{2,120})"
+
+  noiseControlMeasure:
+    name: 噪声防治措施
+    value_type: string
+    sections:
+      include: [环境保护, 噪声, 环境影响]
+      exclude: [投资估算, 财务评价]
+    aliases: [噪声防治措施, 噪声治理, 噪声控制]
+    patterns:
+      - "(?:噪声防治措施|噪声治理|噪声控制)[:：\\s]*([^。；;\\n]{2,120})"

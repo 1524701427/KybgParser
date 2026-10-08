@@ -1,0 +1,183 @@
+fields:
+  roadLength:
+    name: 道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include:
+        - 道路
+        - 场内道路
+        - 交通运输
+        - 施工组织
+        - 主要技术经济指标
+      exclude:
+        - 财务评价
+    aliases:
+      - 道路长度
+      - 场内道路长度
+      - 新建道路
+      - 改建道路
+    unit_aliases:
+      - km
+      - 公里
+      - m
+      - 米
+    patterns:
+      - (?:道路长度|场内道路长度|新建道路|改建道路).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(km|公里|m|米)?
+    validators:
+      min: 0
+  newRoadLength:
+    name: 新建道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include:
+        - 道路
+        - 场内道路
+        - 交通运输
+        - 施工组织
+      exclude:
+        - 财务评价
+        - 概算
+        - 材料
+    aliases:
+      - 新建道路长度
+      - 新建道路
+    unit_aliases:
+      - km
+      - 公里
+      - m
+      - 米
+    patterns:
+      - (?:新建道路长度|新建道路).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(km|公里|m|米)?
+    validators:
+      min: 0
+    value_headers:
+      - 数量
+      - 数  量
+      - 推荐方案
+  rebuiltRoadLength:
+    name: 改建道路长度
+    value_type: number
+    standard_unit: km
+    sections:
+      include:
+        - 道路
+        - 场内道路
+        - 交通运输
+        - 施工组织
+      exclude:
+        - 财务评价
+        - 概算
+        - 材料
+    aliases:
+      - 改建道路长度
+      - 改扩建道路
+      - 改建道路
+    unit_aliases:
+      - km
+      - 公里
+      - m
+      - 米
+    patterns:
+      - (?:改建道路长度|改扩建道路|改建道路).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(km|公里|m|米)?
+    validators:
+      min: 0
+    value_headers:
+      - 数量
+      - 数  量
+      - 推荐方案
+  foundationType:
+    name: 风机基础型式
+    value_type: string
+    sections:
+      include:
+        - 风机基础
+        - 土建
+        - 基础设计
+        - 机组选型
+      exclude:
+        - 财务评价
+        - 升压站
+        - 消防
+        - 电气
+        - 集电线路
+        - 杆塔
+    aliases:
+      - 风机基础型式
+      - 基础型式
+      - 基础形式
+      - 基桩
+      - 桩基
+      - 灌注桩
+      - 桩基础
+    patterns:
+      - (\u6869\u57fa\u7840|\u6869\u57fa|\u57fa\u6869|\u704c\u6ce8\u6869)
+      - (?:\u98ce\u673a\u57fa\u7840\u578b\u5f0f|\u57fa\u7840\u578b\u5f0f|\u57fa\u7840\u5f62\u5f0f)[:\uff1a\s]*([^\uff0c\u3002\uff1b;\n]{2,80})
+    preferred_values:
+      - 桩基础
+      - 扩展基础
+      - 重力式基础
+      - 岩石锚杆基础
+    value_map:
+      基桩: 桩基础
+      桩基: 桩基础
+      灌注桩: 桩基础
+  constructionPeriod:
+    name: 建设工期
+    value_type: number
+    standard_unit: 月
+    sections:
+      include:
+        - 施工组织
+        - 建设工期
+        - 进度计划
+        - 主要技术经济指标
+      exclude:
+        - 财务评价
+    aliases:
+      - 建设工期
+      - 施工总工期
+      - 总工期
+      - 工期
+    unit_aliases:
+      - 月
+      - 个月
+      - 年
+    patterns:
+      - (?:建设工期|施工总工期|总工期|工期).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(月|个月|年)?
+    validators:
+      min: 0
+  constructionStartDate:
+    name: 开工时间
+    value_type: string
+    sections:
+      include:
+        - 施工组织
+        - 建设工期
+        - 进度计划
+      exclude:
+        - 财务评价
+    aliases:
+      - 开工时间
+      - 计划开工
+      - 开工日期
+    patterns:
+      - (?:开工时间|计划开工|开工日期)[:：\s]*([^，。；;\n]{4,40})
+  operationDate:
+    name: 投产时间
+    value_type: string
+    sections:
+      include:
+        - 施工组织
+        - 建设工期
+        - 进度计划
+      exclude:
+        - 财务评价
+    aliases:
+      - 投产时间
+      - 并网时间
+      - 计划投产
+      - 投产日期
+    patterns:
+      - (?:投产时间|并网时间|计划投产|投产日期)[:：\s]*([^，。；;\n]{4,40})

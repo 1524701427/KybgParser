@@ -1,0 +1,5 @@
+# UIE 可选依赖。
+# 注意：paddlenlp 建议用下面命令手动安装，避免 pip 解析 tool-helpers：
+# python -m pip install paddlenlp==2.7.2 --no-deps -i https://pypi.tuna.tsinghua.edu.cn/simple
+paddlepaddle==2.6.2
+aistudio-sdk==0.2.6

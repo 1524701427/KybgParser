@@ -1,0 +1,114 @@
+fields:
+  generationHubHeight:
+    name: 轮毂高度
+    value_type: number
+    standard_unit: m
+    sections:
+      include:
+      - 发电量章节
+      - 发电量
+      - 上网电量
+      - 综合说明
+      exclude:
+      - 财务
+      - 投资估算
+    aliases:
+    - 轮毂高度
+    unit_aliases:
+    - m
+    - 米
+    patterns:
+    - '轮毂高度[^0-9]{0,12}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m|米)'
+
+  gridAnnualEnergy:
+    name: 年上网发电量
+    value_type: number
+    standard_unit: 万kW·h
+    sections:
+      include:
+      - 发电量章节
+      - 发电量
+      - 上网电量
+      - 综合说明
+      exclude:
+      - 财务
+      - 投资估算
+    aliases:
+    - 年上网发电量
+    - 年上网电量
+    - 上网电量
+    unit_aliases:
+    - 万kW·h
+    - 万kWh
+    - MWh
+    - kWh
+    scalar_selection:
+      strategy: score
+    patterns:
+    - '年上网(?:发)?电量[^0-9]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>万\s*kW\s*[·.]?\s*h|万\s*kWh|MWh|kWh)'
+    - '上网电量[^0-9]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>万\s*kW\s*[·.]?\s*h|万\s*kWh|MWh|kWh)'
+    scalar_rules:
+    - name: 发电量正文年上网电量
+      source_types: [paragraph, table]
+      value_type: number
+      value_group: value
+      section_include: [发电量, 综合说明]
+      section_exclude: [财务, 投资估算]
+      require_any: [上网电量]
+      patterns:
+      - '年上网(?:发)?电量[^0-9]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>万\s*kW\s*[·.]?\s*h|万\s*kWh|MWh|kWh)'
+      - '上网电量[^0-9]{0,20}(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>万\s*kW\s*[·.]?\s*h|万\s*kWh|MWh|kWh)'
+      prefer_any:
+        年上网电量: 80
+        年上网发电量: 80
+        MWh: 20
+      validators:
+        min: 1
+        max: 100000
+  equivalentFullLoadHours:
+    name: 年等效满负荷小时数
+    value_type: number
+    standard_unit: h
+    sections:
+      include:
+      - 发电量章节
+      - 发电量
+      - 上网电量
+      exclude:
+      - 财务
+      - 投资估算
+    aliases:
+    - 年等效满负荷小时数
+    - 年利用小时数
+    - 等效小时数
+    - 等效年利用小时数
+    unit_aliases:
+    - h
+    - 小时
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 发电量正文年等效满负荷小时数
+      source_types: [paragraph]
+      value_type: number
+      unit: h
+      value_group: value
+      section_include: [发电量]
+      section_exclude: [财务, 投资估算]
+      require_any: [小时数]
+      patterns:
+      - '年上网(?:发)?电量[^。；;\n]{0,80}?(?:等效年利用小时数|年等效满负荷小时数|年利用小时数)\s*(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>h|小时)'
+      - '年等效满负荷小时数\s*为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>h|小时)'
+      - '(?:等效年利用小时数|年利用小时数)\s*(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>h|小时)'
+      - '(?:考虑弃电后|弃电后)[^。；;\n]{0,120}?年等效满负荷小时数\s*为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>h|小时)'
+      prefer_any:
+        年上网电量: 120
+        年上网发电量: 120
+        等效年利用小时数: 80
+        考虑弃电后: 100
+        弃电后: 80
+      penalize_any:
+        限电后: 80
+      validators:
+        min: 500
+        max: 5000

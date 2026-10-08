@@ -1,0 +1,171 @@
+fields:
+  capitalIRR:
+    name: 资本金财务内部收益率
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务评价, 经济评价]
+      exclude: [风资源, 投资估算]
+    aliases: [资本金财务内部收益率, 资本金内部收益率]
+    unit_aliases: ["%"]
+    patterns:
+      - "(?:资本金财务内部收益率|资本金内部收益率).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(%)?"
+    validators:
+      min: -100
+      max: 100
+
+  allInvestmentAfterTaxIRR:
+    name: 全投资税后财务内部收益率
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务评价, 经济评价]
+      exclude: [风资源, 投资估算]
+    aliases:
+      - 全投资税后财务内部收益率
+      - 项目投资税后内部收益率
+      - 税后内部收益率
+      - 全部投资财务内部收益率
+    unit_aliases: ["%"]
+    patterns:
+      - \|\s*\u5168\u90e8\u6295\u8d44\u8d22\u52a1\u5185\u90e8\u6536\u76ca\u7387\s*\|\s*%\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|\s*(?:\uff08|\()?\u7a0e\u540e
+      - \u5168\u90e8\u6295\u8d44\u8d22\u52a1\u5185\u90e8\u6536\u76ca\u7387(?:\uff08|\()\u6240\u5f97\u7a0e\u540e(?:\uff09|\)).{0,20}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+    validators:
+      min: -100
+      max: 100
+
+    coarse_table_rule_enabled: false
+    regex_fallback_enabled: false
+  paybackPeriod:
+    name: 投资回收期
+    value_type: number
+    standard_unit: 年
+    extraction_policy: rule_first
+    preferred_methods:
+      - table_rule
+      - table_lookup
+      - regex
+    sections:
+      include: [财务评价, 经济评价, 主要技术经济指标]
+      exclude: [风资源]
+    aliases: [投资回收期, 项目投资回收期, 全投资回收期]
+    unit_aliases: [年]
+    patterns:
+      - "(?:投资回收期|项目投资回收期|全投资回收期).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(年)?"
+    validators:
+      min: 0
+      max: 50
+      prefer_evidence_contains:
+        - 所得税后
+      reject_evidence_contains:
+        - 所得税前
+
+  lcoe:
+    name: 度电成本
+    value_type: number
+    standard_unit: 元/kWh
+    sections:
+      include:
+        - 财务评价
+        - 经济评价
+        - 主要技术经济指标
+        - 综合说明
+        - 结论
+      exclude:
+        - 风资源
+        - 敏感性分析
+    aliases:
+      - 度电成本
+    unit_aliases:
+      - 元/kWh
+      - 元/千瓦时
+      - 元/ kW·h
+      - 元/kW·h
+    patterns:
+      - (?:\u5ea6\u7535\u6210\u672c).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(\u5143/kWh|\u5143/\u5343\u74e6\u65f6|\u5143/\s*kW\u00b7h)?
+    validators:
+      min: 0
+      max: 2
+    table_lookup:
+      header_rows: 1
+      row_aliases:
+        - 度电成本
+      row_label_columns: 2
+      row_label_match: contains
+      column_aliases:
+        - 数  量
+        - 数量
+
+  windFarmGridPrice:
+    name: 风电场上网电价
+    value_type: number
+    standard_unit: 元/kWh
+    sections:
+      include: [财务, 财务评价, 解析数据]
+      exclude: [风资源, 敏感性分析]
+    aliases:
+      - 风电站上网电价
+      - 风电场上网电价
+      - 本项目上网电价
+      - 上网电价
+      - 经营期平均上网电价
+    unit_aliases:
+      - 元/kWh
+      - 元/kW·h
+      - 元/千瓦时
+    patterns:
+      - (?:风电站上网电价|风电场上网电价|本项目上网电价|上网电价|经营期平均上网电价).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(元/kWh|元/kW·h|元/千瓦时)?
+    validators:
+      min: 0
+      max: 2
+
+  workingCapitalLoanRatio:
+    name: 流动资金贷款比例
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务, 财务评价, 解析数据]
+      exclude: [风资源]
+    aliases: [流动资金贷款比例, 贷款比例]
+    unit_aliases: ["%"]
+    patterns:
+      - (?:流动资金贷款比例|贷款比例).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+    validators:
+      min: 0
+      max: 100
+
+  workingCapitalLoanInterestRate:
+    name: 流动资金贷款利率
+    value_type: number
+    standard_unit: "%"
+    sections:
+      include: [财务, 财务评价, 解析数据]
+      exclude: [风资源]
+    aliases: [流动资金贷款利率, 贷款利率]
+    unit_aliases: ["%"]
+    patterns:
+      - (?:流动资金贷款利率|贷款利率).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+    validators:
+      min: 0
+      max: 30
+
+  repaymentMethod:
+    name: 还款方式
+    value_type: string
+    sections:
+      include: [财务, 财务评价, 解析数据]
+      exclude: [风资源]
+    aliases: [还款方式, 偿还方式]
+    patterns:
+      - (?:还款方式|偿还方式)[:：\s]*([^，。；;\n]{1,80})
+
+  projectInvestmentFinancialIrr:
+    name: 项目投资财务内部收益率
+    value_type: string
+    standard_unit: "%"
+    sections:
+      include: [财务, 财务评价, 解析数据]
+      exclude: [风资源]
+    aliases: [项目投资财务内部收益率]
+    patterns:
+      - (项目投资财务内部收益率[^。；;\n]{1,120})

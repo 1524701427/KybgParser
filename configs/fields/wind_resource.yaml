@@ -1,0 +1,91 @@
+fields:
+  maxWindSpeed50Year:
+    name: 50年一遇最大风速
+    value_type: number
+    standard_unit: m/s
+    sections:
+      include:
+      - 风资源
+      - 风能资源
+      - 测风数据
+      - 资源分析
+      exclude:
+      - 投资估算
+      - 财务评价
+    aliases:
+    - 50年一遇最大风速
+    - 五十年一遇最大风速
+    - 50年一遇最大风速值
+    - 五十年一遇最大风速值
+    - 极端风速
+    unit_aliases:
+    - m/s
+    - 米/秒
+    patterns:
+    - (?:50年一遇|五十年一遇).{0,20}?(?:最大风速值|最大风速|极端风速|取值)[:：\s]*([0-9]+(?:\.[0-9]+)?)\s*(m/s|米/秒)?
+    - (?:50年一遇最大风速值|五十年一遇最大风速值)[:：\s]*([0-9]+(?:\.[0-9]+)?)\s*(m/s|米/秒)?
+    validators:
+      min: 0
+      max: 80
+    table_aggregate:
+      op: max
+      header_rows: 1
+      value_headers:
+      - 标况
+      min_values: 2
+      precision: 2
+      unit: m/s
+      require_any:
+      - 测风塔
+      - 50年一遇最大风速
+      - 50年一遇最大风速值
+    regex_fallback_enabled: false
+    scalar_selection:
+      strategy: score
+    scalar_rules:
+    - name: 资源章节正文50年一遇最大风速160m推算值
+      source_types: [paragraph, pdf_page_text]
+      value_type: number
+      unit: m/s
+      value_group: value
+      score: 320
+      allow_section_mismatch: true
+      section_include: [风资源, 风能资源, 资源分析, 测风数据]
+      section_exclude: [财务, 投资估算]
+      require_any: [50年一遇, 最大风速]
+      patterns:
+      - '50\s*年一遇[\s\S]{0,220}?最大风速[\s\S]{0,220}?推算(?:至|到)\s*160\s*m\s*高度为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      prefer_any:
+        推算至: 120
+        推算到: 120
+        160m: 80
+      validators:
+        min: 15
+        max: 80
+    - name: 资源章节正文50年一遇最大风速
+      source_types: [paragraph, pdf_page_text]
+      value_type: number
+      unit: m/s
+      value_group: value
+      allow_section_mismatch: true
+      section_include: [风资源, 风能资源, 资源分析, 测风数据]
+      section_exclude: [财务, 投资估算]
+      require_any: [50年一遇, 最大风速]
+      patterns:
+      - '标准空气密度下[^。；;\n]{0,30}?50\s*年一遇(?:10\s*min|10\s*分钟平均)?最大风速为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      - '50\s*年一遇(?:10\s*min|10\s*分钟平均)?最大风速[^。；;\n]{0,40}?标准空气密度下[^。；;\n]{0,30}?为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      - '标准空气密度条件下\s*50\s*年一遇最大风速为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      - '50\s*年一遇最大风速为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)[^。；;\n]{0,40}?(?:小于|低于|不超过)\s*[0-9]+(?:\.[0-9]+)?\s*(?:m/s|米/秒)'
+      - '推算至\s*\d+\s*m\s*高度为\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      - '(?:50年一遇|五十年一遇)[^。；;\n]{0,80}?(?:最大风速值|最大风速)[^。；;\n]{0,80}?(?:为|取值|得到)\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      - '(?:最大风速值|最大风速)[^。；;\n]{0,80}?(?:50年一遇|五十年一遇)[^。；;\n]{0,80}?(?:为|取值|得到)\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*(?P<unit>m/s|米/秒)'
+      prefer_any:
+        标准空气密度: 90
+        小于: 30
+        推算至: 80
+        最终: 50
+        取值: 40
+        得到: 20
+      validators:
+        min: 15
+        max: 80

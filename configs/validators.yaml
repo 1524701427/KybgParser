@@ -1,0 +1,11 @@
+validators:
+  avgWindSpeed:
+    min: 0
+    max: 50
+
+  installedCapacity:
+    min: 0
+
+  capitalIRR:
+    min: -100
+    max: 100
