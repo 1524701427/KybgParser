@@ -1498,3 +1498,4 @@ field_value_transforms:
     always: true
   windResourceTurbulenceIntensityRecords:
     operator: merge_turbulence_records
+    validate_result_value: true
