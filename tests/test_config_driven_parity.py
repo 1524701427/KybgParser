@@ -62,3 +62,19 @@ def test_scoring_config_equals_prior_behavior():
     assert resolved.method_weights == expected_weights
     assert resolved.STRONG_RULE_METHODS == CandidateResolver.STRONG_RULE_METHODS
     assert FieldMatcher(CONFIG["field_matching"]).alias_bonus == FieldMatcher().alias_bonus == 1.0
+
+
+def test_duplicate_field_audit_is_opt_in(tmp_path):
+    """Detect duplicates without changing established last-file-wins behavior."""
+    import pytest
+
+    from word_parser.config.loader import ConfigLoader
+
+    directory = tmp_path / "fields"
+    directory.mkdir()
+    (directory / "a.yaml").write_text("fields:\n  duplicateCode:\n    name: old\n", encoding="utf-8")
+    (directory / "b.yaml").write_text("fields:\n  duplicateCode:\n    name: new\n", encoding="utf-8")
+    loader = ConfigLoader(tmp_path)
+    assert loader.load_field_configs()["duplicateCode"]["name"] == "new"
+    with pytest.raises(ValueError, match="duplicateCode"):
+        loader.load_field_configs(strict_duplicates=True)
