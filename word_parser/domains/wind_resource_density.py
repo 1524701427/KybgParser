@@ -57,7 +57,7 @@ class WindDensityRulesMixin:
         blocks_text = "\n".join(self._clean_text(block.text or "") for block in ast.blocks if block.text)
         result: dict[str, Any] = {}
         selected_density_towers: set[str] = set()
-        for match in re.finditer("(?:\u53ea\u91c7\u7528|\u91c7\u7528|\u6839\u636e|\u4f7f\u7528)\\s*([A-Za-z0-9]{2,8}#)[^\n\u3002\uff1b;]{0,120}?(?:\u8fdb\u884c\u5206\u6790|\u7a7a\u6c14\u5bc6\u5ea6\u8ba1\u7b97)", blocks_text):
+        for match in re.finditer(domain_regex(self, "wind_resource_density", "unicode_finditer_001", "(?:\u53ea\u91c7\u7528|\u91c7\u7528|\u6839\u636e|\u4f7f\u7528)\\s*([A-Za-z0-9]{2,8}#)[^\n\u3002\uff1b;]{0,120}?(?:\u8fdb\u884c\u5206\u6790|\u7a7a\u6c14\u5bc6\u5ea6\u8ba1\u7b97)"), blocks_text):
             code = self._normalize_tower_code(match.group(1))
             if code:
                 selected_density_towers.add(code)
