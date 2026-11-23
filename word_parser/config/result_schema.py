@@ -29,6 +29,10 @@ class ResultSchemaMixin:
             for code, output_code in (schema.get("output_field_codes") or {}).items()
             if code and output_code
         }
+        # Named pure mapping operators live in output_schema.yaml, not in the
+        # extractor / hardcoded projection conditions.
+        self.field_value_fallbacks = dict(schema.get("field_value_fallbacks") or {})
+        self.field_value_transforms = dict(schema.get("field_value_transforms") or {})
         self.detail_tables = deepcopy(schema.get("detail_tables") or self.DETAIL_TABLES)
         self.table_output_headers = self._table_output_headers_from_config(schema.get("table_outputs") if "table_outputs" in schema else None)
         self.required_field_meta = self._field_meta_from_config(schema.get("fields"))
