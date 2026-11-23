@@ -290,7 +290,17 @@ domain_literal_regexes:
     # Original wind_resource_summary.py:1192 re.search
     search_030: "(?:\\u6b21\\u4e3b\\u5bfc\\u98ce\\u80fd\\u65b9\\u5411|\\u6b21\\u4e3b\\u98ce\\u80fd\\u65b9\\u5411|\\u6b21\\u98ce\\u80fd\\u65b9\\u5411)(?:\\u4e3a)?\\s*([^。，；;]+?(?:\\uff09|\\))?(?:\\u3001[^。，；;]+?(?:\\uff09|\\))?)*)\\s*(?:\\u6247\\u533a|\\uff0c|,|。|；|;)"
     # Original wind_resource_summary.py:1212 re.split
-    split_031: "(?:\\u98ce\\u7684|\\u98ce\\u5411\\u548c|\\u98ce\\u80fd\\u5206\\u5e03|\\u5206\\u5e03\\u9891\\u7387)"
+    split_031: "(?:\\u98ce\\u7684|\\u98ce\\u5411\\u548c|\\u98ce\\u80fd\\u5206\\u5e03|\\u5206\\u5e03\\u9891\\u7387)"    # Extra literal / dynamic fragment: unicode_split_001
+    unicode_split_001: "[\n。；;]"
+    # Extra literal / dynamic fragment: unicode_finditer_002
+    unicode_finditer_002: "(?:测风塔编号|雷达测风编号|测风编号)[^\n。；;]{0,80}"
+    # Extra literal / dynamic fragment: unicode_finditer_003
+    unicode_finditer_003: "([A-Za-z0-9#、,，\\s]+)#?\\s*测风塔"
+    # Extra literal / dynamic fragment: tower_dynamic_prefix
+    tower_dynamic_prefix: "(?m)^\\s*105\\s*\\n"
+    # Extra literal / dynamic fragment: tower_dynamic_value
+    tower_dynamic_value: "\\s*(\\d+(?:\\.\\d+)?)\\s*\\n"
+
   wind_resource_density:
     # Original wind_resource_density.py:18 re.finditer
     finditer_001: "(?:选用|使用|采用)\\s*([A-Za-z0-9]{2,8}#)[^\\n。；;]{0,80}?(?:发电量评估|发电量计算|依据)"
@@ -333,7 +343,9 @@ domain_literal_regexes:
     # Original wind_resource_density.py:324 re.sub
     sub_020: "kg\\s*/?\\s*m(?:[\\u00b3\\uff13\\^]?3)?"
     # Original wind_resource_density.py:325 re.findall
-    findall_021: "\\d+\\.\\d+"
+    findall_021: "\\d+\\.\\d+"    # Extra literal / dynamic fragment: unicode_finditer_001
+    unicode_finditer_001: "(?:只采用|采用|根据|使用)\\s*([A-Za-z0-9]{2,8}#)[^\n。；;]{0,120}?(?:进行分析|空气密度计算)"
+
   wind_resource_direction:
     # Original wind_resource_direction.py:29 re.search
     search_001: "[A-Za-z0-9]{2,8}#"
@@ -362,7 +374,9 @@ domain_literal_regexes:
     # Original wind_resource_direction.py:265 re.search
     search_013: "\\b(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW)\\b"
     # Original wind_resource_direction.py:343 re.fullmatch
-    fullmatch_014: "[A-Z]{1,4}"
+    fullmatch_014: "[A-Z]{1,4}"    # Extra literal / dynamic fragment: direction_dynamic_prefix
+    direction_dynamic_prefix: "(\\d+(?:\\.\\d+)?)\\s*m\\s*"
+
   wind_resource_overrides:
     # Original wind_resource_overrides.py:33 re.compile
     compile_001: "风功率密度等级[^。；;\\n]{0,20}?(?:为|是)?\\s*(?P<value>[A-ZＡ-Ｚ]-?\\s*[0-9ⅠⅡⅢⅣⅤⅥ一二三四五六]+)\\s*级?"
