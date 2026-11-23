@@ -383,7 +383,7 @@ class IndicatorDiscovery:
     )
     CONTEXT_VALUE = re.compile(r"^\s*(?:为|约为|达到|达|是|取|：|:)\s*(.+)$")
 
-    def __init__(self, field_configs: dict[str, dict[str, Any]], mode: str = "active", settings: dict | None = None):
+    def __init__(self, field_configs: dict[str, dict[str, Any]], mode: str = "active", settings: dict | None = None, lexicon: IndicatorLexicon | None = None):
         """使用已配置的字段词典初始化指标发现器。
 
         参数：
@@ -393,7 +393,7 @@ class IndicatorDiscovery:
         self.field_configs = field_configs
         self.mode = mode
         settings = settings or {}
-        self.lexicon = IndicatorLexicon(field_configs, matching_config=settings.get("rapidfuzz"))
+        self.lexicon = lexicon if lexicon is not None else IndicatorLexicon(field_configs, matching_config=settings.get("rapidfuzz"))
         self.value_parser = IndicatorValueParser(settings)
         self.SCOPE_TERMS = tuple(tuple(group) for group in settings.get("scope_terms", self.SCOPE_TERMS))
         self.CONTEXT_VALUE = re.compile(settings.get("context_value_pattern", self.CONTEXT_VALUE.pattern))
