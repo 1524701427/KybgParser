@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import math
 import re
 from typing import Any
@@ -116,7 +118,7 @@ class EarthworkRulesMixin:
 
     def _row_value_unit_is_ten_thousand_m3(self, row: list[str], label_index: int, value_index: int) -> bool:
         unit_text = " ".join(str(cell) for cell in row[label_index + 1 : value_index])
-        return bool(re.search(r"万\s*m\s*[³3]", unit_text, flags=re.IGNORECASE))
+        return bool(re.search(domain_regex(self, "civil_earthwork", "search_001", r"万\s*m\s*[³3]"), unit_text, flags=re.IGNORECASE))
 
     def _earthwork_rows_from_explicit_tables(self, ast: DocumentAST) -> list[dict[str, Any]]:
         for table in ast.tables:
@@ -282,7 +284,7 @@ class EarthworkRulesMixin:
                 self._clean_text(self._caption_before_table_from_table(table) or ""),
                 self._clean_text(self._caption_before_table(ast, table) or ""),
                 *nearby_titles,
-            ) if re.search(r"(?:建筑|施工辅助)工程概算表", title)), "")
+            ) if re.search(domain_regex(self, "civil_earthwork", "search_002", r"(?:建筑|施工辅助)工程概算表"), title)), "")
             if not caption:
                 continue
             matrix = self._table_matrix(table)
@@ -300,23 +302,23 @@ class EarthworkRulesMixin:
                 serial = self._clean_text(row[serial_column] if serial_column is not None and serial_column < len(row) else "")
                 if not label:
                     continue
-                is_major_heading = bool(re.fullmatch(r"[一二三四五六七八九十]+", serial) or re.match(r"第[一二三四五六七八九十\d]+部分", label))
-                if re.search(r"集电线路|集电工程|集电系统", label) and (is_major_heading or "工程" in label):
+                is_major_heading = bool(re.fullmatch(domain_regex(self, "civil_earthwork", "fullmatch_003", r"[一二三四五六七八九十]+"), serial) or re.match(domain_regex(self, "civil_earthwork", "match_004", r"第[一二三四五六七八九十\d]+部分"), label))
+                if re.search(domain_regex(self, "civil_earthwork", "search_005", r"集电线路|集电工程|集电系统"), label) and (is_major_heading or "工程" in label):
                     in_collector = True
                     continue
-                if is_major_heading or ("工程" in label and re.search(r"风电机组|升压站|道路|其他工程", label)):
+                if is_major_heading or ("工程" in label and re.search(domain_regex(self, "civil_earthwork", "search_006", r"风电机组|升压站|道路|其他工程"), label)):
                     in_collector = False
                 if not in_collector:
                     continue
                 code = None
-                if re.search(r"土(?:石)?方?开挖", label):
+                if re.search(domain_regex(self, "civil_earthwork", "search_007", r"土(?:石)?方?开挖"), label):
                     code = "collectorLineEarthworkExcavation"
-                elif re.search(r"土(?:石)?方?回填|回填土", label):
+                elif re.search(domain_regex(self, "civil_earthwork", "search_008", r"土(?:石)?方?回填|回填土"), label):
                     code = "collectorLineEarthworkBackfill"
                 if code is None:
                     continue
                 unit = self._clean_text(row[unit_column] if unit_column is not None and unit_column < len(row) else "")
-                if unit and not re.search(r"m\s*[³3]|立方米", unit, re.I):
+                if unit and not re.search(domain_regex(self, "civil_earthwork", "search_009", r"m\s*[³3]|立方米"), unit, re.I):
                     continue
                 value = self._normalize_table_cell(row[quantity_column] if quantity_column < len(row) else "")
                 if not isinstance(value, (int, float)) or isinstance(value, bool):
@@ -355,9 +357,9 @@ class EarthworkRulesMixin:
             section_path = list(block.section_path or ["土石方平衡"])
             if "spoilDisposalSiteCount" not in results:
                 count_match = re.search(
-                    r"(?:设置|设有|布置|新建|拟设(?:置)?|考虑设置)[^0-9。；;]{0,16}([0-9]+(?:\.[0-9]+)?)\s*个\s*弃渣场",
+                    domain_regex(self, "civil_earthwork", "search_010", r"(?:设置|设有|布置|新建|拟设(?:置)?|考虑设置)[^0-9。；;]{0,16}([0-9]+(?:\.[0-9]+)?)\s*个\s*弃渣场"),
                     text,
-                ) or re.search(r"弃渣场[^0-9。；;]{0,16}([0-9]+(?:\.[0-9]+)?)\s*个", text)
+                ) or re.search(domain_regex(self, "civil_earthwork", "search_011", r"弃渣场[^0-9。；;]{0,16}([0-9]+(?:\.[0-9]+)?)\s*个"), text)
                 if count_match:
                     results["spoilDisposalSiteCount"] = (
                         "spoilDisposalSiteCount",
@@ -369,7 +371,7 @@ class EarthworkRulesMixin:
                     )
             if "spoilDisposalSiteArea" not in results:
                 area_match = re.search(
-                    r"(?:总占地面积|占地面积)\s*(?:约为|约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:m\s*[²2]|㎡|平方米)",
+                    domain_regex(self, "civil_earthwork", "search_012", r"(?:总占地面积|占地面积)\s*(?:约为|约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:m\s*[²2]|㎡|平方米)"),
                     text,
                     flags=re.IGNORECASE,
                 )
