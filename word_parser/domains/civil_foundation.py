@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -48,7 +50,7 @@ class WindFoundationRulesMixin:
                 active = True
                 rows.append(row)
                 continue
-            if active and re.match(r"^(?:1\.2|2|二|三|四)\b", code):
+            if active and re.match(domain_regex(self, "civil_foundation", "match_001", r"^(?:1\.2|2|二|三|四)\b"), code):
                 break
             if active:
                 rows.append(row)
@@ -157,7 +159,7 @@ class WindFoundationRulesMixin:
         """
         if not isinstance(value, str):
             return value
-        match = re.match(r"\s*([0-9]+(?:\.[0-9]+)?)", value.replace(",", ""))
+        match = re.match(domain_regex(self, "civil_foundation", "match_002", r"\s*([0-9]+(?:\.[0-9]+)?)"), value.replace(",", ""))
         if not match:
             return value
         return self._clean_number(float(match.group(1)))
@@ -167,7 +169,7 @@ class WindFoundationRulesMixin:
             label = self._row_label(row)
             if not any(alias in label for alias in ("基础承台底面半径", "底面半径", "圆形基础地面直径")):
                 continue
-            if "半径" not in label and not re.search(r"\bR\b|R（|R\(", label):
+            if "半径" not in label and not re.search(domain_regex(self, "civil_foundation", "search_003", r"\bR\b|R（|R\("), label):
                 continue
             value = self._value_by_row_label([row], [label])
             if value is not None:
@@ -204,7 +206,7 @@ class WindFoundationRulesMixin:
 
     def _box_foundation_concrete_grade(self, rows: list[list[str]]) -> str | None:
         text = self._matrix_text(rows)
-        match = re.search(r"C\s*([0-9]{2})", text, flags=re.IGNORECASE)
+        match = re.search(domain_regex(self, "civil_foundation", "search_004", r"C\s*([0-9]{2})"), text, flags=re.IGNORECASE)
         return f"C{match.group(1)}" if match else None
 
     def _box_foundation_result_table(self, row: dict[str, Any]) -> dict[str, Any]:
@@ -249,7 +251,7 @@ class WindFoundationRulesMixin:
             if "机组变压器基础" in text or "箱变基础" in text:
                 active = True
                 continue
-            if active and re.match(r"^(?:1\.3|2|二|三|四)\b", code):
+            if active and re.match(domain_regex(self, "civil_foundation", "match_005", r"^(?:1\.3|2|二|三|四)\b"), code):
                 break
             if active:
                 rows.append(row)
@@ -267,7 +269,7 @@ class WindFoundationRulesMixin:
     def _normalize_piles_per_ring(self, value: Any) -> Any:
         if not isinstance(value, str):
             return value
-        return re.sub(r"，分布半径为[^，]+", "", value)
+        return re.sub(domain_regex(self, "civil_foundation", "sub_006", r"，分布半径为[^，]+"), "", value)
 
     def _apply_wind_foundation_table_field_overrides(self, ast: DocumentAST, fields: dict[str, ParsedField], skip_codes: set[str] | None = None) -> None:
         """从基础断面/尺寸表补齐风机基础字段，不再输出派生参数表。"""
