@@ -132,9 +132,16 @@ def execute_final_mapping(
         # Preserve primary fieldIndex/tableIndex/source evidence exactly as the
         # legacy write_table_value_details() merge did. Replacing it with only
         # secondary sections silently destroys primary field mapping values.
-        if not destinations["detail"].is_file():
-            raise RuntimeError(f"一次抽取详情文件不存在：{destinations['detail']}")
-        shutil.copy2(destinations["detail"], working["detail"])
+        primary_details = parse_result.get("_primary_detail")
+        if primary_details is not None:
+            if not isinstance(primary_details, dict):
+                raise ValueError("Primary extraction detail must be a JSON object")
+            _write_json(working["detail"], primary_details)
+        else:
+            # Compatibility with saved details and the primary-only parse API.
+            if not destinations["detail"].is_file():
+                raise RuntimeError(f"一次抽取详情文件不存在：{destinations['detail']}")
+            shutil.copy2(destinations["detail"], working["detail"])
         write_table_value_details(working["detail"], table_value_details(enhanced))
         _write_json(working["result"], final_result_with_table_values(enhanced))
         parse_result["outputFiles"] = {**original_files, **{key: str(path) for key, path in working.items()}}
@@ -152,4 +159,6 @@ def execute_final_mapping(
                 os.replace(working[key], destinations[key])
         finally:
             parse_result["outputFiles"] = original_files
+    # Internal intermediate detail is not part of the public parser return.
+    parse_result.pop("_primary_detail", None)
     return parse_result
