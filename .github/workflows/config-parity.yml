@@ -1,0 +1,27 @@
+name: Config-driven extraction parity
+
+on:
+  pull_request:
+    paths:
+      - "configs/extraction_runtime.yaml"
+      - "word_parser/**"
+      - "tests/test_config_driven_parity.py"
+      - "tools/scripts/compare_mapped.py"
+      - ".github/workflows/config-parity.yml"
+
+jobs:
+  config-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install lightweight rule-engine test dependencies
+        run: python -m pip install pyyaml rapidfuzz pyahocorasick loguru pytest
+      - name: Compile modified Python sources
+        run: |
+          python -m compileall -q word_parser/application/factory.py word_parser/discovery/indicators.py word_parser/primary
+          python -m compileall -q tools/scripts/compare_mapped.py
+      - name: Check YAML parity and extraction contract
+        run: python -m pytest tests/test_config_driven_parity.py -q
