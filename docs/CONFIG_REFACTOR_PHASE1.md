@@ -51,3 +51,11 @@ The read-only audit found **212 effective field codes**, **0 errors**, and **2 d
 - `rebuiltRoadLength`: defined in the same two files
 
 These are not identical definitions: `report_required_data.yaml` adds more aliases and scalar extraction rules. The current ConfigLoader deliberately retains the sorted-file, last-definition-wins behavior. Neither definition is removed or merged in this PR. Any reconciliation needs mapped-JSON and real-report parity before deployment.
+
+## Continued migration: shared registry and candidate retrieval
+
+The primary `CandidateRetriever` now accepts `configs/extraction_runtime.yaml:retrieval` for candidate source weights, appendix summary scores, and table-of-contents filtering vocabulary. The checked-in values mirror the previous Python literals, and the previous default constructor still works.
+
+`IndicatorDiscovery` and `FieldMatcher` are now injected with **one shared `IndicatorLexicon`** created by `create_default_parser`. The new `FieldMatcher.inspect_label()` provides a diagnostic call to the same exact/RapidFuzz matching rules used by the discovery stage. **`FieldMatcher.match()` remains unchanged and does not automatically accept fuzzy suggestions**, to protect existing extraction results. Cross-field ambiguous matches still return no code.
+
+New tests: `tests/test_retrieval_yaml_parity.py` and `tests/test_shared_field_registry.py`. These compare the configured and legacy candidate recall, TOC behavior and exact-match scoring, plus verify shared lexicon object identity.
