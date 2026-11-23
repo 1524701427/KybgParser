@@ -16,7 +16,7 @@ from word_parser.primary.normalizer import Normalizer
 from word_parser.primary.semantic_analyzer import SemanticAnalyzer
 from word_parser.primary.validator import Validator
 from word_parser.primary.value_extractor import ValueExtractor
-from word_parser.discovery.indicators import IndicatorDiscovery
+from word_parser.discovery.indicators import IndicatorDiscovery, IndicatorLexicon
 from word_parser.primary.context_filter import CandidateContextFilter
 from word_parser.document.router import DocumentLoader
 from word_parser.document import SectionDetector, StructureParser
@@ -43,13 +43,15 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
     semantic_config = pipeline_config.get("modules", {}).get("semantic_analyzer", {})
     funnel_config = pipeline_config.get("modules", {}).get("funnel", {})
     indicator_config = pipeline_config.get("modules", {}).get("indicator_discovery", {})
+    shared_lexicon = (IndicatorLexicon(field_configs, matching_config=(extraction_runtime.get("discovery") or {}).get("rapidfuzz"))
+                      if indicator_config.get("enabled", True) else None)
 
     pipeline = ParserPipeline(
         loader=DocumentLoader(),
         structure_parser=StructureParser(),
         section_detector=SectionDetector(section_config),
         candidate_retriever=CandidateRetriever(field_configs, settings=extraction_runtime.get("retrieval")),
-        field_matcher=FieldMatcher(extraction_runtime.get("field_matching")),
+        field_matcher=FieldMatcher(extraction_runtime.get("field_matching"), lexicon=shared_lexicon),
         value_extractor=ValueExtractor(
             table_rule_enabled=_module_active(table_rule_config),
             regex_enabled=_module_active(regex_config),
@@ -70,7 +72,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
         resolver=CandidateResolver(field_configs, scoring_config=extraction_runtime.get("candidate_resolution")),
         validator=Validator(field_configs),
         exporter=JsonExporter(result_builder=ResultBuilder(output_schema=output_schema, field_configs=field_configs, config_root=config_root)),
-        indicator_discovery=(IndicatorDiscovery(field_configs, mode=indicator_config.get("mode", "active"), settings=extraction_runtime.get("discovery"))
+        indicator_discovery=(IndicatorDiscovery(field_configs, mode=indicator_config.get("mode", "active"), settings=extraction_runtime.get("discovery"), lexicon=shared_lexicon)
                              if indicator_config.get("enabled", True) else None),
     )
     return ParserService(pipeline)
