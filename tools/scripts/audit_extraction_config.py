@@ -85,6 +85,22 @@ def audit_runtime(config_root: Path) -> list[Issue]:
     field_match = _mapping(cfg.get("field_matching"), "field_matching", issues)
     _number(field_match.get("alias_bonus"), "field_matching.alias_bonus", issues, 0, 10)
 
+    retrieval = _mapping(cfg.get("retrieval"), "retrieval", issues)
+    for key in (
+        "paragraph_alias_bonus", "paragraph_hint_bonus",
+        "table_alias_bonus", "table_caption_bonus",
+        "table_aggregate_bonus", "table_hint_bonus",
+        "summary_fallback_score",
+    ):
+        _number(retrieval.get(key), f"retrieval.{key}", issues, -100, 100)
+    for key in ("summary_section_keywords", "toc_markers", "toc_headings"):
+        _strings(retrieval.get(key), f"retrieval.{key}", issues)
+    prefix = retrieval.get("toc_heading_prefix")
+    if not isinstance(prefix, str) or not prefix:
+        issues.append(Issue("error", "retrieval.toc_heading_prefix", "expected nonempty text"))
+    for key in ("toc_heading_max_chars", "toc_prefix_window_chars"):
+        _number(retrieval.get(key), f"retrieval.{key}", issues, 1, 100000)
+
     discovery = _mapping(cfg.get("discovery"), "discovery", issues)
     rapidfuzz = _mapping(discovery.get("rapidfuzz"), "discovery.rapidfuzz", issues)
     _number(rapidfuzz.get("acceptance_score"), "discovery.rapidfuzz.acceptance_score", issues, 0, 100)
