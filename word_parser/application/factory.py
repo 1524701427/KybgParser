@@ -48,7 +48,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
         loader=DocumentLoader(),
         structure_parser=StructureParser(),
         section_detector=SectionDetector(section_config),
-        candidate_retriever=CandidateRetriever(field_configs),
+        candidate_retriever=CandidateRetriever(field_configs, settings=extraction_runtime.get("retrieval")),
         field_matcher=FieldMatcher(extraction_runtime.get("field_matching")),
         value_extractor=ValueExtractor(
             table_rule_enabled=_module_active(table_rule_config),
