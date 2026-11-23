@@ -29,3 +29,22 @@ def domain_regex(owner: Any, module: str, rule: str, fallback: str) -> str:
     if not isinstance(pattern, str):
         raise ValueError(f"domain_literal_regexes.{module}.{rule} must be a string")
     return pattern
+
+
+def domain_strings(owner: Any, module: str, rule: str, fallback: list[str]) -> list[str]:
+    """Get alias/header or regex-pattern lists without changing caller algorithms.
+
+    Return a fresh list to protect configured rules from accidental mutation.
+    When the YAML section is absent, preserve the literal Python fallback.
+    """
+    config = getattr(owner, "deterministic_rules", None)
+    if not isinstance(config, dict):
+        return list(fallback)
+    registry = config.get("domain_literal_lists")
+    group = registry.get(module) if isinstance(registry, dict) else None
+    value = group.get(rule) if isinstance(group, dict) else None
+    if value is None:
+        return list(fallback)
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise ValueError(f"domain_literal_lists.{module}.{rule} must be a list of strings")
+    return list(value)
