@@ -158,6 +158,16 @@ def audit_runtime(config_root: Path) -> list[Issue]:
             _pattern(pattern, f"value_extraction.heading_exclusion_patterns[{index}]", issues)
     _strings(value_extraction.get("heading_value_markers"), "value_extraction.heading_value_markers", issues)
 
+    funnel = _mapping(cfg.get("funnel"), "funnel", issues)
+    strong = funnel.get("strong_extraction_methods")
+    _strings(strong, "funnel.strong_extraction_methods", issues)
+    legacy = {"table_lookup", "table_rule", "table_aggregate", "table_list", "regex", "regex_derived", "regex_multi"}
+    if isinstance(strong, list) and set(strong) != legacy:
+        issues.append(Issue(
+            "error", "funnel.strong_extraction_methods",
+            "must retain every legacy rule-first extraction method until real-report parity is approved",
+        ))
+
     resolver = _mapping(cfg.get("candidate_resolution"), "candidate_resolution", issues)
     weights = _mapping(resolver.get("method_weights"), "candidate_resolution.method_weights", issues)
     for name, weight in weights.items():
