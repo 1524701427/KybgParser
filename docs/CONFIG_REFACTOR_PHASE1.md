@@ -89,3 +89,20 @@ All checked-in values reproduce the previous defaults. The new tests compare act
 - `python tools/scripts/audit_extraction_config.py --config-root configs`
 - `python -m pytest tests/test_extraction_grammar_yaml_parity.py tests/test_output_field_contract.py tests/test_config_driven_parity.py -q`
 - `python tools/scripts/compare_mapped.py old_mapped.json new_mapped.json --report mapping_diff.json`
+
+
+## Continued migration: primary operator registry and rule-first pruning
+
+The **primary** ValueExtractor now dispatches the existing table extraction algorithms through an allowlisted operator registry declared in `configs/extraction_runtime.yaml`: `table_aggregate`, `table_list`, `table_lookup`. The legacy operator implementations remain in Python; only orchestration and options are configured.
+
+**Important business invariant:** the table operator order is fixed to its previous sequence. A successful `table_lookup` returns before the coarse table-rule fallback. Changing order raises a ValueError; `audit_extraction_config.py` also reports it as an error.
+
+`value_extraction.score_bonuses` contains the existing nine extraction score increments. Their defaults match the previous Python code: table header/row, table aggregate, table lookup, table list, regex, derived regex, regex fallback, and multi-number regex. Existing field YAML rules and mapped output are unaffected.
+
+`FunnelPruner` also accepts YAML-configured `funnel.strong_extraction_methods` to preserve rule-first candidates during Top-K pruning. The configured set exactly matches its previous Python defaults. The audit blocks accidentally dropping a previously supported strong method during the compatibility phase.
+
+New tests: `tests/test_primary_operator_registry_parity.py` compares complete extracted value, unit, score, evidence and method between configured/legacy instances for table lookup, aggregation, list and coarse table extraction; `tests/test_funnel_yaml_parity.py` checks both rule-first and score-only Top-K behavior.
+
+**No domain calculation method has been removed.** The registry intentionally points to approved existing methods rather than executing Python expressions from YAML. No changes have been merged to `main`.
+
+Validation remains limited to unit/integration fixtures on GitHub-hosted Linux. Full real report Aspose/OCR mapped JSON comparisons must be completed in the original runtime before merge.
