@@ -74,6 +74,8 @@ jobs:
             --baseline-root baseline \
             --candidate-root candidate \
             --report 'candidate/samples/reports/项目建议书解析（陕西华电延安吴起庙沟50MW风电项目）.docx' \
+            --report 'candidate/samples/parsed/可研报告解析（陕西华电靖边韩家沟200MW项目）.docx' \
+            --report 'candidate/samples/parsed/可研报告解析（陕西华电白水15万千瓦项目）.docx' \
             --out-dir parity-output \
             --timeout-seconds 900
       - name: Upload regression summary on failure
