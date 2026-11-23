@@ -12,6 +12,7 @@ from typing import Any
 from word_parser.document.ast.document import DocumentAST
 
 from word_parser.document.ast.evidence import Extraction, FieldEvidence, ParsedField
+from word_parser.primary.domain_stage import DomainExtractionState, extract_domain_fields
 
 from word_parser.config.loader import ConfigLoader
 
@@ -85,18 +86,16 @@ class ResultBuilder(
         self._merge_field_meta_from_field_configs()
         self.original_table_resolver = OriginalTableResolver(self)
 
-    def build(self, ast: DocumentAST | None, fields: dict[str, ParsedField], file_path: str | None = None) -> dict[str, Any]:
-        """构建最终结果 JSON。"""
-        details = self._build_details(ast)
-        self._apply_detail_context_constraints(details)
-        fields = dict(fields)
-        if file_path and ast is not None:
-            ast.meta.setdefault("file_path", file_path)
-        if ast is not None:
-            self._apply_deterministic_overrides(ast, fields, details)
-            self._apply_quality_filters(fields, ast)
-        self._fill_foundation_equivalent_fields(fields)
-        self._fill_finance_insurance_equivalent_field(fields)
+    def prepare(
+        self, ast: DocumentAST | None, fields: dict[str, ParsedField],
+        file_path: str | None = None,
+    ) -> DomainExtractionState:
+        """一次抽取后执行领域专用抽取，尚不执行最终映射。"""
+        return extract_domain_fields(self, ast, fields, file_path=file_path)
+
+    def build_prepared(self, prepared: DomainExtractionState) -> dict[str, Any]:
+        """仅根据已抽取的字段和领域明细组装业务结果，不再次抽值。"""
+        ast, fields, details = prepared.ast, prepared.fields, prepared.details
         tables = self._build_tables(ast, details, fields)
         sections = self._build_sections(fields, tables)
         field_traces = self._build_field_traces(fields)
@@ -109,6 +108,10 @@ class ResultBuilder(
             "tables": tables,
             "sections": sections,
         }
+
+    def build(self, ast: DocumentAST | None, fields: dict[str, ParsedField], file_path: str | None = None) -> dict[str, Any]:
+        """保留旧 API；内部采用『领域抽取 → 纯结果组装』两步。"""
+        return self.build_prepared(self.prepare(ast, fields, file_path=file_path))
 
     def _apply_detail_context_constraints(self, details: dict[str, list[dict[str, Any]]]) -> None:
         """对明细行直接生成的值应用相同的工程对象规则。"""
