@@ -48,7 +48,7 @@ def run_full_parse(
         config_root = getattr(builder, "config_root", Path("configs"))
     if table_value_config is None:
         table_value_config = Path(config_root) / "table_field_extractors.yaml"
-    primary_result = parser.pipeline.parse(file_path, defer_mapping=True)
+    primary_result = parser.pipeline.parse(file_path, defer_mapping=True, memory_only=True)
     return enhance_parse_result(
         primary_result,
         config_path=table_value_config,
