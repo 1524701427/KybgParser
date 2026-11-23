@@ -81,6 +81,10 @@ value_extraction:
     summary: ["合计", "总计", "总长", "小计", "求和", "平均", "total", "Total"]
     material_grade_pattern: '\b(?:C|AC|HRB|HPB)\s*[-]?\d+'
 
+funnel:
+  # Rule-first methods retained during Top-K pruning; same as legacy Python set.
+  strong_extraction_methods: [table_lookup, table_rule, table_aggregate, table_list, regex, regex_derived, regex_multi]
+
 candidate_resolution:
   method_weights:
     table_lookup: 1.2
