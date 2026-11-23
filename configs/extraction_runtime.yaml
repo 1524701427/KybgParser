@@ -17,7 +17,7 @@ retrieval:
   table_hint_bonus: 0.25
   summary_fallback_score: 0.25
   summary_section_keywords: ["工程特性表", "综合说明"]
-  toc_markers: ["HYPERLINK", "PAGEREF", "TOC ", "\o ", "_Toc"]
+  toc_markers: ["HYPERLINK", "PAGEREF", "TOC ", '\o ', "_Toc"]
   toc_headings: ["目录", "目錄", "contents"]
   toc_heading_prefix: "目录"
   toc_heading_max_chars: 120
