@@ -128,6 +128,23 @@ def audit_runtime(config_root: Path) -> list[Issue]:
         issues.append(Issue("error", "discovery.label_max_length", "must be >= label_min_length"))
 
     value_extraction = _mapping(cfg.get("value_extraction"), "value_extraction", issues)
+    operator_order = value_extraction.get("table_operator_order")
+    legacy_order = ["table_aggregate", "table_list", "table_lookup"]
+    if operator_order != legacy_order:
+        issues.append(Issue(
+            "error", "value_extraction.table_operator_order",
+            f"must preserve legacy order {legacy_order!r}, because lookup short-circuits coarse-table extraction",
+        ))
+    score_bonuses = _mapping(value_extraction.get("score_bonuses"), "value_extraction.score_bonuses", issues)
+    expected_bonuses = {
+        "table_rule_header", "table_rule_row", "table_aggregate",
+        "table_lookup", "table_list", "regex", "regex_derived",
+        "regex_fallback", "regex_multi",
+    }
+    for name in sorted(expected_bonuses):
+        _number(score_bonuses.get(name), f"value_extraction.score_bonuses.{name}", issues, -100, 100)
+    for name in sorted(set(score_bonuses) - expected_bonuses):
+        issues.append(Issue("error", f"value_extraction.score_bonuses.{name}", "unknown extractor score name"))
     headers = _mapping(value_extraction.get("table_headers"), "value_extraction.table_headers", issues)
     for key in ("value", "unit", "noise", "raw_unit", "summary"):
         _strings(headers.get(key), f"value_extraction.table_headers.{key}", issues)
