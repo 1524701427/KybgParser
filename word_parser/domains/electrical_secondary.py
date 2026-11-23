@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 from typing import Any
@@ -100,8 +100,8 @@ class ElectricalSecondaryRulesMixin:
             header = self._header_row(matrix, ["单位", "数量"])
             if not header:
                 continue
-            unit_index = self._find_header_index(header, ["单位", "单 位"])
-            quantity_index = self._find_header_index(header, ["数量", "数 量"])
+            unit_index = self._find_header_index(header, domain_strings(self, "electrical_secondary", "list_001", ["单位", "单 位"]))
+            quantity_index = self._find_header_index(header, domain_strings(self, "electrical_secondary", "list_002", ["数量", "数 量"]))
             if unit_index is None or quantity_index is None:
                 continue
             for row in matrix[matrix.index(header) + 1 :]:
