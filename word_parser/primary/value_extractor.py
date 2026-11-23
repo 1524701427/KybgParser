@@ -15,6 +15,9 @@ class ValueExtractor:
     VALUE_HEADER_KEYWORDS = ("数值", "指标值", "推荐值", "取值", "金额", "投资", "容量", "规模", "长度", "数量", "台数")
     UNIT_HEADER_KEYWORDS = ("单位", "计量单位")
     NOISE_HEADER_KEYWORDS = ("序号", "编号", "备注", "说明", "类别", "阶段")
+    RAW_UNIT_HEADER_KEYWORDS = ("单位", "unit", "Unit")
+    SUMMARY_ROW_KEYWORDS = ("合计", "总计", "总长", "小计", "求和", "平均", "total", "Total")
+    MATERIAL_GRADE_PATTERN = r"\b(?:C|AC|HRB|HPB)\s*[-]?\d+"
 
     def __init__(
         self,
@@ -36,6 +39,9 @@ class ValueExtractor:
         self.VALUE_HEADER_KEYWORDS = tuple(headers.get("value", self.VALUE_HEADER_KEYWORDS))
         self.UNIT_HEADER_KEYWORDS = tuple(headers.get("unit", self.UNIT_HEADER_KEYWORDS))
         self.NOISE_HEADER_KEYWORDS = tuple(headers.get("noise", self.NOISE_HEADER_KEYWORDS))
+        self.RAW_UNIT_HEADER_KEYWORDS = tuple(headers.get("raw_unit", self.RAW_UNIT_HEADER_KEYWORDS))
+        self.SUMMARY_ROW_KEYWORDS = tuple(headers.get("summary", self.SUMMARY_ROW_KEYWORDS))
+        self.MATERIAL_GRADE_PATTERN = str(headers.get("material_grade_pattern", self.MATERIAL_GRADE_PATTERN))
 
     def extract(self, matches: list[FieldMatch]) -> list[Extraction]:
         """从匹配候选中抽取字段值。
@@ -431,7 +437,7 @@ class ValueExtractor:
 
     def _raw_unit_from_unit_column(self, row, headers: dict[int, str]) -> str | None:
         """读取单位列原始文本，不受允许单位配置限制。"""
-        unit_keywords = (chr(0x5355) + chr(0x4f4d), "unit", "Unit")
+        unit_keywords = self.RAW_UNIT_HEADER_KEYWORDS
         for index, cell in enumerate(row):
             header = headers.get(index, "")
             if any(keyword in header for keyword in unit_keywords):
@@ -452,26 +458,16 @@ class ValueExtractor:
         stripped = text.strip()
         if not stripped:
             return True
-        if re.search(r"\b(?:C|AC|HRB|HPB)\s*[-]?\d+", stripped):
+        if re.search(self.MATERIAL_GRADE_PATTERN, stripped):
             return True
         if any(keyword in header_text for keyword in self.NOISE_HEADER_KEYWORDS):
             return True
         return False
 
     def _row_has_summary_label(self, row) -> bool:
-        """识别长明细表中的合计或汇总行。"""
+        """识别长明细表中的合计或汇总行，词典由 YAML 配置。"""
         label = " ".join(cell.text for cell in row[:3])
-        keywords = [
-            chr(0x5408) + chr(0x8ba1),
-            chr(0x603b) + chr(0x8ba1),
-            chr(0x603b) + chr(0x957f),
-            chr(0x5c0f) + chr(0x8ba1),
-            chr(0x6c42) + chr(0x548c),
-            chr(0x5e73) + chr(0x5747),
-            "total",
-            "Total",
-        ]
-        return any(keyword in label for keyword in keywords)
+        return any(keyword in label for keyword in self.SUMMARY_ROW_KEYWORDS)
 
     def _unit_from_unit_column(self, row, headers: dict[int, str], unit_aliases: list[str]) -> str | None:
         """优先从表头为“单位”的列读取单位。"""
