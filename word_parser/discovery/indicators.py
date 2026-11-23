@@ -189,6 +189,15 @@ class IndicatorValueParser:
         self.label_max_length = int(settings.get("label_max_length", 30))
         self.paragraph_clause_max_length = int(settings.get("paragraph_clause_max_length", 180))
         self.string_value_max_length = int(settings.get("string_value_max_length", 60))
+        self.NUMBER_CELL = re.compile(settings.get("number_cell_pattern", self.NUMBER_CELL.pattern))
+        self.column_header_unit_pattern = re.compile(settings.get(
+            "column_header_unit_pattern", r"(.+?)[（(]([^()（）]{1,16})[）)]"))
+        self.paragraph_clause_pattern = re.compile(settings.get(
+            "paragraph_clause_pattern", r"[。；;，\n]|,(?!\d{3}(?:\D|$))"))
+        self.two_cell_text_max_length = int(settings.get("two_cell_text_max_length", 60))
+        self.two_cell_value_exclusions = frozenset(settings.get(
+            "two_cell_value_exclusions", ("单位", "备注", "说明")
+        ))
 
     def parse_table_pairs(self, cells: list[str]) -> list[tuple[str, str, str | None, int]]:
         """识别同一行中并列的多组“名称、数值”，不依赖字段配置。"""
@@ -222,7 +231,7 @@ class IndicatorValueParser:
         headers: dict[int, tuple[str, str | None]] = {}
         for index, cell in enumerate(cells[1:], start=1):
             token = cell.strip()
-            match = re.fullmatch(r"(.+?)[（(]([^()（）]{1,16})[）)]", token)
+            match = self.column_header_unit_pattern.fullmatch(token)
             name, unit = (match.group(1).strip(), match.group(2).strip()) if match else (token, None)
             if name in self.column_header_exclusions:
                 continue
@@ -286,7 +295,7 @@ class IndicatorValueParser:
     def parse_paragraph_pairs(self, text: str) -> list[tuple[str, str, str | None]]:
         """扫描段落内的多组名称和值，保留未配置字段的原文候选。"""
         pairs: list[tuple[str, str, str | None]] = []
-        clauses = re.split(r"[。；;，\n]|,(?!\d{3}(?:\D|$))", text)
+        clauses = self.paragraph_clause_pattern.split(text)
         for clause in clauses:
             clause = clause.strip()
             if not clause or len(clause) > self.paragraph_clause_max_length:
@@ -400,6 +409,10 @@ class IndicatorDiscovery:
         self.safe_fallback_min_label_length = int(
             (settings.get("rapidfuzz") or {}).get("safe_fallback_min_label_length", 8)
         )
+        self.contextual_clause_pattern = re.compile(settings.get(
+            "contextual_clause_pattern", r"[。；;，,\n]"))
+        self.contextual_label_min_length = int(settings.get("contextual_label_min_length", 4))
+        self.contextual_prefix_guard_chars = int(settings.get("contextual_prefix_guard_chars", 10))
 
     def discover(self, ast: DocumentAST) -> list[Indicator]:
         """按配置的各阶段发现并匹配指标。
@@ -443,7 +456,7 @@ class IndicatorDiscovery:
                                                  row=row_number, column=value_index))
                 if len(cells) == 2 and not pairs and self.value_parser.label_allowed(cells[0]):
                     text_value = cells[1].strip()
-                    if text_value and len(text_value) <= 60 and text_value not in {"单位", "备注", "说明"}:
+                    if text_value and len(text_value) <= self.value_parser.two_cell_text_max_length and text_value not in self.value_parser.two_cell_value_exclusions:
                         found.append(self._indicator(cells[0], text_value, None, "table", table.page,
                                                      table.section_path, table_id=table.id,
                                                      row=row_number, column=1))
@@ -497,14 +510,14 @@ class IndicatorDiscovery:
     def _contextual_values(self, text: str) -> list[tuple[str, str, str | None]]:
         """读取语句中紧跟数值的已配置标签。"""
         found: list[tuple[str, str, str | None]] = []
-        for clause in re.split(r"[。；;，,\n]", text):
+        for clause in self.contextual_clause_pattern.split(text):
             if not clause or len(clause) > self.value_parser.paragraph_clause_max_length:
                 continue
             key = self.lexicon._key(clause)
             if self.lexicon.automaton is not None:
-                labels = {label for _, label in self.lexicon.automaton.iter(key) if len(label) >= 4}
+                labels = {label for _, label in self.lexicon.automaton.iter(key) if len(label) >= self.contextual_label_min_length}
             else:
-                labels = {label for label in self.lexicon.labels if len(label) >= 4 and label in key}
+                labels = {label for label in self.lexicon.labels if len(label) >= self.contextual_label_min_length and label in key}
             for label in sorted(labels, key=len, reverse=True):
                 # 在原始语句上匹配，以保留标点和数值偏移位置。
                 compact = "".join(clause.split())
@@ -512,7 +525,7 @@ class IndicatorDiscovery:
                 if start < 0:
                     continue
                 prefix = compact[:start]
-                if any(term in prefix[-10:] and term not in label for group in self.SCOPE_TERMS for term in group):
+                if any(term in prefix[-self.contextual_prefix_guard_chars:] and term not in label for group in self.SCOPE_TERMS for term in group):
                     continue
                 suffix = compact[start + len(label):]
                 match = self.CONTEXT_VALUE.match(suffix)
