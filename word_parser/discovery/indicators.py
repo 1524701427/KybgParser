@@ -184,6 +184,11 @@ class IndicatorValueParser:
             "column_header_exclusions",
             ["数量", "数值", "指标值", "金额", "总价", "单价", "单位", "备注"],
         ))
+        self.paragraph_separators = tuple(settings.get("paragraph_separators", ("：", ":", "为", "取")))
+        self.label_min_length = int(settings.get("label_min_length", 2))
+        self.label_max_length = int(settings.get("label_max_length", 30))
+        self.paragraph_clause_max_length = int(settings.get("paragraph_clause_max_length", 180))
+        self.string_value_max_length = int(settings.get("string_value_max_length", 60))
 
     def parse_table_pairs(self, cells: list[str]) -> list[tuple[str, str, str | None, int]]:
         """识别同一行中并列的多组“名称、数值”，不依赖字段配置。"""
@@ -269,7 +274,7 @@ class IndicatorValueParser:
         返回：
             标签、原始数值和单位；未找到时返回 ``None``。
         """
-        for separator in ("：", ":", "为", "取"):
+        for separator in self.paragraph_separators:
             label, found, remainder = text.partition(separator)
             if not found or not self.label_allowed(label.strip()):
                 continue
@@ -284,9 +289,9 @@ class IndicatorValueParser:
         clauses = re.split(r"[。；;，\n]|,(?!\d{3}(?:\D|$))", text)
         for clause in clauses:
             clause = clause.strip()
-            if not clause or len(clause) > 180:
+            if not clause or len(clause) > self.paragraph_clause_max_length:
                 continue
-            for separator in ("：", ":", "为", "取"):
+            for separator in self.paragraph_separators:
                 label, found, remainder = clause.partition(separator)
                 label = label.strip()
                 if not found or not self.label_allowed(label):
@@ -295,7 +300,7 @@ class IndicatorValueParser:
                 parsed = self.parse_number(remainder)
                 if parsed is not None:
                     pairs.append((label, *parsed))
-                elif separator in ("：", ":") and 1 <= len(remainder) <= 60:
+                elif separator in ("：", ":") and 1 <= len(remainder) <= self.string_value_max_length:
                     pairs.append((label, remainder, None))
                 break
         return pairs
@@ -335,7 +340,7 @@ class IndicatorValueParser:
         """排除过短的表头，同时保留有明确名称的电压指标。"""
         text = label.strip()
         chinese_count = sum("\u4e00" <= char <= "\u9fff" for char in text)
-        return bool(2 <= len(text) <= 30 and text not in self.NON_INDICATOR_LABELS
+        return bool(self.label_min_length <= len(text) <= self.label_max_length and text not in self.NON_INDICATOR_LABELS
                     and (chinese_count >= 2 or (text.isalpha() and len(text) >= 3)))
 
     @staticmethod
@@ -493,7 +498,7 @@ class IndicatorDiscovery:
         """读取语句中紧跟数值的已配置标签。"""
         found: list[tuple[str, str, str | None]] = []
         for clause in re.split(r"[。；;，,\n]", text):
-            if not clause or len(clause) > 180:
+            if not clause or len(clause) > self.paragraph_clause_max_length:
                 continue
             key = self.lexicon._key(clause)
             if self.lexicon.automaton is not None:
