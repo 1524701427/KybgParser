@@ -88,3 +88,49 @@ def test_configured_domain_alias_lists_are_fresh_copies():
         "流动资金", "建设贷款"
     ]
     assert domain_strings(object(), "finance", "example", ["fallback"]) == ["fallback"]
+
+
+def test_ordered_domain_alias_and_pattern_lists_equal_original_python():
+    """Compare actual Python list values, not lossy text/regex serializations."""
+    lists = CONFIG.get("domain_literal_lists") or {}
+    discovered: dict[tuple[str, str], list[str]] = {}
+    for path in sorted((ROOT / "word_parser" / "domains").glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            if not isinstance(node.func, ast.Name) or node.func.id != "domain_strings":
+                continue
+            assert len(node.args) == 4, (path, node.lineno)
+            module, key = ast.literal_eval(node.args[1]), ast.literal_eval(node.args[2])
+            fallback = ast.literal_eval(node.args[3])
+            assert isinstance(fallback, list) and all(isinstance(v, str) for v in fallback)
+            assert module == path.stem, (path, node.lineno)
+            assert (module, key) not in discovered
+            discovered[(module, key)] = fallback
+    configured = {(module, key): value for module, group in lists.items()
+                  for key, value in group.items()}
+    assert len(discovered) >= 110, "Expected substantial alias/header list migration"
+    assert discovered.keys() == configured.keys(), {
+        "only_python": sorted(discovered.keys() - configured.keys()),
+        "only_yaml": sorted(configured.keys() - discovered.keys()),
+    }
+    assert all(configured[key] == fallback for key, fallback in discovered.items()), {
+        "mismatches": [key for key, fallback in discovered.items() if configured[key] != fallback]
+    }
+
+
+def test_domain_policy_does_not_modify_list_order_or_original_config():
+    class Owner:
+        deterministic_rules = {"domain_literal_lists": {
+            "civil_land": {"header_1": ["箱变基础", "升压站", "总计"]},
+        }}
+
+    ordered = domain_strings(Owner(), "civil_land", "header_1", ["fallback"])
+    assert ordered == ["箱变基础", "升压站", "总计"]
+    ordered.reverse()
+    assert domain_strings(Owner(), "civil_land", "header_1", ["fallback"]) == [
+        "箱变基础", "升压站", "总计"
+    ]
