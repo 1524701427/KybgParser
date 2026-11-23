@@ -6,6 +6,24 @@ version: 1
 field_matching:
   alias_bonus: 1.0
 
+
+retrieval:
+  # Values identical to CandidateRetriever's legacy hard-coded scoring.
+  paragraph_alias_bonus: 0.5
+  paragraph_hint_bonus: 0.25
+  table_alias_bonus: 0.6
+  table_caption_bonus: 0.4
+  table_aggregate_bonus: 1.0
+  table_hint_bonus: 0.25
+  summary_fallback_score: 0.25
+  summary_section_keywords: ["工程特性表", "综合说明"]
+  toc_markers: ["HYPERLINK", "PAGEREF", "TOC ", "\o ", "_Toc"]
+  toc_headings: ["目录", "目錄", "contents"]
+  toc_heading_prefix: "目录"
+  toc_heading_max_chars: 120
+  toc_prefix_window_chars: 80
+
+
 discovery:
   rapidfuzz:
     acceptance_score: 92
