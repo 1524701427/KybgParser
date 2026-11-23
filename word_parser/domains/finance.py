@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 
 from typing import Any
@@ -111,7 +113,7 @@ class FinanceRulesMixin:
                 text,
                 [r"贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"银行\s*\d*\s*贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年"],
             )
-        if row.get("repaymentMethod") is None and re.search(r"等额(?:还本|本)利息照付", text):
+        if row.get("repaymentMethod") is None and re.search(domain_regex(self, "finance", "search_001", r"等额(?:还本|本)利息照付"), text):
             row["repaymentMethod"] = "每年按贷款等额还本利息照付"
         if row.get("annualLoanInterestRate") is None:
             row["annualLoanInterestRate"] = self._first_matching_number(
@@ -137,7 +139,7 @@ class FinanceRulesMixin:
             index = text.find(marker)
             if index >= 0:
                 tail = text[index : index + 80]
-                match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]", tail)
+                match = re.search(domain_regex(self, "finance", "search_002", r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]"), tail)
                 if match:
                     row["insuranceRate"] = self._clean_number(float(match.group(1)))
         if row["materialCost"] is None:
@@ -205,7 +207,7 @@ class FinanceRulesMixin:
         )
 
     def _looks_like_financial_indicator_summary_table(self, caption_text: str, header_text: str, table_text: str) -> bool:
-        if re.search(r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表", caption_text):
+        if re.search(domain_regex(self, "finance", "search_003", r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表"), caption_text):
             return True
         if "财务指标汇总表" in caption_text:
             return True
@@ -231,7 +233,7 @@ class FinanceRulesMixin:
 
     def _financial_indicator_summary_score(self, context: str, header_text: str) -> int:
         score = 0
-        if re.search(r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表", context):
+        if re.search(domain_regex(self, "finance", "search_004", r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表"), context):
             score += 20
         if any(keyword in context for keyword in ("财务指标汇总", "财务指标表", "主要财务指标", "财务评价指标", "财务分析指标", "经济评价指标")):
             score += 8
@@ -295,7 +297,7 @@ class FinanceRulesMixin:
     def _normalize_staff_salary(self, value: Any) -> Any:
         if not isinstance(value, str):
             return value
-        found = re.search(r"(\d+(?:\.\d+)?)\s*万元", value)
+        found = re.search(domain_regex(self, "finance", "search_005", r"(\d+(?:\.\d+)?)\s*万元"), value)
         return f"人均年工资{found.group(1)}万元" if found else value
 
     def _irr_pair(self, fields: dict[str, ParsedField]) -> str | None:
@@ -313,7 +315,7 @@ class FinanceRulesMixin:
             index = text.find(marker)
             if index >= 0:
                 tail = text[index : index + 80]
-                match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]", tail)
+                match = re.search(domain_regex(self, "finance", "search_006", r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]"), tail)
                 if match:
                     self._set_field(fields, "insuranceRate", "保险费率", self._clean_number(float(match.group(1))), "%", marker, source_type="regex")
         specs: dict[str, tuple[str, Any, str | None]] = {
@@ -392,7 +394,7 @@ class FinanceRulesMixin:
 
         method = fields.get("repaymentMethod")
         if method is None or method.value is None:
-            match = re.search(r"(?:长期借款|贷款)[^。；;]{0,20}?(?:采用|按)\s*(等额还本利息照付)(?:方式)?", text)
+            match = re.search(domain_regex(self, "finance", "search_007", r"(?:长期借款|贷款)[^。；;]{0,20}?(?:采用|按)\s*(等额还本利息照付)(?:方式)?"), text)
             if match:
                 self._set_field(
                     fields, "repaymentMethod", "还款方式", match.group(1), None,
@@ -471,8 +473,8 @@ class FinanceRulesMixin:
             values[label] = self._normalize_scalar(match.group("value"))
         if values:
             return values
-        inline = re.findall(r"(?:限电率|弃电率)[^。；;\n]{0,120}", text)
-        found = [self._normalize_scalar(value) for part in inline for value in re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*%", part)]
+        inline = re.findall(domain_regex(self, "finance", "findall_008", r"(?:限电率|弃电率)[^。；;\n]{0,120}"), text)
+        found = [self._normalize_scalar(value) for part in inline for value in re.findall(domain_regex(self, "finance", "findall_009", r"([0-9]+(?:\.[0-9]+)?)\s*%"), part)]
         unique = []
         for value in found:
             if value not in unique:
@@ -484,7 +486,7 @@ class FinanceRulesMixin:
             return next(iter(segments.values()))
         if segments:
             return None
-        match = re.search(r"(?:限电率|弃电率)[^0-9%]{0,20}([0-9]+(?:\.[0-9]+)?)\s*%", text)
+        match = re.search(domain_regex(self, "finance", "search_010", r"(?:限电率|弃电率)[^0-9%]{0,20}([0-9]+(?:\.[0-9]+)?)\s*%"), text)
         return self._normalize_scalar(match.group(1)) if match else None
 
     def _finance_curtailment_on_grid_energy_mwh(self, text: str) -> Any:
@@ -503,19 +505,19 @@ class FinanceRulesMixin:
     def _finance_curtailment_full_load_hours(self, text: str) -> Any:
         context = self._keyword_window(text, ["限电率", "弃电率"], 260) or text
         after_curtailment = re.search(
-            r"(?:考虑弃电后|弃电后|限电后)[^。；;\n]{0,100}?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h",
+            domain_regex(self, "finance", "search_011", r"(?:考虑弃电后|弃电后|限电后)[^。；;\n]{0,100}?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h"),
             context, flags=re.IGNORECASE,
         )
         if after_curtailment:
             return self._normalize_scalar(after_curtailment.group(1))
-        match = re.search(r"(?:限电后|考虑弃电后)?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h", context, flags=re.IGNORECASE)
+        match = re.search(domain_regex(self, "finance", "search_012", r"(?:限电后|考虑弃电后)?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h"), context, flags=re.IGNORECASE)
         return self._normalize_scalar(match.group(1)) if match else None
 
     def _energy_value_to_mwh(self, value_text: str, unit: str) -> Any:
         value = self._normalize_scalar(value_text)
         if not isinstance(value, (int, float)):
             return None
-        normalized_unit = re.sub(r"\s+", "", unit)
+        normalized_unit = re.sub(domain_regex(self, "finance", "sub_013", r"\s+"), "", unit)
         if "万" in normalized_unit:
             return self._clean_number(float(value) * 10)
         return value
