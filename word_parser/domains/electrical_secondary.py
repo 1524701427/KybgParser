@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -72,17 +74,17 @@ class ElectricalSecondaryRulesMixin:
             anchor = self._clean_text(block.text or "")
             if "通信电源" not in anchor and "通讯电源" not in anchor:
                 continue
-            if not re.search(r"(?:具体)?配(?:置|备)(?:如下|为|：|:)", anchor):
+            if not re.search(domain_regex(self, "electrical_secondary", "search_001", r"(?:具体)?配(?:置|备)(?:如下|为|：|:)"), anchor):
                 continue
             if not any("通信" in part or "通讯" in part for part in (block.section_path or [])):
                 continue
             items = []
             for next_block in blocks[index + 1 : index + 13]:
                 item = self._clean_text(next_block.text or "")
-                if re.match(r"^\s*\d+(?:\.\d+){1,}\s*\S", item) or "技术要求" in item:
+                if re.match(domain_regex(self, "electrical_secondary", "match_002", r"^\s*\d+(?:\.\d+){1,}\s*\S"), item) or "技术要求" in item:
                     break
-                if re.search(r"(?:电源|蓄电池|电池|整流|配电)", item) and re.search(
-                    r"\d+(?:\.\d+)?\s*(?:V|Ah|A\b|套|组|台|面)", item, flags=re.IGNORECASE
+                if re.search(domain_regex(self, "electrical_secondary", "search_003", r"(?:电源|蓄电池|电池|整流|配电)"), item) and re.search(
+                    domain_regex(self, "electrical_secondary", "search_004", r"\d+(?:\.\d+)?\s*(?:V|Ah|A\b|套|组|台|面)"), item, flags=re.IGNORECASE
                 ):
                     items.append(item.rstrip("。；;"))
             if items:
@@ -104,11 +106,11 @@ class ElectricalSecondaryRulesMixin:
                 continue
             for row in matrix[matrix.index(header) + 1 :]:
                 row_text = self._clean_text(" | ".join(row))
-                compact = re.sub(r"\s+", "", row_text)
+                compact = re.sub(domain_regex(self, "electrical_secondary", "sub_005", r"\s+"), "", row_text)
                 score = 0
                 if "通讯电池" in compact or "通信电池" in compact:
                     score = 300
-                elif re.search(r"48V/200Ah", compact, flags=re.IGNORECASE) and "蓄电池" in compact:
+                elif re.search(domain_regex(self, "electrical_secondary", "search_006", r"48V/200Ah"), compact, flags=re.IGNORECASE) and "蓄电池" in compact:
                     score = 200
                 if not score:
                     continue
@@ -164,19 +166,19 @@ class ElectricalSecondaryRulesMixin:
 
     def _normalize_communication_power_design(self, text: str) -> str:
         value = self._normalize_text_value(text)
-        value = re.sub(r"\s+", "", value)
+        value = re.sub(domain_regex(self, "electrical_secondary", "sub_007", r"\s+"), "", value)
         value = value.lstrip("-")
         if "48V/200Ah" in value and "\u9600\u63a7\u5f0f\u5bc6\u5c01\u94c5\u9178\u84c4\u7535\u6c60" in value:
-            return re.sub(r"(\u9600\u63a7\u5f0f\u5bc6\u5c01\u94c5\u9178\u84c4\u7535\u6c60)[:\uff1a,\uff0c]?(1\u7ec4)", r"\1：\2", value)
-        value = re.sub(r"^1\u7ec4(200Ah\u514d\u7ef4\u62a4\u84c4\u7535\u6c60)[\uff0c,]?", r"\g<1>" + "1\u7ec4\u53ca", value)
+            return re.sub(domain_regex(self, "electrical_secondary", "sub_008", r"(\u9600\u63a7\u5f0f\u5bc6\u5c01\u94c5\u9178\u84c4\u7535\u6c60)[:\uff1a,\uff0c]?(1\u7ec4)"), r"\1：\2", value)
+        value = re.sub(domain_regex(self, "electrical_secondary", "sub_009", r"^1\u7ec4(200Ah\u514d\u7ef4\u62a4\u84c4\u7535\u6c60)[\uff0c,]?"), r"\g<1>" + "1\u7ec4\u53ca", value)
         value = value.replace("：", "，").replace(":", "，")
-        value = re.sub(r"，+", "，", value).strip("，")
-        value = re.sub(r"(?<!，)(1组)$", r"，\1", value)
+        value = re.sub(domain_regex(self, "electrical_secondary", "sub_010", r"，+"), "，", value).strip("，")
+        value = re.sub(domain_regex(self, "electrical_secondary", "sub_011", r"(?<!，)(1组)$"), r"，\1", value)
         return value
 
     def _ups_configuration_from_blocks(self, ast: DocumentAST) -> str | None:
         for block in ast.blocks:
-            found = re.search(r"本工程取UPS容量为([^。；;\n]+)。([^。；;\n]*双冗余方式)", block.text)
+            found = re.search(domain_regex(self, "electrical_secondary", "search_012", r"本工程取UPS容量为([^。；;\n]+)。([^。；;\n]*双冗余方式)"), block.text)
             if found:
                 return f"容量为{found.group(1).strip()}，{found.group(2).strip()}"
         return self._regex_from_blocks(ast, r"本工程取UPS容量为([^。；;\n]+)")
