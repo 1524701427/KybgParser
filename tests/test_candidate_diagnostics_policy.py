@@ -161,3 +161,18 @@ def test_cli_uses_configured_policy_and_does_not_change_input(tmp_path):
                        "--output", str(audit_path)]) == 0
     assert json.loads(audit_path.read_text(encoding="utf-8"))["qualityChecks"]["enabled"] is False
     assert detail_path.read_bytes() == before
+
+
+def test_empty_or_broken_yaml_does_not_silently_disable_diagnostics(tmp_path):
+    detail_path = tmp_path / "project_details.json"
+    detail_path.write_text(json.dumps(_details(), ensure_ascii=False), encoding="utf-8")
+    original = detail_path.read_bytes()
+    policy_file = tmp_path / "candidate_audit.yaml"
+    output_file = tmp_path / "project_candidate_facts.json"
+    for invalid_yaml in ("", "version: ["):
+        policy_file.write_text(invalid_yaml, encoding="utf-8")
+        assert audit_main([
+            str(detail_path), "--policy", str(policy_file), "--output", str(output_file)
+        ]) == 2
+        assert not output_file.exists()
+        assert detail_path.read_bytes() == original
