@@ -13,6 +13,7 @@ from word_parser.document.ast.document import DocumentAST
 
 from word_parser.document.ast.evidence import Extraction, FieldEvidence, ParsedField
 from word_parser.primary.domain_stage import DomainExtractionState, extract_domain_fields
+from word_parser.primary.domain_dispatch import DomainOperatorSchedule
 
 from word_parser.config.loader import ConfigLoader
 
@@ -73,6 +74,7 @@ class ResultBuilder(
         output_schema: dict[str, Any] | None = None,
         field_configs: dict[str, dict[str, Any]] | None = None,
         config_root: str | Path = "configs",
+        domain_operator_schedule: DomainOperatorSchedule | None = None,
     ):
         self.cover_ocr_extractor = cover_ocr_extractor or CoverOcrExtractor()
         self._cover_ocr_cache: dict[str, CoverOcrResult] = {}
@@ -83,6 +85,8 @@ class ResultBuilder(
         schema = output_schema if output_schema is not None else self._load_output_schema(self.config_root)
         self._configure_output_schema(schema or {})
         self.deterministic_rules = ConfigLoader(self.config_root).load_yaml("deterministic_rules.yaml")
+        self.domain_operator_schedule = domain_operator_schedule or DomainOperatorSchedule.legacy()
+        self.strict_domain_literals = bool(self.deterministic_rules.get("strict_domain_literals", False))
         self._merge_field_meta_from_field_configs()
         self.original_table_resolver = OriginalTableResolver(self)
 
