@@ -18,12 +18,18 @@ class ValueExtractor:
     RAW_UNIT_HEADER_KEYWORDS = ("单位", "unit", "Unit")
     SUMMARY_ROW_KEYWORDS = ("合计", "总计", "总长", "小计", "求和", "平均", "total", "Total")
     MATERIAL_GRADE_PATTERN = r"\b(?:C|AC|HRB|HPB)\s*[-]?\d+"
+    HEADING_EXCLUSION_PATTERNS = (
+        r"\d+(?:\.\d+){1,4}\s+[^|:]{1,40}",
+        r"\s*\d+(?:[-.]\d+)+(?:\s+[^|:]{0,40})?",
+    )
+    HEADING_VALUE_MARKERS = (":", "：", "|")
 
     def __init__(
         self,
         table_rule_enabled: bool = True,
         regex_enabled: bool = True,
         table_header_config: dict | None = None,
+        value_config: dict | None = None,
     ):
         """初始化抽取器。
 
@@ -42,6 +48,15 @@ class ValueExtractor:
         self.RAW_UNIT_HEADER_KEYWORDS = tuple(headers.get("raw_unit", self.RAW_UNIT_HEADER_KEYWORDS))
         self.SUMMARY_ROW_KEYWORDS = tuple(headers.get("summary", self.SUMMARY_ROW_KEYWORDS))
         self.MATERIAL_GRADE_PATTERN = str(headers.get("material_grade_pattern", self.MATERIAL_GRADE_PATTERN))
+        policy = value_config or {}
+        self.number_near_alias_window = int(policy.get("number_near_alias_window", 80))
+        self.table_group_header_max_cells = int(policy.get("table_group_header_max_cells", 2))
+        self.heading_exclusion_patterns = tuple(
+            policy.get("heading_exclusion_patterns", self.HEADING_EXCLUSION_PATTERNS)
+        )
+        self.heading_value_markers = tuple(
+            policy.get("heading_value_markers", self.HEADING_VALUE_MARKERS)
+        )
 
     def extract(self, matches: list[FieldMatch]) -> list[Extraction]:
         """从匹配候选中抽取字段值。
@@ -568,7 +583,7 @@ class ValueExtractor:
         non_empty = [cell.text.strip() for cell in row if cell.text.strip()]
         if not non_empty:
             return True
-        if len(non_empty) <= 2 and not any(re.search(r"\d", text) for text in non_empty):
+        if len(non_empty) <= self.table_group_header_max_cells and not any(re.search(r"\d", text) for text in non_empty):
             return True
         return False
 
@@ -905,13 +920,13 @@ class ValueExtractor:
             compact_text = self._compact_text(text)
             alias_indexes = [compact_text.find(self._compact_text(alias)) for alias in aliases if alias and compact_text.find(self._compact_text(alias)) >= 0]
             if alias_indexes:
-                value_text, unit = self._first_number_with_unit(compact_text[min(alias_indexes): min(len(compact_text), max(alias_indexes) + 80)], field_config)
+                value_text, unit = self._first_number_with_unit(compact_text[min(alias_indexes): min(len(compact_text), max(alias_indexes) + self.number_near_alias_window)], field_config)
                 if value_text is not None:
                     return value_text, unit
         if not alias_indexes:
             return None, None
         start = min(alias_indexes)
-        end = min(len(text), max(alias_indexes) + 80)
+        end = min(len(text), max(alias_indexes) + self.number_near_alias_window)
         value_text, unit = self._first_number_with_unit(text[start:end], field_config)
         if value_text is not None:
             return value_text, unit
@@ -931,11 +946,9 @@ class ValueExtractor:
             alias and (alias in stripped or self._compact_text(alias) in compact_stripped) for alias in aliases
         ):
             return True
-        if re.fullmatch(r"\d+(?:\.\d+){1,4}\s+[^|:]{1,40}", stripped):
+        if any(re.fullmatch(pattern, stripped) for pattern in self.heading_exclusion_patterns):
             return True
-        if re.fullmatch(r"\s*\d+(?:[-.]\d+)+(?:\s+[^|:]{0,40})?", stripped):
-            return True
-        if value_text and stripped.startswith(value_text) and not any(mark in stripped for mark in (":", chr(0xFF1A), "|")):
+        if value_text and stripped.startswith(value_text) and not any(mark in stripped for mark in self.heading_value_markers):
             return True
         return False
 
