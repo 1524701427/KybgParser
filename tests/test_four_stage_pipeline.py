@@ -73,3 +73,19 @@ def test_pipeline_runs_domain_after_primary_before_export(monkeypatch):
     )
     assert pipeline.parse("test.docx", defer_mapping=True)["mapped"] == {}
     assert events == ["read", "pre", "primary", "domain", "export"]
+
+
+def test_parser_service_exposes_explicit_full_four_stage_api(monkeypatch):
+    from word_parser.application.service import ParserService
+    import word_parser.application.workflow as workflow
+    seen = {}
+    def run(parser, path, config_root=None, table_value_config=None):
+        seen.update(parser=parser, path=path, root=config_root, table=table_value_config)
+        return {"stages": ["pre", "primary", "secondary", "mapping"]}
+    monkeypatch.setattr(workflow, "run_full_parse", run)
+    service = ParserService(pipeline=object())
+    result = service.parse_full("wind_farm.docx", config_root="configs/project")
+    assert result["stages"] == ["pre", "primary", "secondary", "mapping"]
+    assert seen == {
+        "parser": service, "path": "wind_farm.docx", "root": "configs/project", "table": None
+    }
