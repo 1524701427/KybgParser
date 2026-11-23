@@ -449,8 +449,8 @@ class CollectorLineRulesMixin:
             )
         if "newSingleCircuitLineLength" not in skip_codes:
             pattern = re.compile(
-                domain_regex(self, "electrical_collector", "compile_008", r"(?:新建|建设)[^。；;\n]{0,80}?单回\s*[0-9]{2,3}\s*kV\s*线路")
-                r"[^。；;\n]{0,100}?线路长度\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km",
+                domain_regex(self, "electrical_collector", "compile_008", r"(?:新建|建设)[^。；;\n]{0,80}?单回\s*[0-9]{2,3}\s*kV\s*线路"
+                r"[^。；;\n]{0,100}?线路长度\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km"),
                 re.I,
             )
             for block in ast.blocks:
