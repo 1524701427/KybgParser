@@ -16,11 +16,13 @@ class CivilRoadRulesMixin:
         return self._road_original_table_from_document(ast)
 
     def _road_original_table_from_document(self, ast: DocumentAST) -> dict[str, Any] | None:
-        patterns = [
+        patterns = self._configured_patterns(
+            self._deterministic_rule_section("civil_roads"), "caption_patterns", [
             r"进站道路.*(?:主要工程数量表|工程数量表|主要工程量表)",
             r"道路.*主要工程数量表",
             r"(?:\d+(?:\.\d+)*(?:-\s*\d+)?\.?)\s*进站道路.*(?:主要工程数量表|工程数量表|主要工程量表)",
-        ]
+            ],
+        )
         return self._original_captioned_table_by_regex_from_document(ast, "roadTechnical", patterns, include_table_text=False)
 
     def _road_combined_row_from_document(self, ast: DocumentAST) -> dict[str, Any] | None:
@@ -31,15 +33,16 @@ class CivilRoadRulesMixin:
         )
         if not text:
             return None
+        configured = self._deterministic_rule_section("civil_roads").get("combined_text_patterns") or {}
         row = {
-            "accessRoadLength": self._first_number_after_pattern(text, r"进站道路\D{0,8}([0-9]+(?:\.\d+)?)\s*km"),
-            "accessRoadSubgradeWidth": self._first_number_after_pattern(text, r"进站道路[^\n。；;]{0,40}?路基宽\s*([0-9]+(?:\.\d+)?)\s*m"),
-            "accessRoadPavementWidth": self._first_number_after_pattern(text, r"进站道路[^\n。；;]{0,50}?路面宽\s*([0-9]+(?:\.\d+)?)\s*m"),
-            "siteRoadLength": self._first_number_after_pattern(text, r"场内道路\s*([0-9]+(?:\.\d+)?)\s*km"),
-            "newRoadLength": self._first_number_after_pattern(text, r"新建道路\s*([0-9]+(?:\.\d+)?)\s*km"),
-            "rebuiltRoadLength": self._first_number_after_pattern(text, r"改建道路\s*([0-9]+(?:\.\d+)?)\s*km"),
-            "subgradeWidth": self._first_number_after_pattern(text, r"路基设计宽度为\s*([0-9]+(?:\.\d+)?)\s*m"),
-            "pavementWidth": self._first_number_after_pattern(text, r"检修道路路基\D{0,12}路面宽\s*([0-9]+(?:\.\d+)?)\s*m") or self._last_number_after_pattern(text, r"路面宽\s*([0-9]+(?:\.\d+)?)\s*m"),
+            "accessRoadLength": self._first_number_after_pattern(text, configured.get("accessRoadLength", r"进站道路\D{0,8}([0-9]+(?:\.\d+)?)\s*km")),
+            "accessRoadSubgradeWidth": self._first_number_after_pattern(text, configured.get("accessRoadSubgradeWidth", r"进站道路[^\n。；;]{0,40}?路基宽\s*([0-9]+(?:\.\d+)?)\s*m")),
+            "accessRoadPavementWidth": self._first_number_after_pattern(text, configured.get("accessRoadPavementWidth", r"进站道路[^\n。；;]{0,50}?路面宽\s*([0-9]+(?:\.\d+)?)\s*m")),
+            "siteRoadLength": self._first_number_after_pattern(text, configured.get("siteRoadLength", r"场内道路\s*([0-9]+(?:\.\d+)?)\s*km")),
+            "newRoadLength": self._first_number_after_pattern(text, configured.get("newRoadLength", r"新建道路\s*([0-9]+(?:\.\d+)?)\s*km")),
+            "rebuiltRoadLength": self._first_number_after_pattern(text, configured.get("rebuiltRoadLength", r"改建道路\s*([0-9]+(?:\.\d+)?)\s*km")),
+            "subgradeWidth": self._first_number_after_pattern(text, configured.get("subgradeWidth", r"路基设计宽度为\s*([0-9]+(?:\.\d+)?)\s*m")),
+            "pavementWidth": self._first_number_after_pattern(text, configured.get("pavementWidth", r"检修道路路基\D{0,12}路面宽\s*([0-9]+(?:\.\d+)?)\s*m")) or self._last_number_after_pattern(text, configured.get("pavementWidthFallback", r"路面宽\s*([0-9]+(?:\.\d+)?)\s*m")),
         }
         return row if any(value is not None for value in row.values()) else None
 
