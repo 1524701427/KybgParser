@@ -36,6 +36,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
     section_config = config_loader.load_yaml("sections.yaml")
     pipeline_config = config_loader.load_yaml("pipeline.yaml")
     output_schema = config_loader.load_yaml("output_schema.yaml")
+    extraction_runtime = config_loader.load_yaml("extraction_runtime.yaml")
 
     table_rule_config = pipeline_config.get("modules", {}).get("table_rule_extractor", {})
     regex_config = pipeline_config.get("modules", {}).get("regex_extractor", {})
@@ -48,10 +49,11 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
         structure_parser=StructureParser(),
         section_detector=SectionDetector(section_config),
         candidate_retriever=CandidateRetriever(field_configs),
-        field_matcher=FieldMatcher(),
+        field_matcher=FieldMatcher(extraction_runtime.get("field_matching")),
         value_extractor=ValueExtractor(
             table_rule_enabled=_module_active(table_rule_config),
             regex_enabled=_module_active(regex_config),
+            table_header_config=(extraction_runtime.get("value_extraction") or {}).get("table_headers"),
         ),
         funnel_pruner=FunnelPruner(
             enabled=bool(funnel_config.get("enabled", True)),
@@ -65,10 +67,10 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
             enabled=_module_active(semantic_config),
             near_window=int(semantic_config.get("near_window", 40)),
         ),
-        resolver=CandidateResolver(field_configs),
+        resolver=CandidateResolver(field_configs, scoring_config=extraction_runtime.get("candidate_resolution")),
         validator=Validator(field_configs),
         exporter=JsonExporter(result_builder=ResultBuilder(output_schema=output_schema, field_configs=field_configs, config_root=config_root)),
-        indicator_discovery=(IndicatorDiscovery(field_configs, mode=indicator_config.get("mode", "active"))
+        indicator_discovery=(IndicatorDiscovery(field_configs, mode=indicator_config.get("mode", "active"), settings=extraction_runtime.get("discovery"))
                              if indicator_config.get("enabled", True) else None),
     )
     return ParserService(pipeline)
