@@ -25,13 +25,22 @@ from word_parser.mapping.common import (
     _invalid_tower_metadata,
 )
 
-def _fill_transformers_from_installation_estimate(parse_result: dict[str, Any]) -> None:
+def _schema_output_key(config_root: str | Path, code: str) -> str:
+    """Resolve a domain's output through output_schema.yaml rather than inline placeholders."""
+    outputs = ConfigLoader(config_root).load_required_yaml("output_schema.yaml").get("output_field_codes") or {}
+    name = outputs.get(code)
+    if not isinstance(name, str) or not name:
+        raise ValueError(f"output_schema.yaml: missing mapping for {code}")
+    return name if name.startswith("${") else "${" + name + "}"
+
+
+def _fill_transformers_from_installation_estimate(parse_result: dict[str, Any], config_root: str | Path = 'configs') -> None:
     """漏识别电气设备清单时，使用明确标注的设备行。"""
     mapped = parse_result.get("mapped")
     result = parse_result.get("result")
     if not isinstance(mapped, dict) or not isinstance(result, dict):
         return
-    table = mapped.get("${installation_engineering_budgets_table}") or {}
+    table = mapped.get(_schema_output_key(config_root, "investmentEquipmentInstallationCopy")) or {}
     rows = table.get("data") or []
     columns = table.get("columns") or []
     name_col = next((i for i, name in enumerate(columns) if "项目名称" in str(name)), 1)
@@ -74,18 +83,9 @@ def _fill_transformers_from_installation_estimate(parse_result: dict[str, Any]) 
             for suffix, value in (("Model", spec), ("Voltage", voltage), ("Capacity", capacity), ("Quantity", int(count)), ("Unit", unit)):
                 offer(prefix + suffix, value, name)
 
-    output_codes = {
-        "mainTransformerModel": "main_transformer_model",
-        "mainTransformerRatedCapacity": "main_transformer_rated_capacity",
-        "mainTransformerNum": "main_transformer_num",
-        **{f"{prefix}{suffix}": f"{output_prefix}_{output_suffix}" for prefix, output_prefix in (
-            ("groundingStationTransformer", "grounding_station_transformer"),
-            ("groundingTransformer", "grounding_transformer"),
-        ) for suffix, output_suffix in (("Model", "model"), ("Voltage", "voltage"), ("Capacity", "capacity"), ("Quantity", "quantity"), ("Unit", "unit"))},
-    }
     changed = {}
     for code, value in candidates.items():
-        placeholder = "${" + output_codes[code] + "}"
+        placeholder = _schema_output_key(config_root, code)
         if mapped.get(placeholder) is not None:
             continue
         mapped[placeholder] = value
@@ -105,13 +105,13 @@ def _fill_transformers_from_installation_estimate(parse_result: dict[str, Any]) 
         details = json.loads(Path(detail_path).read_text(encoding="utf-8"))
         index = details.get("fieldIndex") or {}
         for code, value in changed.items():
-            for item in (index.get(code), index.get("${" + output_codes[code] + "}")):
+            for item in (index.get(code), index.get(_schema_output_key(config_root, code))):
                 if isinstance(item, dict):
                     item.update(value=value, status="PASS", source={"sourceType": "table", "text": sources[code], "matchMethod": "installation_estimate_equipment_row"})
         Path(detail_path).write_text(json.dumps(details, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def _fill_station_transformers_from_equipment_table(parse_result: dict[str, Any]) -> None:
+def _fill_station_transformers_from_equipment_table(parse_result: dict[str, Any], config_root: str | Path = 'configs') -> None:
     """将独立站用变填入现有站用变展示栏位，并保留接地变原值。"""
     mapped = parse_result.get("mapped")
     result = parse_result.get("result")
@@ -171,15 +171,15 @@ def _fill_station_transformers_from_equipment_table(parse_result: dict[str, Any]
     backup = backup_rows[0] if backup_rows else None
     if primary and not combined_equipment_present:
         for suffix, value in zip(("model", "voltage", "capacity", "quantity", "unit"), primary):
-            placeholder = "${grounding_station_transformer_" + suffix + "}"
+            placeholder = _schema_output_key(config_root, "groundingStationTransformer" + suffix.title())
             if mapped.get(placeholder) is None:
                 mapped[placeholder] = value
                 changed["groundingStationTransformer" + suffix.title()] = value
 
     if backup:
-        current = mapped.get("${station_service_transformer}")
+        current = mapped.get(_schema_output_key(config_root, "stationTransformerCapacity10kv"))
         if current is None or current == backup[0] or re.fullmatch(r"\s*站用变容量为\s*\d+(?:\.\d+)?\s*kVA\s*", str(current)):
-            mapped["${station_service_transformer}"] = backup[0]
+            mapped[_schema_output_key(config_root, "stationTransformerCapacity10kv")] = backup[0]
             changed["stationTransformerCapacity10kv"] = backup[0]
 
     if not changed:
