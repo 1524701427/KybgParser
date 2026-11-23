@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -18,7 +20,7 @@ class CollectorLineRulesMixin:
             if "线路名称" not in text or not any(keyword in text for keyword in ("路径长度", "线路路径长度", "单回", "双回")):
                 continue
             headers = matrix[:2]
-            data_rows = [row for row in matrix[2:] if row and re.search(r"[A-Z]{1,2}[0-9]?\s*线", row[0])]
+            data_rows = [row for row in matrix[2:] if row and re.search(domain_regex(self, "electrical_collector", "search_001", r"[A-Z]{1,2}[0-9]?\s*线"), row[0])]
             if not data_rows:
                 continue
             length_indexes = self._length_indexes_from_headers(headers)
@@ -91,7 +93,7 @@ class CollectorLineRulesMixin:
         for pattern in patterns:
             match = re.search(pattern, text, flags=re.IGNORECASE)
             if match:
-                value = re.sub(r"\s+", "", match.group(1)).replace("x", "×").replace("X", "×")
+                value = re.sub(domain_regex(self, "electrical_collector", "sub_002", r"\s+"), "", match.group(1)).replace("x", "×").replace("X", "×")
                 return value if "×" in value else self._clean_number(float(value))
         return None
 
@@ -103,7 +105,7 @@ class CollectorLineRulesMixin:
         for pattern in patterns:
             match = re.search(pattern, text, flags=re.IGNORECASE)
             if match:
-                value = re.sub(r"\s+", "", match.group(1)).replace("x", "×").replace("X", "×")
+                value = re.sub(domain_regex(self, "electrical_collector", "sub_003", r"\s+"), "", match.group(1)).replace("x", "×").replace("X", "×")
                 return value if "×" in value else self._clean_number(float(value))
         return None
 
@@ -112,7 +114,7 @@ class CollectorLineRulesMixin:
         for table in ast.tables:
             text = self._table_text(table)
             if "集电线路" in text or "线路额定电压" in text:
-                for match in re.finditer(r"([0-9]+(?:\.\d+)?)\s*kV", text, flags=re.IGNORECASE):
+                for match in re.finditer(domain_regex(self, "electrical_collector", "finditer_004", r"([0-9]+(?:\.\d+)?)\s*kV"), text, flags=re.IGNORECASE):
                     value = float(match.group(1))
                     if 10 <= value <= 35:
                         candidates.append(value)
@@ -151,7 +153,7 @@ class CollectorLineRulesMixin:
         if value is None:
             return None
         text = str(value)
-        match = re.search(r"([0-9]+)\s*回", text)
+        match = re.search(domain_regex(self, "electrical_collector", "search_005", r"([0-9]+)\s*回"), text)
         if match:
             return int(match.group(1))
         if "单/双" in text or "单双" in text:
@@ -228,7 +230,7 @@ class CollectorLineRulesMixin:
             for row in matrix:
                 label = " ".join(row[:2])
                 specification = " ".join(row)
-                if "电力电缆" not in label or not re.search(r"26\s*/\s*35", specification):
+                if "电力电缆" not in label or not re.search(domain_regex(self, "electrical_collector", "search_006", r"26\s*/\s*35"), specification):
                     continue
                 for index, cell in enumerate(row):
                     if self._clean_text(cell).lower() != "km" or index + 1 >= len(row):
@@ -324,7 +326,7 @@ class CollectorLineRulesMixin:
         if value is None:
             return None
         text = str(value).replace(" ", "").replace("x", "×").replace("X", "×")
-        match = re.fullmatch(r"(?:[0-9]+(?:\.[0-9]+)?×)?([0-9]+(?:\.[0-9]+)?)(?:km)?", text, re.I)
+        match = re.fullmatch(domain_regex(self, "electrical_collector", "fullmatch_007", r"(?:[0-9]+(?:\.[0-9]+)?×)?([0-9]+(?:\.[0-9]+)?)(?:km)?"), text, re.I)
         return self._clean_number(float(match.group(1))) if match else None
 
     def _full_circuit_route_km(self, text: str, circuit: str) -> Any:
@@ -447,7 +449,7 @@ class CollectorLineRulesMixin:
             )
         if "newSingleCircuitLineLength" not in skip_codes:
             pattern = re.compile(
-                r"(?:新建|建设)[^。；;\n]{0,80}?单回\s*[0-9]{2,3}\s*kV\s*线路"
+                domain_regex(self, "electrical_collector", "compile_008", r"(?:新建|建设)[^。；;\n]{0,80}?单回\s*[0-9]{2,3}\s*kV\s*线路")
                 r"[^。；;\n]{0,100}?线路长度\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km",
                 re.I,
             )
@@ -476,7 +478,7 @@ class CollectorLineRulesMixin:
         for sentence in self._sentences(text):
             if "本工程" in sentence and "采用" in sentence and "电力电缆" in sentence:
                 return self._clean_text(sentence).rstrip("。；;")
-        match = re.search(r"(本工程[^。；;\n]{0,40}?采用[^。；;\n]{1,160}?电力电缆)", text)
+        match = re.search(domain_regex(self, "electrical_collector", "search_009", r"(本工程[^。；;\n]{0,40}?采用[^。；;\n]{1,160}?电力电缆)"), text)
         if match:
             return self._clean_text(match.group(1))
         return None
@@ -495,7 +497,7 @@ class CollectorLineRulesMixin:
                 continue
             for row in self._table_matrix(table):
                 for cell in row:
-                    for match in re.finditer(r"(?<![A-Z0-9])([A-Z][0-9]?)\s*线", cell):
+                    for match in re.finditer(domain_regex(self, "electrical_collector", "finditer_010", r"(?<![A-Z0-9])([A-Z][0-9]?)\s*线"), cell):
                         name = f"{match.group(1)}线"
                         if name not in seen:
                             seen.add(name)
@@ -504,9 +506,9 @@ class CollectorLineRulesMixin:
                 break
         if not names:
             text = "\n".join(self._clean_text(block.text) for block in ast.blocks if "线" in block.text and ("集电线路" in block.text or "架空线路" in block.text))
-            single_segments = re.findall(r"单回(?:路)?线路长度[^。；;\n]{0,220}", text)
+            single_segments = re.findall(domain_regex(self, "electrical_collector", "findall_011", r"单回(?:路)?线路长度[^。；;\n]{0,220}"), text)
             search_text = "\n".join(single_segments) or text
-            for match in re.finditer(r"(?<![A-Z0-9])([A-Z][0-9]?)\s*线\s*[0-9]+(?:\.[0-9]+)?\s*km", search_text):
+            for match in re.finditer(domain_regex(self, "electrical_collector", "finditer_012", r"(?<![A-Z0-9])([A-Z][0-9]?)\s*线\s*[0-9]+(?:\.[0-9]+)?\s*km"), search_text):
                 name = f"{match.group(1)}线"
                 if name not in seen:
                     seen.add(name)
