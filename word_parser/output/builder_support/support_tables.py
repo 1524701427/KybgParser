@@ -10,6 +10,22 @@ from word_parser.document.ast.evidence import FieldEvidence, ParsedField
 
 
 class DocumentTableSupportMixin:
+
+    def _cell_at_alias(self, header: list[str], row: list[str], aliases: list[str]):
+        """按既有表头别名定位单元格，并使用原有数值归一化语义。
+
+        历史 ResultBuilder 领域规则已调用该辅助方法，但重构拆分类时
+        方法定义遗失。不存在匹配列或列越界时返回 None，而非抛出异常。
+        """
+        index = self._find_header_index(header, aliases)
+        if index is None or index >= len(row):
+            return None
+        value = row[index]
+        if value is None:
+            return None
+        return self._normalize_table_cell(str(value))
+
+
     """原表透传、表格合并和确定性字段写入辅助方法，由 DocumentSupportMixin 统一组合。"""
 
     def _document_table_passthrough(
