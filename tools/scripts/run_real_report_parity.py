@@ -111,7 +111,7 @@ def run_one(root: Path, report: Path, target_dir: Path, python_path: str, timeou
             text=True, encoding="utf-8", errors="replace",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             timeout=timeout, check=False,
-            env={**os.environ, "PYTHONUNBUFFERED": "1"},
+            env={**os.environ, "PYTHONUNBUFFERED": "1", "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
         )
     except (OSError, subprocess.TimeoutExpired) as exc:
         return {"exitCode": -1, "error": str(exc)}
@@ -125,6 +125,10 @@ def run_one(root: Path, report: Path, target_dir: Path, python_path: str, timeou
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows default console encodings may not support Chinese report filenames.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     cli = argparse.ArgumentParser(description="Run real reports in baseline and candidate parsers, compare final JSON")
     cli.add_argument("--baseline-root", type=Path, required=True)
     cli.add_argument("--candidate-root", type=Path, required=True)
