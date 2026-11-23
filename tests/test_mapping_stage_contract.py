@@ -134,8 +134,9 @@ def test_run_full_parse_reuses_factory_config_for_secondary_and_mapping(monkeypa
         exporter = type("Exporter", (), {
             "result_builder": type("Builder", (), {"config_root": custom})()
         })()
-        def parse(self, file_path, defer_mapping=False):
+        def parse(self, file_path, defer_mapping=False, memory_only=False):
             assert defer_mapping is True
+            assert memory_only is True
             return {"outputFiles": {"result": str(tmp_path / "case_result.json")}}
     parser = type("Parser", (), {"pipeline": DummyPipeline()})()
     observed = {}
@@ -164,3 +165,26 @@ def test_public_full_parse_api_does_not_reset_custom_table_rules(monkeypatch, tm
     assert observations == {
         "parser": service, "source": "report.docx", "root": root, "table": None
     }
+
+
+def test_in_memory_primary_details_are_used_without_reading_existing_files(tmp_path, monkeypatch):
+    cfg, parsed, enhanced, _, _ = _fixture(tmp_path, monkeypatch)
+    destinations = parsed["outputFiles"].copy()
+    # Explicitly remove primary detail from disk; no intermediary must be required.
+    Path(destinations["detail"]).unlink()
+    parsed["_primary_detail"] = {
+        "filePath": "case.docx",
+        "fieldIndex": {"hubHeight": {"value": 120}},
+        "tableIndex": {},
+        "memoryOnlyMarker": "present",
+    }
+    original_projection = mapping_stage.mapping_from_details
+    def check_projection(path, config_root=None):
+        details = json.loads(Path(path).read_text(encoding="utf-8"))
+        assert details["memoryOnlyMarker"] == "present"
+        return original_projection(path, config_root=config_root)
+    monkeypatch.setattr(mapping_stage, "mapping_from_details", check_projection)
+    mapping_stage.execute_final_mapping(parsed, enhanced, config_root=cfg)
+    assert "_primary_detail" not in parsed
+    assert Path(destinations["detail"]).exists()
+    assert json.loads(Path(destinations["mapped"]).read_text(encoding="utf-8"))["${hubHeight}"] == 120
