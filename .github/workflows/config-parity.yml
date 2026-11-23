@@ -9,6 +9,9 @@ on:
       - "tests/test_retrieval_yaml_parity.py"
       - "tests/test_shared_field_registry.py"
       - "tests/test_extraction_grammar_yaml_parity.py"
+      - "tests/test_output_field_contract.py"
+      - "tests/contracts/**"
+      - "configs/output_schema.yaml"
       - "tests/test_extraction_config_audit.py"
       - "tests/test_mapped_parity_tool.py"
       - "tools/scripts/compare_mapped.py"
@@ -33,4 +36,4 @@ jobs:
       - name: Audit configuration rules
         run: python tools/scripts/audit_extraction_config.py --config-root configs
       - name: Check YAML parity and extraction contract
-        run: python -m pytest tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
+        run: python -m pytest tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
