@@ -64,13 +64,14 @@ class IndicatorLexicon:
         """报告当前进程能否执行模糊相似度匹配。"""
         return fuzz is not None and process is not None
 
-    def __init__(self, field_configs: dict[str, dict[str, Any]]):
+    def __init__(self, field_configs: dict[str, dict[str, Any]], matching_config: dict | None = None):
         """构建可复用的词典索引。
 
         参数：
             field_configs: 已有字段定义及其别名。
         """
         self.field_configs = field_configs
+        self.matching_config = matching_config or {}
         self.codes_by_label: dict[str, set[str]] = {}
         for code, config in field_configs.items():
             for label in [config.get("name"), *(config.get("aliases") or [])]:
@@ -153,7 +154,8 @@ class IndicatorLexicon:
                  if code not in self.codes_by_label[other_label]),
                 default=0.0,
             )
-            if score >= 92 and score - competing_score >= 8:
+            if (score >= float(self.matching_config.get("acceptance_score", 92))
+                    and score - competing_score >= float(self.matching_config.get("minimum_competing_gap", 8))):
                 return code, "rapidfuzz", float(score)
         return None, "suggestion", float(score)
 
@@ -174,6 +176,14 @@ class IndicatorValueParser:
 
     NON_INDICATOR_LABELS = {"序号", "编号", "备注", "说明", "单位", "类别", "阶段", "项目", "指标", "名称"}
     NUMBER_CELL = re.compile(r"[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\s*[^\d\s]*")
+
+    def __init__(self, settings: dict | None = None):
+        settings = settings or {}
+        self.NON_INDICATOR_LABELS = set(settings.get("non_indicator_labels", self.NON_INDICATOR_LABELS))
+        self.column_header_exclusions = set(settings.get(
+            "column_header_exclusions",
+            ["数量", "数值", "指标值", "金额", "总价", "单价", "单位", "备注"],
+        ))
 
     def parse_table_pairs(self, cells: list[str]) -> list[tuple[str, str, str | None, int]]:
         """识别同一行中并列的多组“名称、数值”，不依赖字段配置。"""
@@ -209,7 +219,7 @@ class IndicatorValueParser:
             token = cell.strip()
             match = re.fullmatch(r"(.+?)[（(]([^()（）]{1,16})[）)]", token)
             name, unit = (match.group(1).strip(), match.group(2).strip()) if match else (token, None)
-            if name in {"数量", "数值", "指标值", "金额", "总价", "单价", "单位", "备注"}:
+            if name in self.column_header_exclusions:
                 continue
             if self.label_allowed(name) and self.parse_number(name) is None:
                 headers[index] = (name, unit)
@@ -321,12 +331,11 @@ class IndicatorValueParser:
             return None
         return match.group(1), match.group(2) or None
 
-    @classmethod
-    def label_allowed(cls, label: str) -> bool:
+    def label_allowed(self, label: str) -> bool:
         """排除过短的表头，同时保留有明确名称的电压指标。"""
         text = label.strip()
         chinese_count = sum("\u4e00" <= char <= "\u9fff" for char in text)
-        return bool(2 <= len(text) <= 30 and text not in cls.NON_INDICATOR_LABELS
+        return bool(2 <= len(text) <= 30 and text not in self.NON_INDICATOR_LABELS
                     and (chinese_count >= 2 or (text.isalpha() and len(text) >= 3)))
 
     @staticmethod
@@ -369,7 +378,7 @@ class IndicatorDiscovery:
     )
     CONTEXT_VALUE = re.compile(r"^\s*(?:为|约为|达到|达|是|取|：|:)\s*(.+)$")
 
-    def __init__(self, field_configs: dict[str, dict[str, Any]], mode: str = "active"):
+    def __init__(self, field_configs: dict[str, dict[str, Any]], mode: str = "active", settings: dict | None = None):
         """使用已配置的字段词典初始化指标发现器。
 
         参数：
@@ -378,8 +387,14 @@ class IndicatorDiscovery:
         """
         self.field_configs = field_configs
         self.mode = mode
-        self.lexicon = IndicatorLexicon(field_configs)
-        self.value_parser = IndicatorValueParser()
+        settings = settings or {}
+        self.lexicon = IndicatorLexicon(field_configs, matching_config=settings.get("rapidfuzz"))
+        self.value_parser = IndicatorValueParser(settings)
+        self.SCOPE_TERMS = tuple(tuple(group) for group in settings.get("scope_terms", self.SCOPE_TERMS))
+        self.CONTEXT_VALUE = re.compile(settings.get("context_value_pattern", self.CONTEXT_VALUE.pattern))
+        self.safe_fallback_min_label_length = int(
+            (settings.get("rapidfuzz") or {}).get("safe_fallback_min_label_length", 8)
+        )
 
     def discover(self, ast: DocumentAST) -> list[Indicator]:
         """按配置的各阶段发现并匹配指标。
@@ -707,7 +722,7 @@ class IndicatorDiscovery:
             模糊匹配建议能否补充缺失的映射字段。
         """
         name = self.lexicon._key(item.name)
-        if len(name) < 8 or not self._section_allowed(item.section_path, config):
+        if len(name) < self.safe_fallback_min_label_length or not self._section_allowed(item.section_path, config):
             return False
         labels = (label for label, codes in self.lexicon.codes_by_label.items() if code in codes)
         return any(self._one_edit(name, label) and self._scope_agrees(name, label)
@@ -726,13 +741,12 @@ class IndicatorDiscovery:
             index += 1
         return shorter[index:] == longer[index + 1:]
 
-    @classmethod
-    def _scope_agrees(cls, observed: str, configured: str) -> bool:
+    def _scope_agrees(self, observed: str, configured: str) -> bool:
         """修正拼写错误时保持明确的对象词和阶段词不变。"""
         return all(
             {term for term in group if term in observed}
             == {term for term in group if term in configured}
-            for group in cls.SCOPE_TERMS
+            for group in self.SCOPE_TERMS
         )
 
     @staticmethod
