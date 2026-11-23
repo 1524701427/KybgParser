@@ -60,7 +60,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
             stages=funnel_config.get("stages", {}),
             field_configs=field_configs,
         ),
-        normalizer=Normalizer(field_configs),
+        normalizer=Normalizer(field_configs, unit_map=(extraction_runtime.get("normalization") or {}).get("unit_aliases")),
         context_filter=CandidateContextFilter(field_configs),
         semantic_analyzer=SemanticAnalyzer(
             field_configs,
