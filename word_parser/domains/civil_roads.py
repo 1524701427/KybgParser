@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -68,7 +70,7 @@ class CivilRoadRulesMixin:
             label = self._row_label(row)
             if "进站道路" not in label and "进升压站道路" not in label:
                 continue
-            if not re.search(r"（\s*m\s*）|\(\s*m\s*\)|\|\s*m\s*\|", " | ".join(row), flags=re.IGNORECASE):
+            if not re.search(domain_regex(self, "civil_roads", "search_001", r"（\s*m\s*）|\(\s*m\s*\)|\|\s*m\s*\|"), " | ".join(row), flags=re.IGNORECASE):
                 continue
             value = self._last_numeric_cell(row)
             if isinstance(value, (int, float)):
@@ -109,11 +111,11 @@ class CivilRoadRulesMixin:
             if "作为永久检修道路" not in text and "作为检修道路" not in text:
                 continue
             context = " ".join(blocks[max(0, index - 2): index + 1])
-            new = re.search(r"(?:场内新建道路|新建场内道路)(?:长(?:度)?)?\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km", context, re.I)
-            rebuilt = re.search(r"(?:场内扩建道路|扩建场内道路|场内改建道路|改建场内道路)(?:长(?:度)?)?\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km", context, re.I)
+            new = re.search(domain_regex(self, "civil_roads", "search_002", r"(?:场内新建道路|新建场内道路)(?:长(?:度)?)?\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km"), context, re.I)
+            rebuilt = re.search(domain_regex(self, "civil_roads", "search_003", r"(?:场内扩建道路|扩建场内道路|场内改建道路|改建场内道路)(?:长(?:度)?)?\s*(?:约|为)?\s*([0-9]+(?:\.[0-9]+)?)\s*km"), context, re.I)
             if not new or not rebuilt:
                 continue
-            width = re.search(r"路面宽(?:度)?\s*(?:为)?\s*([0-9]+(?:\.[0-9]+)?)\s*m", context, re.I)
+            width = re.search(domain_regex(self, "civil_roads", "search_004", r"路面宽(?:度)?\s*(?:为)?\s*([0-9]+(?:\.[0-9]+)?)\s*m"), context, re.I)
             return {
                 "maintenanceRoadLength": self._clean_number(float(new.group(1)) + float(rebuilt.group(1))),
                 "maintenanceRoadPavementWidth": self._clean_number(float(width.group(1))) if width else None,
@@ -141,7 +143,7 @@ class CivilRoadRulesMixin:
         explicit_pattern = rf"(?:场内[^。；;\n]{{0,24}}?)?检修道路\s*(?:长(?:度)?|长度|约)[^0-9。；;\n]{{0,16}}{value_text}\s*(?:km|公里|千米)"
         for match in re.finditer(explicit_pattern, text, flags=re.IGNORECASE):
             prefix = text[max(0, match.start() - 30): match.start()]
-            if not re.search(r"施工道路\s*[（(]\s*$", prefix):
+            if not re.search(domain_regex(self, "civil_roads", "search_005", r"施工道路\s*[（(]\s*$"), prefix):
                 return True
         return False
 
@@ -280,7 +282,7 @@ class CivilRoadRulesMixin:
         cells = [self._compact_text(self._clean_text(cell or "")) for cell in row if self._clean_text(cell or "")]
         if not cells:
             return False
-        return all(re.fullmatch(r"[（(]?(?:km|m|公里|千米|米)[）)]?", cell, flags=re.IGNORECASE) for cell in cells)
+        return all(re.fullmatch(domain_regex(self, "civil_roads", "fullmatch_006", r"[（(]?(?:km|m|公里|千米|米)[）)]?"), cell, flags=re.IGNORECASE) for cell in cells)
 
     def _road_parameter_key_from_header(self, header: str) -> str | None:
         text = self._compact_text(self._clean_text(header or ""))
@@ -375,13 +377,13 @@ class CivilRoadRulesMixin:
                 row_length = self._road_length_from_row_text(row_text, "km")
                 if row_length is not None:
                     values["newRoadLength"] = row_length
-                elif value is not None and re.search(r"\bkm\b|公里|千米|(?<!k)m\b|米", row_text, flags=re.IGNORECASE) and not re.search(r"m2|m²|㎡|平方米", row_text, flags=re.IGNORECASE):
+                elif value is not None and re.search(domain_regex(self, "civil_roads", "search_007", r"\bkm\b|公里|千米|(?<!k)m\b|米"), row_text, flags=re.IGNORECASE) and not re.search(domain_regex(self, "civil_roads", "search_008", r"m2|m²|㎡|平方米"), row_text, flags=re.IGNORECASE):
                     values["newRoadLength"] = self._convert_road_length(value, row_text, "km")
             if values["rebuiltRoadLength"] is None and any(keyword in label for keyword in ("改建道路", "扩建道路")):
                 row_length = self._road_length_from_row_text(row_text, "km")
                 if row_length is not None:
                     values["rebuiltRoadLength"] = row_length
-                elif value is not None and re.search(r"\bkm\b|公里|千米|(?<!k)m\b|米", row_text, flags=re.IGNORECASE) and not re.search(r"m2|m²|㎡|平方米", row_text, flags=re.IGNORECASE):
+                elif value is not None and re.search(domain_regex(self, "civil_roads", "search_009", r"\bkm\b|公里|千米|(?<!k)m\b|米"), row_text, flags=re.IGNORECASE) and not re.search(domain_regex(self, "civil_roads", "search_010", r"m2|m²|㎡|平方米"), row_text, flags=re.IGNORECASE):
                     values["rebuiltRoadLength"] = self._convert_road_length(value, row_text, "km")
 
             access_subgrade = self._first_width_match(row_text, [
@@ -487,7 +489,7 @@ class CivilRoadRulesMixin:
         if (
             values["maintenanceRoadLength"] is not None
             and "检修道路" in text
-            and re.search(r"施工完成后恢复为?原状", text)
+            and re.search(domain_regex(self, "civil_roads", "search_011", r"施工完成后恢复为?原状"), text)
         ):
             if values["maintenanceRoadSubgradeWidth"] is None:
                 values["maintenanceRoadSubgradeWidth"] = values["subgradeWidth"]
@@ -502,7 +504,7 @@ class CivilRoadRulesMixin:
         for pattern in patterns:
             for match in re.finditer(pattern, text, flags=re.IGNORECASE):
                 prefix = text[max(0, match.start() - 30): match.start()]
-                if re.search(r"施工道路\s*[（(]\s*$", prefix):
+                if re.search(domain_regex(self, "civil_roads", "search_012", r"施工道路\s*[（(]\s*$"), prefix):
                     continue
                 value = self._normalize_scalar(match.group("value"))
                 unit = match.groupdict().get("unit")
@@ -538,8 +540,8 @@ class CivilRoadRulesMixin:
         except (TypeError, ValueError):
             return value
         source = source_text or ""
-        source_is_km = bool(re.search(r"km|公里|千米", source, flags=re.IGNORECASE))
-        source_is_m = bool(re.search(r"(?<!k)m\b|米", source, flags=re.IGNORECASE))
+        source_is_km = bool(re.search(domain_regex(self, "civil_roads", "search_013", r"km|公里|千米"), source, flags=re.IGNORECASE))
+        source_is_m = bool(re.search(domain_regex(self, "civil_roads", "search_014", r"(?<!k)m\b|米"), source, flags=re.IGNORECASE))
         if target_unit == "m" and source_is_km:
             number *= 1000
         elif target_unit == "km" and source_is_m and not source_is_km:
