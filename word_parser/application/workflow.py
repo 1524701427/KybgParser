@@ -37,10 +37,15 @@ def enhance_parse_result(
 def run_full_parse(
     parser,
     file_path: str,
-    config_root: str | Path = "configs",
-    table_value_config: str | Path = DEFAULT_TABLE_VALUE_CONFIG,
+    config_root: str | Path | None = None,
+    table_value_config: str | Path | None = None,
 ) -> dict[str, Any]:
-    """完整四阶段：预扫描/指标发现 → 一次抽取 → 二次抽取 → 映射。"""
+    """完整四阶段：使用同一个 config_root 装配全部抽取和映射规则。"""
+    if config_root is None:
+        builder = getattr(getattr(parser.pipeline, "exporter", None), "result_builder", None)
+        config_root = getattr(builder, "config_root", Path("configs"))
+    if table_value_config is None:
+        table_value_config = Path(config_root) / "table_field_extractors.yaml"
     primary_result = parser.pipeline.parse(file_path, defer_mapping=True)
     return enhance_parse_result(
         primary_result,
