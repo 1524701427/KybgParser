@@ -32,6 +32,9 @@ value_extraction:
     value: [数值, 指标值, 推荐值, 取值, 金额, 投资, 容量, 规模, 长度, 数量, 台数]
     unit: [单位, 计量单位]
     noise: [序号, 编号, 备注, 说明, 类别, 阶段]
+    raw_unit: ["单位", "unit", "Unit"]
+    summary: ["合计", "总计", "总长", "小计", "求和", "平均", "total", "Total"]
+    material_grade_pattern: '\b(?:C|AC|HRB|HPB)\s*[-]?\d+'
 
 candidate_resolution:
   method_weights:
