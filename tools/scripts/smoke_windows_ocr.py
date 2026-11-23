@@ -9,6 +9,9 @@ from io import BytesIO
 from pathlib import Path
 import os
 import platform
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 def main() -> int:
