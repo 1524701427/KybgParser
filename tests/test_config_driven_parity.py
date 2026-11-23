@@ -78,3 +78,18 @@ def test_duplicate_field_audit_is_opt_in(tmp_path):
     assert loader.load_field_configs()["duplicateCode"]["name"] == "new"
     with pytest.raises(ValueError, match="duplicateCode"):
         loader.load_field_configs(strict_duplicates=True)
+
+
+def test_secondary_table_rule_operations_are_registered():
+    from word_parser.secondary.table_values.resolver import TableValueResolver
+
+    rule_config = yaml.safe_load(
+        (ROOT / "configs" / "table_field_extractors.yaml").read_text(encoding="utf-8")
+    )
+    configured = {rule.get("operation", "cell") for rule in rule_config.get("rules", [])}
+    supported = (
+        set(TableValueResolver._FIELD_OPERATIONS)
+        | set(TableValueResolver._MULTI_FIELD_OPERATIONS)
+        | set(TableValueResolver._TABLE_OPERATIONS)
+    )
+    assert configured <= supported, f"Unregistered YAML operations: {configured - supported}"
