@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 from typing import Any
@@ -54,8 +54,8 @@ class CivilRoadRulesMixin:
         header = matrix[0]
         header_text = " | ".join(header)
         if "道路长度" in self._matrix_text(matrix) and ("场内新建" in header_text or "场区新建" in header_text):
-            new_index = self._find_header_index(header, ["场内新建道路", "场区新建道路", "新建道路"])
-            rebuilt_index = self._find_header_index(header, ["场内改建道路", "场内扩建道路", "场区改建道路", "改建道路", "扩建道路"])
+            new_index = self._find_header_index(header, domain_strings(self, "civil_roads", "list_001", ["场内新建道路", "场区新建道路", "新建道路"]))
+            rebuilt_index = self._find_header_index(header, domain_strings(self, "civil_roads", "list_002", ["场内改建道路", "场内扩建道路", "场区改建道路", "改建道路", "扩建道路"]))
             for row in matrix[1:]:
                 label = self._row_label(row)
                 if "道路长度" not in label or not any("km" in cell for cell in row):
