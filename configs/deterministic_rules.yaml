@@ -1,4 +1,6 @@
 version: 1
+# Production parser treats these YAML values as authoritative; missing keys fail loudly.
+strict_domain_literals: true
 
 resource:
   preferred_tower_patterns:
@@ -202,3 +204,741 @@ finance:
       patterns:
         - '(?:人年均工资|人均年工资|年工资)按\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*万元'
         - '人员工资[^。；;\n]{0,40}?(?P<value>[0-9]+(?:\.[0-9]+)?)\s*万元'
+
+# Field-local text patterns; retain Python fallback for old configs.
+project_overview:
+  company_pattern: "(?P<value>[\\u4e00-\\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))"
+  owner_keyword_pattern: "(?:投资方|建设单位|项目单位)[:：\\s]*[为是]?\\s*(?P<value>[\\u4e00-\\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))"
+  project_location_pattern: "(?:项目|工程|场址|拟建场区)[^。；;\\n]{0,30}(?:位于|地处)\\s*(?P<value>[^，。；;\\n]{2,120})"
+
+# Road caption and combined-text rules; exact legacy patterns.
+civil_roads:
+  caption_patterns:
+    - "进站道路.*(?:主要工程数量表|工程数量表|主要工程量表)"
+    - "道路.*主要工程数量表"
+    - "(?:\\d+(?:\\.\\d+)*(?:-\\s*\\d+)?\\.?)\\s*进站道路.*(?:主要工程数量表|工程数量表|主要工程量表)"
+  combined_text_patterns:
+    accessRoadLength: "进站道路\\D{0,8}([0-9]+(?:\\.\\d+)?)\\s*km"
+    accessRoadSubgradeWidth: "进站道路[^\\n。；;]{0,40}?路基宽\\s*([0-9]+(?:\\.\\d+)?)\\s*m"
+    accessRoadPavementWidth: "进站道路[^\\n。；;]{0,50}?路面宽\\s*([0-9]+(?:\\.\\d+)?)\\s*m"
+    siteRoadLength: "场内道路\\s*([0-9]+(?:\\.\\d+)?)\\s*km"
+    newRoadLength: "新建道路\\s*([0-9]+(?:\\.\\d+)?)\\s*km"
+    rebuiltRoadLength: "改建道路\\s*([0-9]+(?:\\.\\d+)?)\\s*km"
+    subgradeWidth: "路基设计宽度为\\s*([0-9]+(?:\\.\\d+)?)\\s*m"
+    pavementWidth: "检修道路路基\\D{0,12}路面宽\\s*([0-9]+(?:\\.\\d+)?)\\s*m"
+    pavementWidthFallback: "路面宽\\s*([0-9]+(?:\\.\\d+)?)\\s*m"
+
+# Exact legacy regex patterns externalized by domain; Python remains the fallback.
+domain_literal_regexes:
+  wind_resource_summary:
+    # Original wind_resource_summary.py:181 re.compile
+    compile_001: "(?m)^\\s*(?P<code>\\d{4}#)\\s*\\n\\s*(?P<lat>\\d{1,2}°[^\\n]{3,25})\\s*\\n\\s*(?P<lon>\\d{2,3}°[^\\n]{3,25})\\s*\\n\\s*\\d{3,4}\\s*\\n\\s*(?P<period>\\d{4}\\.\\d{1,2}\\.\\d{1,2}\\s*[~～-]\\s*\\d{4}\\.\\d{1,2}\\.\\d{1,2})"
+    # Original wind_resource_summary.py:200 re.findall
+    findall_002: "\\b\\d{4}#"
+    # Original wind_resource_summary.py:220 re.finditer
+    finditer_003: "(?P<code>\\d{4}#)\\s*测风塔[^。；;]{0,100}?空气密度为\\s*(?P<density>\\d(?:\\.\\d+)?)\\s*kg/m[³3]"
+    # Original wind_resource_summary.py:227 re.compile
+    compile_004: "(?P<code>\\d{3,5}#)\\s*测风塔\\s*(?P<height>\\d{2,3})\\s*m[^。；;\\n]{0,45}?高度平均风速和风功率密度分别为\\s*(?P<speed>\\d+(?:\\.\\d+)?)\\s*m/s\\s*和\\s*(?P<power>\\d+(?:\\.\\d+)?)\\s*W/m[²2]"
+    # Original wind_resource_summary.py:249 re.compile
+    compile_005: "以\\s*(?P<code>\\d{3,5}#)\\s*测风塔为基准[^。；;]{0,100}?轮毂高度处的空气密度\\s*为\\s*(?P<density>\\d+(?:\\.\\d+)?)\\s*kg/m[³3]"
+    # Original wind_resource_summary.py:270 re.compile
+    compile_006: "(?P<codes>(?:\\d{3,5}#[、，,]?\\s*)+)测风塔测风时长不足[^。]{0,80}?使用\\s*(?P<reference>\\d{3,5}#)\\s*测风塔[^。]{0,150}?该风电\\s*场的空气密度为\\s*(?P<density>\\d+(?:\\.\\d+)?)"
+    # Original wind_resource_summary.py:278 re.findall
+    findall_007: "\\d{3,5}#"
+    # Original wind_resource_summary.py:287 re.compile
+    compile_008: "综合风切变指数\\s*(?:为|是|取|：|:)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_summary.py:307 re.compile
+    compile_009: "风切变指数计算成果|切变统计|风切变指数统计"
+    # Original wind_resource_summary.py:386 re.compile
+    compile_010: "年平均风速分别为(?P<speeds>[^。；;\\n]{0,220}?)(?:相对应|对应)?风功率密度分别为(?P<powers>[^。；;\\n]{0,220})"
+    # Original wind_resource_summary.py:397 re.findall
+    findall_011: "([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_summary.py:398 re.findall
+    findall_012: "([0-9]+(?:\\.[0-9]+)?)\\s*W\\s*/\\s*m(?:2|²)"
+    # Original wind_resource_summary.py:401 re.search
+    search_013: "([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*高度"
+    # Original wind_resource_summary.py:519 re.search
+    search_014: "年\\s*(?:均|平均)|平均"
+    # Original wind_resource_summary.py:566 re.search
+    search_015: "([0-9]+(?:\\.[0-9]+)?)\\s*m"
+    # Original wind_resource_summary.py:686 re.fullmatch
+    fullmatch_016: "\\s*[0-9]+(?:\\.[0-9]+)?\\s*(?:m|米)\\s*"
+    # Original wind_resource_summary.py:698 re.search
+    search_017: "表\\s*[0-9]+(?:[-－—.][0-9]+)*\\s*[:：]\\s*([A-Za-z0-9_-]+\\s*[#＃])\\s*测风塔[^。\\n]{0,24}?湍流"
+    # Original wind_resource_summary.py:716 re.search
+    search_018: "([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_summary.py:781 re.search
+    search_019: "([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*高度"
+    # Original wind_resource_summary.py:800 re.fullmatch
+    fullmatch_020: "15(?:\\.0+)?"
+    # Original wind_resource_summary.py:849 re.search
+    search_021: "([A-Za-z0-9][A-Za-z0-9_-]{0,19})\\s*#"
+    # Original wind_resource_summary.py:869 re.findall
+    findall_022: "(?:V\\s*=\\s*)?([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_summary.py:878 re.search
+    search_023: "([0-9]+(?:\\.[0-9]+)?)\\s*(m|米)?"
+    # Original wind_resource_summary.py:975 re.findall
+    findall_024: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_summary.py:980 re.findall
+    findall_025: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_summary.py:1081 re.finditer
+    finditer_026: "(?:\\u53ea\\u91c7\\u7528|\\u91c7\\u7528|\\u4f7f\\u7528)\\s*([A-Za-z0-9]{2,8}#)[^\\n\\u3002\\uff1b;]{0,120}?(?:\\u8fdb\\u884c\\u5206\\u6790|\\u7a7a\\u6c14\\u5bc6\\u5ea6|\\u5e73\\u5747\\u98ce\\u901f|\\u98ce\\u529f\\u7387\\u5bc6\\u5ea6|\\u7efc\\u5408\\u5206\\u6790)"
+    # Original wind_resource_summary.py:1189 re.search
+    search_027: "(?:\\u4e3b\\u5bfc\\u98ce\\u5411|\\u4e3b\\u98ce\\u5411)(?:\\u4e3a|\\u548c\\u4e3b\\u98ce\\u80fd\\u65b9\\u5411\\u4e00\\u81f4\\uff0c\\u4ee5)?\\s*([^。，；;]+?(?:\\uff09|\\))?(?:\\u3001[^。，；;]+?(?:\\uff09|\\))?)*)\\s*(?:\\u6247\\u533a|\\uff0c|,|。|；|;)"
+    # Original wind_resource_summary.py:1190 re.search
+    search_028: "(?:\\u6b21\\u4e3b\\u5bfc\\u98ce\\u5411|\\u6b21\\u4e3b\\u98ce\\u5411|\\u6b21\\u98ce\\u5411)(?:\\u4e3a)?\\s*([^。，；;]+?(?:\\uff09|\\))?(?:\\u3001[^。，；;]+?(?:\\uff09|\\))?)*)\\s*(?:\\u6247\\u533a|\\uff0c|,|。|；|;)"
+    # Original wind_resource_summary.py:1191 re.search
+    search_029: "\\u4e3b\\u98ce\\u80fd\\u65b9\\u5411(?:\\u4e3a)?\\s*([^。，；;]+?(?:\\uff09|\\))?(?:\\u3001[^。，；;]+?(?:\\uff09|\\))?)*)\\s*(?:\\u6247\\u533a|\\uff0c|,|。|；|;)"
+    # Original wind_resource_summary.py:1192 re.search
+    search_030: "(?:\\u6b21\\u4e3b\\u5bfc\\u98ce\\u80fd\\u65b9\\u5411|\\u6b21\\u4e3b\\u98ce\\u80fd\\u65b9\\u5411|\\u6b21\\u98ce\\u80fd\\u65b9\\u5411)(?:\\u4e3a)?\\s*([^。，；;]+?(?:\\uff09|\\))?(?:\\u3001[^。，；;]+?(?:\\uff09|\\))?)*)\\s*(?:\\u6247\\u533a|\\uff0c|,|。|；|;)"
+    # Original wind_resource_summary.py:1212 re.split
+    split_031: "(?:\\u98ce\\u7684|\\u98ce\\u5411\\u548c|\\u98ce\\u80fd\\u5206\\u5e03|\\u5206\\u5e03\\u9891\\u7387)"    # Extra literal / dynamic fragment: unicode_split_001
+    unicode_split_001: "[\n。；;]"
+    # Extra literal / dynamic fragment: unicode_finditer_002
+    unicode_finditer_002: "(?:测风塔编号|雷达测风编号|测风编号)[^\n。；;]{0,80}"
+    # Extra literal / dynamic fragment: unicode_finditer_003
+    unicode_finditer_003: "([A-Za-z0-9#、,，\\s]+)#?\\s*测风塔"
+    # Extra literal / dynamic fragment: tower_dynamic_prefix
+    tower_dynamic_prefix: "(?m)^\\s*105\\s*\\n"
+    # Extra literal / dynamic fragment: tower_dynamic_value
+    tower_dynamic_value: "\\s*(\\d+(?:\\.\\d+)?)\\s*\\n"
+
+  wind_resource_density:
+    # Original wind_resource_density.py:18 re.finditer
+    finditer_001: "(?:选用|使用|采用)\\s*([A-Za-z0-9]{2,8}#)[^\\n。；;]{0,80}?(?:发电量评估|发电量计算|依据)"
+    # Original wind_resource_density.py:29 re.finditer
+    finditer_002: "(?:根据|采用|使用|只采用)\\s*([A-Za-z0-9]{2,8}#)[^\\n。；;]{0,160}?(?:推算各风能要素|风能要素|综合分析)"
+    # Original wind_resource_density.py:44 re.findall
+    findall_003: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_density.py:62 re.findall
+    findall_004: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_density.py:69 re.findall
+    findall_005: "(?:推算至|轮毂高度|[0-9]+m\\s*高度)[^\\n。；;]{0,60}?空气密度为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*kg\\s*/?\\s*m"
+    # Original wind_resource_density.py:84 re.split
+    split_006: "[\\n\\u3002\\uff1b;]"
+    # Original wind_resource_density.py:105 re.split
+    split_007: "[\\n\\u3002\\uff1b;]"
+    # Original wind_resource_density.py:107 re.search
+    search_008: "([A-Za-z0-9]{2,8}#)[^\\n。；;]{0,120}?空气密度[^\\n。；;]{0,30}?为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*kg\\s*/?\\s*m"
+    # Original wind_resource_density.py:136 re.search
+    search_009: "\\u7a7a\\u6c14\\u5bc6\\u5ea6[^\\n\\u3002]{0,30}?\\u5206\\u522b\\u4e3a([^\\n\\u3002]+)"
+    # Original wind_resource_density.py:164 re.search
+    search_010: "(?:该|本)(?:风电场|项目)|风电场区域|项目区域"
+    # Original wind_resource_density.py:192 re.findall
+    findall_011: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_density.py:233 re.findall
+    findall_012: "[A-Za-z0-9][A-Za-z0-9_-]{0,19}\\s*[#＃]"
+    # Original wind_resource_density.py:241 re.search
+    search_013: "[A-Za-z0-9][A-Za-z0-9_-]{0,19}\\s*[#＃]"
+    # Original wind_resource_density.py:248 re.finditer
+    finditer_014: "(?P<height>[0-9]+(?:\\.[0-9]+)?)\\s*m\\s*高度(?:处)?的?空气密度(?:为)?\\s*(?P<value>[0-9]+(?:\\.[0-9]+)?)\\s*kg\\s*/?\\s*m"
+    # Original wind_resource_density.py:266 re.findall
+    findall_015: "((?:[A-Za-z0-9]{2,8}#[\\u3001,，\\s]*)+)[^#\\n\\u3002\\uff1b;]{0,40}?\\u6d4b\\u98ce\\u5854"
+    # Original wind_resource_density.py:269 re.findall
+    findall_016: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_density.py:288 re.search
+    search_017: "[A-Za-z0-9][A-Za-z0-9_-]{0,19}\\s*[#＃]"
+    # Original wind_resource_density.py:311 re.findall
+    findall_018: "(?:90\\s*[:?])?([01](?:\\.\\d+)?)"
+    # Original wind_resource_density.py:322 re.findall
+    findall_019: "([0-9]+(?:\\.[0-9]+)?)\\s*kg\\s*/?\\s*m(?:[\\u00b3\\uff13\\^]?3)?"
+    # Original wind_resource_density.py:324 re.sub
+    sub_020: "kg\\s*/?\\s*m(?:[\\u00b3\\uff13\\^]?3)?"
+    # Original wind_resource_density.py:325 re.findall
+    findall_021: "\\d+\\.\\d+"    # Extra literal / dynamic fragment: unicode_finditer_001
+    unicode_finditer_001: "(?:只采用|采用|根据|使用)\\s*([A-Za-z0-9]{2,8}#)[^\n。；;]{0,120}?(?:进行分析|空气密度计算)"
+
+  wind_resource_direction:
+    # Original wind_resource_direction.py:29 re.search
+    search_001: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_direction.py:33 re.search
+    search_002: "(?:主导风向|主风向)为\\s*([A-Z]{1,4})"
+    # Original wind_resource_direction.py:34 re.search
+    search_003: "(?:次主导风向|次主风向|次风向)(?:为)?\\s*([A-Z]{1,4})"
+    # Original wind_resource_direction.py:35 re.search
+    search_004: "(?:主导风能方向|主风能方向)为\\s*([A-Z]{1,4})"
+    # Original wind_resource_direction.py:36 re.search
+    search_005: "(?:次主导风能方向|次主风能方向|次风能方向)(?:为)?\\s*([A-Z]{1,4})"
+    # Original wind_resource_direction.py:73 re.findall
+    findall_006: "表\\s*\\d+(?:[-－.]\\d+)+\\s*[：:]\\s*([A-Za-z0-9]{2,8}#)\\s*测风塔[^。\\n]{0,50}风向[^。\\n]{0,20}风能[^。\\n]{0,30}(?:统计|分布|频率)"
+    # Original wind_resource_direction.py:88 re.sub
+    sub_007: "[A-Za-z0-9]{2,8}#(?=\\s*测风塔)"
+    # Original wind_resource_direction.py:98 re.search
+    search_008: "([A-Za-z0-9]{2,8}#)\\s*测风塔"
+    # Original wind_resource_direction.py:185 re.findall
+    findall_009: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_direction.py:187 re.findall
+    findall_010: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_direction.py:193 re.fullmatch
+    fullmatch_011: "[A-Z]{1,4}"
+    # Original wind_resource_direction.py:218 re.findall
+    findall_012: "[A-Za-z0-9]{2,8}#"
+    # Original wind_resource_direction.py:265 re.search
+    search_013: "\\b(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW)\\b"
+    # Original wind_resource_direction.py:343 re.fullmatch
+    fullmatch_014: "[A-Z]{1,4}"    # Extra literal / dynamic fragment: direction_dynamic_prefix
+    direction_dynamic_prefix: "(\\d+(?:\\.\\d+)?)\\s*m\\s*"
+
+  wind_resource_overrides:
+    # Original wind_resource_overrides.py:33 re.compile
+    compile_001: "风功率密度等级[^。；;\\n]{0,20}?(?:为|是)?\\s*(?P<value>[A-ZＡ-Ｚ]-?\\s*[0-9ⅠⅡⅢⅣⅤⅥ一二三四五六]+)\\s*级?"
+    # Original wind_resource_overrides.py:161 re.search
+    search_002: "[（(]\\s*(\\d{2,5})\\s*m\\s*[）)]"
+    # Original wind_resource_overrides.py:162 re.fullmatch
+    fullmatch_003: "\\s*(\\d(?:\\.\\d+)?)\\s*"
+    # Original wind_resource_overrides.py:305 re.search
+    search_004: "[0-9]+(?:\\.[0-9]+)?"
+    # Original wind_resource_overrides.py:336 re.split
+    split_005: "[\\n\\u3002\\uff1b;]"
+    # Original wind_resource_overrides.py:337 re.search
+    search_006: "50\\s*\\u5e74\\s*\\u4e00\\s*\\u9047"
+    # Original wind_resource_overrides.py:341 re.finditer
+    finditer_007: "50\\s*\\u5e74\\s*\\u4e00\\s*\\u9047[^\\uff0c\\u3001\\u3002\\uff1b;]{0,60}?\\u6700\\u5927(?:10\\s*min)?(?:\\u5e73\\u5747)?\\u98ce\\u901f"
+    # Original wind_resource_overrides.py:343 re.search
+    search_008: "(?:\\u4e3a|\\u503c|[:\\uff1a])?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_overrides.py:347 re.search
+    search_009: "(?:\\u5c0f\\u4e8e|\\u4f4e\\u4e8e|\\u4e0d\\u5927\\u4e8e|[<\\u2264])\\s*$"
+    # Original wind_resource_overrides.py:370 re.search
+    search_010: "50\\s*\\u5e74\\s*\\u4e00\\s*\\u9047"
+    # Original wind_resource_overrides.py:372 re.finditer
+    finditer_011: "\\u63a8\\u7b97(?:\\u81f3|\\u5230)\\s*160\\s*m\\s*\\u9ad8\\u5ea6\\u4e3a\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_overrides.py:376 re.finditer
+    finditer_012: "\\u63a8\\u7b97\\u81f3\\s*160\\s*m\\s*\\u9ad8\\u5ea6\\u4e3a\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_overrides.py:396 re.search
+    search_013: "\\u63a8\\u7b97\\u81f3\\s*160\\s*m\\s*\\u9ad8\\u5ea6\\u4e3a\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_overrides.py:407 re.compile
+    compile_014: "([0-9]+(?:\\.[0-9]+)?)\\s*m\\s*/\\s*s"
+    # Original wind_resource_overrides.py:408 re.split
+    split_015: "[\\n\\u3002\\uff1b;]"
+    # Original wind_resource_overrides.py:409 re.search
+    search_016: "50\\s*\\u5e74\\s*\\u4e00\\s*\\u9047"
+    # Original wind_resource_overrides.py:416 re.search
+    search_017: "(?:小于|低于|不大于|不超过|[<≤])\\s*$"
+    # Original wind_resource_overrides.py:421 re.search
+    search_018: "(?:订正到|订正至|换算成|换算至|折算到|折算至)"
+    # Original wind_resource_overrides.py:423 re.search
+    search_019: "(?:推算至|推算到|折算至|换算至|得到|取值|较大值|最终)"
+    # Original wind_resource_overrides.py:434 re.search
+    search_020: "(?:\\u5c0f\\u4e8e|<)\\s*37\\.5\\s*m\\s*/\\s*s"
+  electrical_primary:
+    # Original electrical_primary.py:71 re.search
+    search_001: "(?:接入站[^，。；;\\n]{0,20}?)?可接入容量\\s*[：:]?\\s*(?:为|约)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(?:MVA|兆伏安)"
+    # Original electrical_primary.py:72 re.search
+    search_002: "(?:升压站|主接线)[^，。；;\\n]{0,20}?(?:规划总规模|规划容量|规划规模|远期规划容量)\\s*[：:]?\\s*为?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(?:MW|兆瓦)"
+    # Original electrical_primary.py:73 re.search
+    search_003: "(?:升压站|主接线)[^，。；;\\n]{0,20}?(?:本期规模|本期容量|本期建设容量)\\s*[：:]?\\s*为?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(?:MW|兆瓦)"
+    # Original electrical_primary.py:215 re.sub
+    sub_004: "\\s+"
+    # Original electrical_primary.py:227 re.split
+    split_005: "[\\n\\u3002\\uff1b;]"
+    # Original electrical_primary.py:230 re.search
+    search_006: "([0-9]+)\\s*(?:\\u6839|\\u5ea7|\\u4e2a)\\s*(?:[0-9]+\\s*m)?\\s*\\u72ec\\u7acb\\u907f\\u96f7\\u9488"
+    # Original electrical_primary.py:231 re.search
+    search_007: "([0-9]+)\\s*(?:\\u6839|\\u5ea7|\\u4e2a)\\s*(?:[0-9]+\\s*m)?\\s*\\u6784\\u67b6\\u907f\\u96f7\\u9488"
+    # Original electrical_primary.py:233 re.search
+    search_008: "([0-9]+)\\s*(?:\\u6839|\\u5ea7|\\u4e2a)\\s*[0-9]+\\s*m\\s*\\u72ec\\u7acb\\u907f\\u96f7\\u9488"
+    # Original electrical_primary.py:235 re.search
+    search_009: "([0-9]+)\\s*(?:\\u6839|\\u5ea7|\\u4e2a)\\s*[0-9]+\\s*m\\s*\\u6784\\u67b6\\u907f\\u96f7\\u9488"
+    # Original electrical_primary.py:297 re.search
+    search_010: "\\b(?:台|套|组|面|根|只|个)\\b"
+    # Original electrical_primary.py:412 re.fullmatch
+    fullmatch_011: "[±+\\-]?\\s*\\d+(?:\\.\\d+)?\\s*Mvar"
+    # Original electrical_primary.py:414 re.fullmatch
+    fullmatch_012: "[±+\\-]?\\s*\\d+(?:\\.\\d+)?\\s*Mvar"
+    # Original electrical_primary.py:436 re.search
+    search_013: "([0-9]{2,3})\\s*kV\\s*(?:出线|线路)[^。；;]{0,40}?接入\\s*([\\u4e00-\\u9fffA-Za-z0-9]+?)\\s*(?<![0-9])([0-9]{2,3})\\s*kV\\s*变\\s*电站"
+    # Original electrical_primary.py:458 re.search
+    search_014: "\\b(YN\\s*[,，]\\s*d\\s*11|YN\\s*[,，]\\s*yn\\s*0|Dyn\\s*11)\\b"
+    # Original electrical_primary.py:462 re.sub
+    sub_015: "\\s+"
+    # Original electrical_primary.py:482 re.search
+    search_016: "(?:阻值为|接地电阻(?:值|装置)?\\s*(?:为|取|Rn\\s*=)?|Rn\\s*=)\\s*([0-9]+(?:\\.[0-9]+)?)\\s*[Ω欧]"
+    # Original electrical_primary.py:493 re.compile
+    compile_017: "升压站\\s*(\\d{2,3})\\s*kV\\s*侧[^。；;\\n]{0,60}?(\\d+)\\s*回\\s*出线[^。；;\\n]{0,40}?本期(?:一次)?建成"
+    # Original electrical_primary.py:526 re.search
+    search_018: "\\bSZ[A-Z0-9]*[-－]\\s*(\\d+(?:\\.\\d+)?)\\s*/\\s*\\d{2,3}\\b"
+    # Original electrical_primary.py:539 re.search
+    search_019: "方案[一二三四\\d]"
+    # Original electrical_primary.py:539 re.search
+    search_020: "选定|推荐|最终采用"
+    # Original electrical_primary.py:541 re.split
+    split_021: "[。；;\\n]"
+    # Original electrical_primary.py:544 re.search
+    search_022: "远期[^。；;]{0,35}?(?:新增|增加|扩建)\\s*([1-9]\\d?)\\s*台[^。；;]{0,20}?主变"
+    # Original electrical_primary.py:548 re.search
+    search_023: "远期[^。；;]{0,40}?([1-9]\\d?)\\s*台[^。；;]{0,20}?主变"
+    # Original electrical_primary.py:548 re.search
+    search_024: "主变[^。；;]{0,25}?远期[^。；;]{0,30}?([1-9]\\d?)\\s*台"
+    # Original electrical_primary.py:550 re.search
+    search_025: "远期[^。；;]{0,35}?([1-9]\\d?)\\s*[×xX]\\s*\\d+(?:\\.\\d+)?\\s*MVA[^。；;]{0,15}?主变"
+    # Original electrical_primary.py:566 re.finditer
+    finditer_026: "(?:本项目|本工程|项目|工程)[^。；;]{0,35}?(?:规划)?(?:总装机容量|总容量|建设规模)\\s*(?:为|约为|达)?\\s*(\\d+(?:\\.\\d+)?)\\s*(MW|万千瓦)"
+    # Original electrical_primary.py:598 re.search
+    search_027: "110\\s*kV\\s*升压站"
+    # Original electrical_primary.py:646 re.sub
+    sub_028: "\\s+"
+    # Original electrical_primary.py:647 re.search
+    search_029: "110kv(?:出线|回路数|出线回数)"
+    # Original electrical_primary.py:653 re.search
+    search_030: "([0-9]+(?:\\.\\d+)?)\\s*回"
+    # Original electrical_primary.py:657 re.search
+    search_031: "([一二两三四五六七八九十])\\s*回"
+    # Original electrical_primary.py:916 re.sub
+    sub_032: "[^0-9a-zA-Z\\u4e00-\\u9fa5]+"
+    # Original electrical_primary.py:970 re.sub
+    sub_033: "\\s+"
+    # Original electrical_primary.py:974 re.fullmatch
+    fullmatch_034: "\\d+(?:\\.\\d+)?"
+    # Original electrical_primary.py:976 re.fullmatch
+    fullmatch_035: "\\d+(?:\\.\\d+)?(?:kVA|Mvar)"
+    # Original electrical_primary.py:977 re.sub
+    sub_036: "kva$"
+    # Original electrical_primary.py:982 re.sub
+    sub_037: "(?<=[\\u4e00-\\u9fa5])\\s+(?=[\\u4e00-\\u9fa5])"
+    # Original electrical_primary.py:1170 re.compile
+    compile_038: "(?:变压器)?型号\\s*(?:为|是|[:：])?\\s*(?P<model>[A-Z][A-Z0-9.-]{1,30}/[0-9]+(?:\\.[0-9]+)?)"
+    # Original electrical_primary.py:1175 re.compile
+    compile_039: "箱式变电站|箱式变压器|箱变|机组变压器"
+    # Original electrical_primary.py:1176 re.compile
+    compile_040: "主变压器|接地变(?:压器)?|站用变(?:压器)?"
+    # Original electrical_primary.py:1194 re.split
+    split_041: "[（(]\\s*\\d+\\s*[）)]\\s*(?=[\\u4e00-\\u9fa5])"
+    # Original electrical_primary.py:1196 re.search
+    search_042: "额定容量\\s*[:：为是]?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(MVA|kVA|千伏安)"
+    # Original electrical_primary.py:1197 re.search
+    search_043: "额定电压\\s*[:：为是]?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(?:kV|千伏)"
+    # Original electrical_primary.py:1226 re.finditer
+    finditer_044: "\\bH\\s*=\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m\\b"
+    # Original electrical_primary.py:1265 re.search
+    search_045: "-([0-9]+(?:\\.[0-9]+)?)/([0-9]+(?:\\.[0-9]+)?)"
+    # Original electrical_primary.py:1293 re.search
+    search_046: "([0-9]+(?:\\.[0-9]+)?)\\s*km"
+    # Original electrical_primary.py:1306 re.search
+    search_047: "([0-9]{2,3}\\s*kV[^，。；;\\n]{0,20}?升压站|[\\u4e00-\\u9fa5A-Za-z0-9]+升压站)"
+    # Original electrical_primary.py:1315 re.split
+    split_048: "[。；;\\n]"
+    # Original electrical_primary.py:1324 re.finditer
+    finditer_049: "扩建|共用一座"
+    # Original electrical_primary.py:1350 re.finditer
+    finditer_050: "[0-9]{2,3}\\s*kV[^，,。；;\\n]{0,24}?升压站"
+    # Original electrical_primary.py:1354 re.sub
+    sub_051: "\\s+"
+    # Original electrical_primary.py:1356 re.sub
+    sub_052: "^(?:本期|本工程|本项目|工程|项目|拟|计划|将|对|与|同|和|现有|既有|原有|已建成?的?|建设|进行|实施|一座|[0-9]+座)+"
+    # Original electrical_primary.py:1362 re.search
+    search_053: "([\\u4e00-\\u9fa5A-Za-z0-9·#（）()_-]{1,30}升压站)$"
+    # Original electrical_primary.py:1364 re.match
+    match_054: "([\\u4e00-\\u9fa5A-Za-z0-9·#（）()_-]{1,30}?升压站)"
+    # Original electrical_primary.py:1367 re.sub
+    sub_055: "\\s+"
+    # Original electrical_primary.py:1384 re.split
+    split_056: "\\u7684\\u4ea4\\u6d41|\\uff08UPS|\\(UPS"
+    # Original electrical_primary.py:1385 re.sub
+    sub_057: "\\s+"
+    # Original electrical_primary.py:1386 re.sub
+    sub_058: "^([0-9]+(?:\\.[0-9]+)?)kVA?$"
+    # Original electrical_primary.py:1387 re.sub
+    sub_059: "^([±+\\-]?[0-9]+(?:\\.[0-9]+)?)Mvar$"
+    # Original electrical_primary.py:1407 re.search
+    search_060: "10\\s*kV\\s*站用变"
+    # Original electrical_primary.py:1427 re.search
+    search_061: "((?:线变组|单母线(?:分段)?)接线(?:型式|方式)?)"
+  electrical_secondary:
+    # Original electrical_secondary.py:75 re.search
+    search_001: "(?:具体)?配(?:置|备)(?:如下|为|：|:)"
+    # Original electrical_secondary.py:82 re.match
+    match_002: "^\\s*\\d+(?:\\.\\d+){1,}\\s*\\S"
+    # Original electrical_secondary.py:84 re.search
+    search_003: "(?:电源|蓄电池|电池|整流|配电)"
+    # Original electrical_secondary.py:84 re.search
+    search_004: "\\d+(?:\\.\\d+)?\\s*(?:V|Ah|A\\b|套|组|台|面)"
+    # Original electrical_secondary.py:107 re.sub
+    sub_005: "\\s+"
+    # Original electrical_secondary.py:111 re.search
+    search_006: "48V/200Ah"
+    # Original electrical_secondary.py:167 re.sub
+    sub_007: "\\s+"
+    # Original electrical_secondary.py:170 re.sub
+    sub_008: "(\\u9600\\u63a7\\u5f0f\\u5bc6\\u5c01\\u94c5\\u9178\\u84c4\\u7535\\u6c60)[:\\uff1a,\\uff0c]?(1\\u7ec4)"
+    # Original electrical_secondary.py:171 re.sub
+    sub_009: "^1\\u7ec4(200Ah\\u514d\\u7ef4\\u62a4\\u84c4\\u7535\\u6c60)[\\uff0c,]?"
+    # Original electrical_secondary.py:173 re.sub
+    sub_010: "，+"
+    # Original electrical_secondary.py:174 re.sub
+    sub_011: "(?<!，)(1组)$"
+    # Original electrical_secondary.py:179 re.search
+    search_012: "本工程取UPS容量为([^。；;\\n]+)。([^。；;\\n]*双冗余方式)"
+  electrical_collector:
+    # Original electrical_collector.py:21 re.search
+    search_001: "[A-Z]{1,2}[0-9]?\\s*线"
+    # Original electrical_collector.py:94 re.sub
+    sub_002: "\\s+"
+    # Original electrical_collector.py:106 re.sub
+    sub_003: "\\s+"
+    # Original electrical_collector.py:115 re.finditer
+    finditer_004: "([0-9]+(?:\\.\\d+)?)\\s*kV"
+    # Original electrical_collector.py:154 re.search
+    search_005: "([0-9]+)\\s*回"
+    # Original electrical_collector.py:231 re.search
+    search_006: "26\\s*/\\s*35"
+    # Original electrical_collector.py:327 re.fullmatch
+    fullmatch_007: "(?:[0-9]+(?:\\.[0-9]+)?×)?([0-9]+(?:\\.[0-9]+)?)(?:km)?"
+    # Original electrical_collector.py:449 re.compile
+    compile_008: "(?:新建|建设)[^。；;\\n]{0,80}?单回\\s*[0-9]{2,3}\\s*kV\\s*线路[^。；;\\n]{0,100}?线路长度\\s*(?:约|为)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*km"
+    # Original electrical_collector.py:479 re.search
+    search_009: "(本工程[^。；;\\n]{0,40}?采用[^。；;\\n]{1,160}?电力电缆)"
+    # Original electrical_collector.py:498 re.finditer
+    finditer_010: "(?<![A-Z0-9])([A-Z][0-9]?)\\s*线"
+    # Original electrical_collector.py:507 re.findall
+    findall_011: "单回(?:路)?线路长度[^。；;\\n]{0,220}"
+    # Original electrical_collector.py:509 re.finditer
+    finditer_012: "(?<![A-Z0-9])([A-Z][0-9]?)\\s*线\\s*[0-9]+(?:\\.[0-9]+)?\\s*km"
+  civil_foundation:
+    # Original civil_foundation.py:51 re.match
+    match_001: "^(?:1\\.2|2|二|三|四)\\b"
+    # Original civil_foundation.py:160 re.match
+    match_002: "\\s*([0-9]+(?:\\.[0-9]+)?)"
+    # Original civil_foundation.py:170 re.search
+    search_003: "\\bR\\b|R（|R\\("
+    # Original civil_foundation.py:207 re.search
+    search_004: "C\\s*([0-9]{2})"
+    # Original civil_foundation.py:252 re.match
+    match_005: "^(?:1\\.3|2|二|三|四)\\b"
+    # Original civil_foundation.py:270 re.sub
+    sub_006: "，分布半径为[^，]+"
+  civil_roads:
+    # Original civil_roads.py:71 re.search
+    search_001: "（\\s*m\\s*）|\\(\\s*m\\s*\\)|\\|\\s*m\\s*\\|"
+    # Original civil_roads.py:112 re.search
+    search_002: "(?:场内新建道路|新建场内道路)(?:长(?:度)?)?\\s*(?:约|为)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*km"
+    # Original civil_roads.py:113 re.search
+    search_003: "(?:场内扩建道路|扩建场内道路|场内改建道路|改建场内道路)(?:长(?:度)?)?\\s*(?:约|为)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*km"
+    # Original civil_roads.py:116 re.search
+    search_004: "路面宽(?:度)?\\s*(?:为)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*m"
+    # Original civil_roads.py:144 re.search
+    search_005: "施工道路\\s*[（(]\\s*$"
+    # Original civil_roads.py:283 re.fullmatch
+    fullmatch_006: "[（(]?(?:km|m|公里|千米|米)[）)]?"
+    # Original civil_roads.py:378 re.search
+    search_007: "\\bkm\\b|公里|千米|(?<!k)m\\b|米"
+    # Original civil_roads.py:378 re.search
+    search_008: "m2|m²|㎡|平方米"
+    # Original civil_roads.py:384 re.search
+    search_009: "\\bkm\\b|公里|千米|(?<!k)m\\b|米"
+    # Original civil_roads.py:384 re.search
+    search_010: "m2|m²|㎡|平方米"
+    # Original civil_roads.py:490 re.search
+    search_011: "施工完成后恢复为?原状"
+    # Original civil_roads.py:505 re.search
+    search_012: "施工道路\\s*[（(]\\s*$"
+    # Original civil_roads.py:541 re.search
+    search_013: "km|公里|千米"
+    # Original civil_roads.py:542 re.search
+    search_014: "(?<!k)m\\b|米"
+  civil_earthwork:
+    # Original civil_earthwork.py:119 re.search
+    search_001: "万\\s*m\\s*[³3]"
+    # Original civil_earthwork.py:285 re.search
+    search_002: "(?:建筑|施工辅助)工程概算表"
+    # Original civil_earthwork.py:303 re.fullmatch
+    fullmatch_003: "[一二三四五六七八九十]+"
+    # Original civil_earthwork.py:303 re.match
+    match_004: "第[一二三四五六七八九十\\d]+部分"
+    # Original civil_earthwork.py:304 re.search
+    search_005: "集电线路|集电工程|集电系统"
+    # Original civil_earthwork.py:307 re.search
+    search_006: "风电机组|升压站|道路|其他工程"
+    # Original civil_earthwork.py:312 re.search
+    search_007: "土(?:石)?方?开挖"
+    # Original civil_earthwork.py:314 re.search
+    search_008: "土(?:石)?方?回填|回填土"
+    # Original civil_earthwork.py:319 re.search
+    search_009: "m\\s*[³3]|立方米"
+    # Original civil_earthwork.py:357 re.search
+    search_010: "(?:设置|设有|布置|新建|拟设(?:置)?|考虑设置)[^0-9。；;]{0,16}([0-9]+(?:\\.[0-9]+)?)\\s*个\\s*弃渣场"
+    # Original civil_earthwork.py:360 re.search
+    search_011: "弃渣场[^0-9。；;]{0,16}([0-9]+(?:\\.[0-9]+)?)\\s*个"
+    # Original civil_earthwork.py:371 re.search
+    search_012: "(?:总占地面积|占地面积)\\s*(?:约为|约|为)?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(?:m\\s*[²2]|㎡|平方米)"
+  civil_substation:
+    # Original civil_substation.py:110 re.search
+    search_001: "[0-9]+(?:\\.[0-9]+)?"
+  finance:
+    # Original finance.py:114 re.search
+    search_001: "等额(?:还本|本)利息照付"
+    # Original finance.py:140 re.search
+    search_002: "([0-9]+(?:\\.[0-9]+)?)\\s*[%%％]"
+    # Original finance.py:208 re.search
+    search_003: "(?:附表|表)\\s*16(?:\\.1)?\\s*财务指标汇总表"
+    # Original finance.py:234 re.search
+    search_004: "(?:附表|表)\\s*16(?:\\.1)?\\s*财务指标汇总表"
+    # Original finance.py:298 re.search
+    search_005: "(\\d+(?:\\.\\d+)?)\\s*万元"
+    # Original finance.py:316 re.search
+    search_006: "([0-9]+(?:\\.[0-9]+)?)\\s*[%%％]"
+    # Original finance.py:395 re.search
+    search_007: "(?:长期借款|贷款)[^。；;]{0,20}?(?:采用|按)\\s*(等额还本利息照付)(?:方式)?"
+    # Original finance.py:474 re.findall
+    findall_008: "(?:限电率|弃电率)[^。；;\\n]{0,120}"
+    # Original finance.py:475 re.findall
+    findall_009: "([0-9]+(?:\\.[0-9]+)?)\\s*%"
+    # Original finance.py:487 re.search
+    search_010: "(?:限电率|弃电率)[^0-9%]{0,20}([0-9]+(?:\\.[0-9]+)?)\\s*%"
+    # Original finance.py:505 re.search
+    search_011: "(?:考虑弃电后|弃电后|限电后)[^。；;\\n]{0,100}?(?:年)?等效满负荷小时数[^0-9。；;\\n]{0,20}([0-9]+(?:\\.[0-9]+)?)\\s*h"
+    # Original finance.py:511 re.search
+    search_012: "(?:限电后|考虑弃电后)?(?:年)?等效满负荷小时数[^0-9。；;\\n]{0,20}([0-9]+(?:\\.[0-9]+)?)\\s*h"
+    # Original finance.py:518 re.sub
+    sub_013: "\\s+"
+  investment:
+    # Original investment.py:197 re.search
+    search_001: "《?\\s*(?P<title>[陆路]上风电场工程设计概算编制规定及费用标准)\\s*》?"
+    # Original investment.py:211 re.sub
+    sub_002: "\\s+"
+    # Original investment.py:224 re.search
+    search_003: "材料价格[^。；;\\n]{0,30}?([0-9]{4})\\s*年\\s*第\\s*([0-9一二三四]+)\\s*期"
+    # Original investment.py:225 re.search
+    search_004: "设备价格[^。；;\\n]{0,35}?([0-9]{4})\\s*年\\s*第\\s*([一二三四1234])\\s*季度"
+    # Original investment.py:283 re.search
+    search_005: "(?:智慧管理平台|(?:集控|集中控制).*?(?:场站侧|平台).*?费用?)"
+
+# Ordered aliases, table headers, and regex lists; preserve original Python fallbacks.
+domain_literal_lists:
+  electrical_primary:
+    # Original electrical_primary.py:337 find_header_index
+    list_001: ["接入站名称"]
+    # Original electrical_primary.py:338 find_header_index
+    list_002: ["可接入电压"]
+    # Original electrical_primary.py:339 find_header_index
+    list_003: ["可接入容量"]
+    # Original electrical_primary.py:516 find_header_index
+    list_004: ["名称","名  称"]
+    # Original electrical_primary.py:517 find_header_index
+    list_005: ["数量","数  量"]
+    # Original electrical_primary.py:518 find_header_index
+    list_006: ["型号、规格及技术数据","型号规格"]
+    # Original electrical_primary.py:604 find_header_index
+    list_007: ["名称","项目","项目名称"]
+    # Original electrical_primary.py:605 find_header_index
+    list_008: ["本期规模","本期"]
+    # Original electrical_primary.py:606 find_header_index
+    list_009: ["远期规模","远期"]
+    # Original electrical_primary.py:815 find_header_index
+    list_010: ["名称","名 称","设备名称"]
+    # Original electrical_primary.py:816 find_header_index
+    list_011: ["型号、规格及技术数据","型号规格及技术数据","型号及规格","型号与规格","规格"]
+    # Original electrical_primary.py:825 find_header_index
+    list_012: ["单位"]
+    # Original electrical_primary.py:826 find_header_index
+    list_013: ["数量"]
+    # Original electrical_primary.py:831 find_header_index
+    list_014: ["备注"]
+    # Original electrical_primary.py:996 first_matching_text
+    list_015: ["备用电源引自站外\\s*10\\s*kV\\s*线路[^。；;\\n]{0,80}?容量为\\s*([0-9]+(?:\\.[0-9]+)?\\s*kVA)","选用\\s*1\\s*台容量为\\s*([0-9]+(?:\\.[0-9]+)?\\s*kVA)\\s*的\\s*外来变压器"]
+    # Original electrical_primary.py:1008 first_matching_text
+    list_016: ["配置\\s*1\\s*台容量为\\s*([0-9]+(?:\\.[0-9]+)?\\s*kVA)\\s*接地变","接地变(?:成套装置)?\\s*DKSC-([0-9]+(?:\\.[0-9]+)?\\s*kVA?)[-/]35\\s*kV","DKSC-([0-9]+(?:\\.[0-9]+)?)(?:\\s*kVA)?[-/]35\\s*kV"]
+    # Original electrical_primary.py:1021 first_matching_text
+    list_017: ["兼带站用变[^。；;\\n]{0,30}?站用变容量为\\s*([0-9]+(?:\\.[0-9]+)?\\s*kVA)","DKSC-[0-9]+(?:\\.[0-9]+)?\\s*kVA-([0-9]+(?:\\.[0-9]+)?\\s*kVA)[-/]35\\s*kV","DKSC-[0-9]+(?:\\.[0-9]+)?(?:\\s*kVA)?-([0-9]+(?:\\.[0-9]+)?\\s*kVA)"]
+    # Original electrical_primary.py:1040 first_matching_text
+    list_018: ["选用\\s*(一组\\s*220\\s*V[、,，/]\\s*250\\s*Ah\\s*阀控式\\s*密封铅酸蓄电池组)","(一组\\s*220\\s*V[、,，/]\\s*250\\s*Ah\\s*阀控式\\s*密封铅酸蓄电池组)"]
+    # Original electrical_primary.py:1052 first_matching_text
+    list_019: ["设置\\s*([0-9]+\\s*套\\s*[0-9]+(?:\\.[0-9]+)?\\s*kVA\\s*双冗余互为备用[^。；;\\n]{0,30}?UPS)","([0-9]+\\s*套\\s*[0-9]+(?:\\.[0-9]+)?\\s*kVA\\s*双冗余互为备用)"]
+  electrical_secondary:
+    # Original electrical_secondary.py:103 find_header_index
+    list_001: ["单位","单 位"]
+    # Original electrical_secondary.py:104 find_header_index
+    list_002: ["数量","数 量"]
+  electrical_collector:
+    # Original electrical_collector.py:65 first_length_match
+    list_001: ["(?:线路总计长度|新建线路路径长|线路路径长|架空线路长度)[^0-9]{0,20}([0-9]+(?:\\.[0-9]+)?)\\s*km"]
+    # Original electrical_collector.py:68 first_length_match
+    list_002: ["电缆线路长度约?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*km","([0-9]+(?:\\.[0-9]+)?)\\s*km[^。；;\\n]{0,20}电缆线路"]
+    # Original electrical_collector.py:184 first_length_text_match
+    list_003: ["(?:新建线路路径长度|新建线路径长度|新建线路路径长)\\D{0,12}([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:185 first_length_text_match
+    list_004: ["新建架空线路(?:路径)?长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:186 first_length_text_match
+    list_005: ["新建单回路线路(?:路径)?长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:187 first_length_text_match
+    list_006: ["新建双回路线路(?:路径)?长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:188 first_length_text_match
+    list_007: ["新建电缆线路(?:路径)?长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:196 first_length_text_match
+    list_008: ["全线集电线路路径长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:208 first_length_text_match
+    list_009: ["箱变至终端塔电缆路径长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:209 first_length_text_match
+    list_010: ["单回(?:路)?电缆线路路径长(?:度)?约?\\s*([0-9]+\\s*[×xX]\\s*[0-9]+(?:\\.\\d+)?|[0-9]+(?:\\.\\d+)?)\\s*km"]
+    # Original electrical_collector.py:210 first_length_text_match
+    list_011: ["双回(?:路|进站)?电缆路径长(?:度)?约?\\s*([0-9]+(?:\\.\\d+)?)\\s*km"]
+  civil_foundation:
+    # Original civil_foundation.py:36 text_by_row_label
+    list_001: ["基础形式","地基处理措施"]
+    # Original civil_foundation.py:37 value_by_row_label
+    list_002: ["垫层混凝土 C20","垫层混凝土C20","垫层及散水混凝土C20"]
+    # Original civil_foundation.py:38 value_by_row_label
+    list_003: ["基础混凝土 C40","基础混凝土C40","基础混凝土 C45","基础混凝土C45","基础承台C40混凝土"]
+    # Original civil_foundation.py:39 value_by_row_label
+    list_004: ["钢筋制作","钢筋工程量","钢筋制作与安装"]
+    # Original civil_foundation.py:40 value_by_row_label
+    list_005: ["钢结构制作","钢结构制作与安装"]
+    # Original civil_foundation.py:199 value_by_row_label
+    list_006: ["基础混凝土C30","混凝土 C30","混凝土C30","混凝土 C25","混凝土C25","混凝土（C25）","混凝土（C30）","混凝土量（C30）","混凝土量（C25）","基层混凝土量"]
+    # Original civil_foundation.py:200 value_by_row_label
+    list_007: ["垫层混凝土","垫层混凝土C20","垫层混凝土 C20"]
+    # Original civil_foundation.py:201 value_by_row_label
+    list_008: ["钢筋制作与安装","基础钢筋","钢筋（","钢筋"]
+    # Original civil_foundation.py:202 value_by_row_label
+    list_009: ["铁件制作安装","钢结构制作与安装"]
+  civil_roads:
+    # Original civil_roads.py:57 find_header_index
+    list_001: ["场内新建道路","场区新建道路","新建道路"]
+    # Original civil_roads.py:58 find_header_index
+    list_002: ["场内改建道路","场内扩建道路","场区改建道路","改建道路","扩建道路"]
+  civil_substation:
+    # Original civil_substation.py:85 find_header_index
+    list_001: ["面积","占地"]
+  civil_land:
+    # Original civil_land.py:31 cell_at_alias
+    list_001: ["永久性占地项目"]
+    # Original civil_land.py:32 cell_at_alias
+    list_002: ["风机基础"]
+    # Original civil_land.py:33 cell_at_alias
+    list_003: ["箱变基础"]
+    # Original civil_land.py:34 cell_at_alias
+    list_004: ["升压站","110kV升压站"]
+    # Original civil_land.py:35 cell_at_alias
+    list_005: ["集电线路杆塔征地","杆塔"]
+    # Original civil_land.py:36 cell_at_alias
+    list_006: ["进升压站道路"]
+    # Original civil_land.py:37 cell_at_alias
+    list_007: ["合计"]
+    # Original civil_land.py:54 cell_at_alias
+    list_008: ["临时性占地项目"]
+    # Original civil_land.py:55 cell_at_alias
+    list_009: ["风场道路","临时施工道路"]
+    # Original civil_land.py:56 cell_at_alias
+    list_010: ["吊装平台","安装平台","场内平整"]
+    # Original civil_land.py:57 cell_at_alias
+    list_011: ["集电线路"]
+    # Original civil_land.py:58 cell_at_alias
+    list_012: ["电缆直埋"]
+    # Original civil_land.py:59 cell_at_alias
+    list_013: ["施工临建场地","生活临建"]
+    # Original civil_land.py:60 cell_at_alias
+    list_014: ["合计"]
+    # Original civil_land.py:254 find_header_index
+    list_015: ["项目"]
+    # Original civil_land.py:255 find_header_index
+    list_016: ["面积（㎡）","面积(m2)","面积"]
+    # Original civil_land.py:282 find_header_index
+    list_017: ["项目"]
+    # Original civil_land.py:283 find_header_index
+    list_018: ["临时用地","临时征地"]
+    # Original civil_land.py:284 find_header_index
+    list_019: ["临征永补"]
+    # Original civil_land.py:327 find_header_index
+    list_020: ["永久征地","永久占地","征地","永久"]
+    # Original civil_land.py:328 find_header_index
+    list_021: ["长期租地"]
+    # Original civil_land.py:329 find_header_index
+    list_022: ["短期租地","临时性占地","临时租地","临时"]
+  finance:
+    # Original finance.py:42 cell_at_alias
+    list_001: ["项目总投资"]
+    # Original finance.py:43 cell_at_alias
+    list_002: ["总成本费用"]
+    # Original finance.py:44 cell_at_alias
+    list_003: ["流动资金贷款比例","贷款比例"]
+    # Original finance.py:45 cell_at_alias
+    list_004: ["流动资本金比例","流动资金自有资金比例"]
+    # Original finance.py:46 cell_at_alias
+    list_005: ["流动资金贷款利率","贷款利率"]
+    # Original finance.py:47 cell_at_alias
+    list_006: ["建设资本金比例","资本金比例"]
+    # Original finance.py:48 cell_at_alias
+    list_007: ["建设资金贷款比例"]
+    # Original finance.py:49 cell_at_alias
+    list_008: ["还款方式"]
+    # Original finance.py:50 cell_at_alias
+    list_009: ["偿还年限"]
+    # Original finance.py:51 cell_at_alias
+    list_010: ["年贷款利率"]
+    # Original finance.py:53 value_by_row_label
+    list_011: ["项目总投资"]
+    # Original finance.py:55 value_by_row_label
+    list_012: ["总成本费用"]
+    # Original finance.py:57 value_by_row_label
+    list_013: ["流动资金"]
+    # Original finance.py:59 value_by_row_label
+    list_014: ["流动资金单位千瓦指标","估算指标"]
+    # Original finance.py:61 value_by_row_label
+    list_015: ["建设期"]
+    # Original finance.py:70 first_matching_text
+    list_016: ["建设期\\s*([0-9]+(?:\\.[0-9]+)?\\s*(?:年|个月|月))","其中建设期\\s*([0-9]+(?:\\.[0-9]+)?\\s*(?:年|个月|月))"]
+    # Original finance.py:76 first_matching_number
+    list_017: ["资本金占(?:静态投资|动态投资|总投资)?的?\\s*([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:81 first_matching_number
+    list_018: ["总投资的\\s*([0-9]+(?:\\.[0-9]+)?)%\\s*利用[^。；;\\n]{0,20}?贷款","资本金占(?:动态投资|总投资)?的?\\s*([0-9]+(?:\\.[0-9]+)?)%[^。；;\\n]{0,40}?贷款"]
+    # Original finance.py:92 first_matching_number
+    list_019: ["流动资金[^。；;\\n]{0,120}?([0-9]+(?:\\.[0-9]+)?)%\\s*采用[^。；;\\n]{0,20}?贷款"]
+    # Original finance.py:97 first_matching_number
+    list_020: ["流动资金[^。；;\\n]{0,80}?估算指标为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*元\\s*/\\s*kW"]
+    # Original finance.py:102 first_matching_number
+    list_021: ["流动资金[^。；;\\n]{0,120}?其中\\s*([0-9]+(?:\\.[0-9]+)?)%\\s*为(?:自有资金|资本金)"]
+    # Original finance.py:107 first_matching_number
+    list_022: ["流动资金[^。；;\\n]{0,120}?贷款年利率为\\s*([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:112 first_matching_number
+    list_023: ["贷款偿还期为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*年","银行\\s*\\d*\\s*贷款偿还期为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*年"]
+    # Original finance.py:119 first_matching_number
+    list_024: ["年贷款利率为\\s*([0-9]+(?:\\.[0-9]+)?)%","五年期及以上年贷款利率按\\s*([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:146 first_matching_number
+    list_025: ["材料费[^。；;\\n]{0,60}?([0-9]+(?:\\.[0-9]+)?)\\s*万元"]
+    # Original finance.py:151 first_matching_number
+    list_026: ["其他费用[^。；;\\n]{0,60}?([0-9]+(?:\\.[0-9]+)?)\\s*(?:元/kW|万元)","其他费用取\\s*([0-9]+(?:\\.[0-9]+)?)\\s*(?:元/kW|万元)"]
+    # Original finance.py:156 first_matching_number
+    list_027: ["土地使用税[^。；;\\n]{0,40}?([0-9]+(?:\\.[0-9]+)?)\\s*万元","土地使用税每年取\\s*([0-9]+(?:\\.[0-9]+)?)\\s*万元"]
+    # Original finance.py:167 value_by_row_label
+    list_028: ["材料费"]
+    # Original finance.py:169 value_by_row_label
+    list_029: ["其他费用"]
+    # Original finance.py:171 value_by_row_label
+    list_030: ["土地使用税"]
+    # Original finance.py:173 value_by_row_label
+    list_031: ["风电场上网电价","上网电价"]
+    # Original finance.py:322 first_matching_number
+    list_032: ["折旧年限按\\s*([0-9]+(?:\\.[0-9]+)?)\\s*年","折旧年限[^。；;\\n]{0,20}?([0-9]+(?:\\.[0-9]+)?)\\s*年"]
+    # Original finance.py:323 first_matching_number
+    list_033: ["残值率\\s*([0-9]+(?:\\.[0-9]+)?)%","残值率[^0-9]{0,10}([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:324 first_matching_text
+    list_034: ["(修理费采用分段取费计算[\\s\\S]{0,220}?其余年份取\\s*[0-9]+(?:\\.[0-9]+)?\\s*元/kW)","(修理费率[\\s\\S]{0,220}?其余年份取\\s*[0-9]+(?:\\.[0-9]+)?\\s*元/kW)"]
+    # Original finance.py:325 first_matching_number
+    list_035: ["材料费(?:定额)?取\\s*([0-9]+(?:\\.[0-9]+)?)\\s*元\\s*/\\s*kW"]
+    # Original finance.py:325 first_matching_text
+    list_036: ["(材料费采用分段取费计算[\\s\\S]{0,220}?其余年份取\\s*[0-9]+(?:\\.[0-9]+)?\\s*元/kW)","(材料费[^。；;\\n]{0,180}?(?:元/kW|元/KW)[^。；;\\n]{0,120})"]
+    # Original finance.py:326 first_matching_text
+    list_037: ["建设期\\s*([0-9]+(?:\\.[0-9]+)?\\s*(?:年|个月|月))","其中建设期\\s*([0-9]+(?:\\.[0-9]+)?\\s*(?:年|个月|月))"]
+    # Original finance.py:327 first_matching_number
+    list_038: ["流动资金按\\s*([0-9]+(?:\\.[0-9]+)?)\\s*元\\s*/\\s*kW\\s*估算","流动资金[^。；;\\n]{0,80}?估算指标为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*元\\s*/\\s*kW"]
+    # Original finance.py:328 first_matching_number
+    list_039: ["流动资金[^。；;\\n]{0,120}?([0-9]+(?:\\.[0-9]+)?)%\\s*采用[^。；;\\n]{0,20}?贷款"]
+    # Original finance.py:329 first_matching_number
+    list_040: ["流动资金[^。；;\\n]{0,120}?其中\\s*([0-9]+(?:\\.[0-9]+)?)%\\s*为(?:自有资金|资本金)"]
+    # Original finance.py:330 first_matching_number
+    list_041: ["流动资金[^。；;\\n]{0,120}?贷款年利率为\\s*([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:331 first_matching_number
+    list_042: ["资本金占(?:静态投资|动态投资|总投资)?的?\\s*([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:333 first_matching_text
+    list_043: ["((?:每年)?按贷款等额(?:还本|本)利息照付)"]
+    # Original finance.py:334 first_matching_number
+    list_044: ["银行\\s*\\d*\\s*贷款偿还期为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*年","贷款偿还期为\\s*([0-9]+(?:\\.[0-9]+)?)\\s*年"]
+    # Original finance.py:335 first_matching_number
+    list_045: ["年贷款利率为\\s*([0-9]+(?:\\.[0-9]+)?)%","五年期及以上年贷款利率按\\s*([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:336 first_matching_number
+    list_046: ["风电场定员\\s*为?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*人","定员\\s*为?\\s*([0-9]+(?:\\.[0-9]+)?)\\s*人"]
+    # Original finance.py:337 first_matching_number
+    list_047: ["(?:人年均工资|人均年工资|年工资)按\\s*([0-9]+(?:\\.[0-9]+)?)\\s*万元","人员工资[^。；;\\n]{0,40}?([0-9]+(?:\\.[0-9]+)?)\\s*万元"]
+    # Original finance.py:338 first_matching_number
+    list_048: ["职工福利费及其他[\\s\\S]{0,80}?工资总(?:额)?的\\s*([0-9]+(?:\\.[0-9]+)?)%","职工福利费[\\s\\S]{0,80}?工资总(?:额)?的\\s*([0-9]+(?:\\.[0-9]+)?)%","职工福利费[^\\d]{0,80}?([0-9]+(?:\\.[0-9]+)?)%"]
+    # Original finance.py:609 find_header_index
+    list_049: ["项目","指标","名称"]

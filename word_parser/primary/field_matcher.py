@@ -9,11 +9,24 @@ from word_parser.document.ast.evidence import Candidate, FieldMatch
 class FieldMatcher:
     """结合字段别名与召回分数计算匹配分数。"""
 
+    def __init__(self, settings: dict | None = None, lexicon=None):
+        # Scoring and match() remain byte-for-byte behavior-compatible.
+        self.alias_bonus = float((settings or {}).get("alias_bonus", 1.0))
+        # Optional shared lexicon provides read-only diagnostics for future
+        # operator migration. It does not modify current field matches.
+        self.lexicon = lexicon
+
+    def inspect_label(self, label: str) -> tuple[str | None, str | None, float]:
+        """Return the discovery registry's suggestion without changing candidates."""
+        if self.lexicon is None:
+            return None, None, 0.0
+        return self.lexicon.match(label)
+
     def match(self, candidates: list[Candidate]) -> list[FieldMatch]:
         matches: list[FieldMatch] = []
         for candidate in candidates:
             aliases = candidate.field_config.get("aliases") or []
-            alias_score = 1.0 if any(alias in candidate.text for alias in aliases) else 0.0
+            alias_score = self.alias_bonus if any(alias in candidate.text for alias in aliases) else 0.0
             score = candidate.score + alias_score
             if score <= 0:
                 continue

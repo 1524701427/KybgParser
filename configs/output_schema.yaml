@@ -1487,4 +1487,15 @@ electrical_secondary_table_key_patterns:
       - '主要\s*通信\s*设备表'
       - '通信.*设备表'
 
-
+# 最终映射的字段来源/变换；Python 只实现注册的转换算子。
+# 这两项保持与旧 projector.py 特殊逻辑完全一致。
+field_value_fallbacks:
+  financeInsuranceRate: insuranceRate
+field_value_transforms:
+  hubHeightAirDensityRange:
+    operator: density_records_to_height_range
+    source_field: windResourceAirDensityRecords
+    always: true
+  windResourceTurbulenceIntensityRecords:
+    operator: merge_turbulence_records
+    validate_result_value: true

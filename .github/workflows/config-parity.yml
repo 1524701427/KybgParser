@@ -1,0 +1,201 @@
+name: Config-driven extraction parity
+
+on:
+  pull_request:
+    paths:
+      - "configs/extraction_runtime.yaml"
+      - "word_parser/**"
+      - "tests/test_config_driven_parity.py"
+      - "tests/test_retrieval_yaml_parity.py"
+      - "tests/test_shared_field_registry.py"
+      - "tests/test_extraction_grammar_yaml_parity.py"
+      - "tests/test_output_field_contract.py"
+      - "tests/test_primary_operator_registry_parity.py"
+      - "tests/test_funnel_yaml_parity.py"
+      - "tests/test_candidate_facts_adapter.py"
+      - "tests/test_candidate_diagnostics_policy.py"
+      - "tests/test_real_report_parity_runner.py"
+      - "configs/candidate_audit.yaml"
+      - "configs/deterministic_rules.yaml"
+      - "configs/mapping_pipeline.yaml"
+      - "configs/domain_extraction_pipeline.yaml"
+      - "tests/test_domain_operator_schedule.py"
+      - "tests/test_mapping_yaml_transforms.py"
+      - "tests/test_memory_only_export.py"
+      - "tests/test_factory_yaml_enforcement.py"
+      - "tests/test_four_stage_pipeline.py"
+      - "tests/test_mapping_stage_contract.py"
+      - "tests/test_domain_yaml_parity.py"
+      - "tools/scripts/audit_domain_migration.py"
+      - "tools/scripts/smoke_windows_ocr.py"
+      - "tests/test_domain_migration_audit.py"
+      - "tests/test_domain_literal_regex_parity.py"
+      - "tests/test_secondary_merge_invariants.py"
+      - "tests/contracts/**"
+      - "configs/output_schema.yaml"
+      - "tests/test_extraction_config_audit.py"
+      - "tests/test_mapped_parity_tool.py"
+      - "tools/scripts/compare_mapped.py"
+      - "tools/scripts/audit_candidate_facts.py"
+      - "tools/scripts/run_real_report_parity.py"
+      - "tools/scripts/run_candidate_report_smoke.py"
+      - "tests/test_resultbuilder_missing_helper.py"
+      - "tools/scripts/audit_extraction_config.py"
+      - ".github/workflows/config-parity.yml"
+
+jobs:
+  config-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install lightweight rule-engine test dependencies
+        run: python -m pip install pyyaml rapidfuzz pyahocorasick loguru pytest pandas httpx
+      - name: Compile modified Python sources
+        run: |
+          python -m compileall -q word_parser/application/factory.py word_parser/discovery/indicators.py word_parser/primary
+          python -m compileall -q word_parser/domains word_parser/config/domain_regex.py word_parser/application word_parser/output word_parser/mapping word_parser/secondary
+          python -m compileall -q tools/scripts/compare_mapped.py tools/scripts/audit_extraction_config.py
+          python -m compileall -q word_parser/extraction/candidate_facts.py word_parser/extraction/candidate_diagnostics.py tools/scripts/audit_candidate_facts.py
+          python -m compileall -q word_parser/secondary/table_values/resolver.py tools/scripts/run_real_report_parity.py tools/scripts/run_candidate_report_smoke.py
+      - name: Audit configuration rules
+        run: python tools/scripts/audit_extraction_config.py --config-root configs
+      - name: Check YAML parity and extraction contract
+        run: python -m pytest tests/test_factory_yaml_enforcement.py tests/test_memory_only_export.py tests/test_domain_operator_schedule.py tests/test_mapping_yaml_transforms.py tests/test_four_stage_pipeline.py tests/test_mapping_stage_contract.py tests/test_domain_literal_regex_parity.py tests/test_domain_migration_audit.py tests/test_resultbuilder_missing_helper.py tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
+
+      - name: Inventory remaining domain extraction rules
+        run: |
+          python tools/scripts/audit_domain_migration.py \
+            --root . \
+            --json-out domain_migration_inventory.json \
+            --markdown-out domain_migration_inventory.md
+      - name: Publish full domain inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: domain-migration-inventory
+          path: |
+            domain_migration_inventory.json
+            domain_migration_inventory.md
+          if-no-files-found: error
+
+  real-docx-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout current refactor
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+      - name: Checkout baseline main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install report-extraction fallback dependencies
+        run: python -m pip install pyyaml rapidfuzz pyahocorasick loguru pandas httpx regex pillow openpyxl
+      - name: Compare a real DOCX report across both full pipelines
+        run: |
+          python candidate/tools/scripts/run_real_report_parity.py \
+            --baseline-root baseline \
+            --candidate-root candidate \
+            --report 'candidate/samples/reports/项目建议书解析（陕西华电延安吴起庙沟50MW风电项目）.docx' \
+            --out-dir parity-output \
+            --timeout-seconds 900
+      - name: Upload regression summary on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docx-regression-summary
+          path: parity-output/regression_summary.json
+          if-no-files-found: ignore
+
+  real-docx-candidate-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install fallback extraction dependencies
+        run: python -m pip install pyyaml rapidfuzz pyahocorasick loguru pandas httpx regex pillow openpyxl
+      - name: Re-run two reports that crash on current main
+        run: |
+          python candidate/tools/scripts/run_candidate_report_smoke.py \
+            --candidate-root candidate \
+            --report 'candidate/samples/parsed/可研报告解析（陕西华电靖边韩家沟200MW项目）.docx' \
+            --report 'candidate/samples/parsed/可研报告解析（陕西华电白水15万千瓦项目）.docx' \
+            --out-dir candidate-smoke-output \
+            --timeout-seconds 900
+      - name: Upload smoke failure summary
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docx-candidate-smoke-summary
+          path: candidate-smoke-output/smoke_summary.json
+          if-no-files-found: ignore
+
+  windows-aspose-parity:
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: '1'
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout current refactor
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+      - name: Checkout baseline main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Aspose/.NET and parser dependencies
+        run: python -m pip install pythonnet==3.0.5 pyyaml rapidfuzz pyahocorasick loguru pandas httpx regex pillow openpyxl
+      - name: Require actual Aspose .NET loader (no SimpleDocx fallback)
+        working-directory: candidate
+        run: |
+          python -c 'from word_parser.document.word.aspose_loader import AsposeWordsLoader; a=AsposeWordsLoader(fallback_to_simple=False); r=a._load_aspose_runtime(); assert r is not None, "Aspose .NET runtime failed to load"; print("Aspose mode:", r[0]); assert r[0] == "dotnet-dll", "Expected checked-in Aspose.Words.dll mode"'
+      - name: Compare actual Windows Aspose report extraction
+        run: |
+          python candidate/tools/scripts/run_real_report_parity.py --baseline-root baseline --candidate-root candidate --report 'candidate/samples/reports/项目建议书解析（陕西华电延安吴起庙沟50MW风电项目）.docx' --out-dir windows-aspose-parity-output --timeout-seconds 1200
+      - name: Upload Windows regression diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-aspose-parity-summary
+          path: windows-aspose-parity-output/regression_summary.json
+          if-no-files-found: ignore
+
+  windows-ocr-smoke:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install optional OCR inference dependencies
+        run: python -m pip install rapidocr onnxruntime pillow loguru
+      - name: Require real OCR inference through KybgParser
+        run: python tools/scripts/smoke_windows_ocr.py

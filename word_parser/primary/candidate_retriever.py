@@ -41,13 +41,32 @@ class DocumentIndex:
 class CandidateRetriever:
     """根据字段配置从章节、段落和表格中召回候选内容。"""
 
-    def __init__(self, field_configs: dict[str, dict]):
+    def __init__(self, field_configs: dict[str, dict], settings: dict | None = None):
         """初始化召回器。
 
         参数：
             field_configs: 字段配置字典。
         """
         self.field_configs = field_configs
+        settings = settings or {}
+        # Keep the exact legacy defaults for callers not using extraction_runtime.yaml.
+        self.paragraph_alias_bonus = float(settings.get("paragraph_alias_bonus", 0.5))
+        self.paragraph_hint_bonus = float(settings.get("paragraph_hint_bonus", 0.25))
+        self.table_alias_bonus = float(settings.get("table_alias_bonus", 0.6))
+        self.table_caption_bonus = float(settings.get("table_caption_bonus", 0.4))
+        self.table_aggregate_bonus = float(settings.get("table_aggregate_bonus", 1.0))
+        self.table_hint_bonus = float(settings.get("table_hint_bonus", 0.25))
+        self.summary_fallback_score = float(settings.get("summary_fallback_score", 0.25))
+        self.summary_section_keywords = tuple(settings.get(
+            "summary_section_keywords", ("工程特性表", "综合说明")
+        ))
+        self.toc_markers = tuple(settings.get(
+            "toc_markers", ("HYPERLINK", "PAGEREF", "TOC ", "\\o ", "_Toc")
+        ))
+        self.toc_headings = frozenset(settings.get("toc_headings", ("目录", "目錄", "contents")))
+        self.toc_heading_prefix = str(settings.get("toc_heading_prefix", "目录"))
+        self.toc_heading_max_chars = int(settings.get("toc_heading_max_chars", 120))
+        self.toc_prefix_window_chars = int(settings.get("toc_prefix_window_chars", 80))
 
     def retrieve(self, ast: DocumentAST,
                  observation_hints: dict[str, dict[str, set[str]]] | None = None) -> list[Candidate]:
@@ -195,17 +214,17 @@ class CandidateRetriever:
             return False
         compact = self._compact_text(cleaned)
         lowered = cleaned.lower()
-        if any(marker.lower() in lowered for marker in ("HYPERLINK", "PAGEREF", "TOC ", "\\o ", "_Toc")):
+        if any(marker.lower() in lowered for marker in self.toc_markers):
             return True
-        if compact in {"目录", "目錄", "contents"}:
+        if compact in self.toc_headings:
             return True
-        if compact.startswith("目录") and len(compact) < 120:
+        if compact.startswith(self.toc_heading_prefix) and len(compact) < self.toc_heading_max_chars:
             return True
         toc_link_hits = len(re.findall(r"_Toc\d+|PAGEREF|HYPERLINK", cleaned, flags=re.IGNORECASE))
         if toc_link_hits >= 3:
             return True
         dotted_entries = len(re.findall(r"\d+(?:\.\d+)+[^\n]{0,50}(?:\.{3,}|…{2,}|\s{2,})\d+", cleaned))
-        return "目录" in cleaned[:80] and dotted_entries >= 2
+        return self.toc_heading_prefix in cleaned[:self.toc_prefix_window_chars] and dotted_entries >= 2
 
     def _retrieve_paragraphs_for_field(self, index: DocumentIndex, spec: FieldSpec,
                                        hint_ids: set[str] | None = None) -> list[Candidate]:
@@ -238,7 +257,7 @@ class CandidateRetriever:
                 continue
             if section_score <= 0 and not alias_hit and not hint_hit:
                 continue
-            score = section_score + (0.5 if alias_hit else 0) + (0.25 if hint_hit else 0)
+            score = section_score + (self.paragraph_alias_bonus if alias_hit else 0) + (self.paragraph_hint_bonus if hint_hit else 0)
             section_origin = self._section_origin(block.section_path, block.meta.get("canonical_sections", []), spec.config)
             result.append(
                 Candidate(
@@ -295,7 +314,7 @@ class CandidateRetriever:
             hint_only = hint_hit and not (alias_hit or caption_hit or aggregate_hit)
             if not alias_hit and not caption_hit and not aggregate_hit and not hint_only:
                 continue
-            score = section_score + (0.6 if alias_hit else 0) + (0.4 if caption_hit else 0) + (1.0 if aggregate_hit else 0) + (0.25 if hint_only else 0)
+            score = section_score + (self.table_alias_bonus if alias_hit else 0) + (self.table_caption_bonus if caption_hit else 0) + (self.table_aggregate_bonus if aggregate_hit else 0) + (self.table_hint_bonus if hint_only else 0)
             section_origin = self._section_origin(table.section_path, table.meta.get("canonical_sections", []), spec.config)
             result.append(
                 Candidate(
@@ -373,8 +392,8 @@ class CandidateRetriever:
         if matched:
             weights = config.get("source_priority", {}).get("sections", {}) or {}
             return max(float(weights.get(keyword, 1.0)) for keyword in matched)
-        if "工程特性表" in full_text or "综合说明" in full_text:
-            return 0.25
+        if any(keyword in full_text for keyword in self.summary_section_keywords):
+            return self.summary_fallback_score
         return 0.0
 
     def _section_origin(self, section_path: list[str], canonical_sections, config: dict) -> str:

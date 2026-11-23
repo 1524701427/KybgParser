@@ -13,6 +13,7 @@ from word_parser.output.detail_sources import DetailSourcesMixin
 from word_parser.output.detail_tables import DetailTablesMixin
 from word_parser.output.field_traces import FieldTracesMixin
 from word_parser.output.result_builder import ResultBuilder
+from word_parser.primary.domain_stage import DomainExtractionState
 from word_parser.mapping.projector import mapping_from_detail_json
 
 
@@ -36,10 +37,11 @@ class JsonExporter(
         self.result_builder = result_builder or ResultBuilder()
         self.output_dir = Path(output_dir)
 
-    def export(self, ctx: ParseContext, *, defer_mapping: bool = False) -> dict:
+    def export(self, ctx: ParseContext, *, defer_mapping: bool = False, prepared: DomainExtractionState | None = None, memory_only: bool = False) -> dict:
         """构建解析结果、写出三个 JSON 文件并返回同一份结果摘要。"""
         logger.info(f"开始导出解析结果：{ctx.file_path}")
-        built_result = self.result_builder.build(ctx.ast, ctx.validated, file_path=ctx.file_path)
+        built_result = (self.result_builder.build_prepared(prepared) if prepared is not None
+                        else self.result_builder.build(ctx.ast, ctx.validated, file_path=ctx.file_path))
         ctx.result = {
             "filePath": ctx.file_path,
             "sections": self._strip_private_keys(built_result.get("sections", [])),
@@ -47,9 +49,10 @@ class JsonExporter(
         detail_json = self._build_detail_json(ctx, built_result)
         mapped_json = {} if defer_mapping else self._build_mapped_json(detail_json)
         result_json = self._build_result_json(ctx)
-        self._write_output_files(ctx, detail_json, result_json, mapped_json, write_mapped=not defer_mapping)
-        logger.info(f"解析结果导出完成：{self.output_dir}")
-        return {
+        if not memory_only:
+            self._write_output_files(ctx, detail_json, result_json, mapped_json, write_mapped=not defer_mapping)
+        logger.info(f"解析结果组装完成：{self.output_dir} | 内存模式={memory_only}")
+        exported = {
             "filePath": ctx.file_path,
             "result": ctx.result,
             "fields": detail_json["fieldIndex"],
@@ -61,6 +64,11 @@ class JsonExporter(
                 "mapped": str(self._output_path(ctx, "mapped")),
             },
         }
+        if memory_only:
+            # Preserve the exact primary detail (including fieldIndex/tableIndex)
+            # for the final stage; do not publish interim JSON files.
+            exported["_primary_detail"] = self._strip_private_keys(detail_json)
+        return exported
 
     def _map_output_field_codes(self, payload: Any, map_keys: bool = False) -> Any:
         mapping = getattr(self.result_builder, "output_field_codes", {})

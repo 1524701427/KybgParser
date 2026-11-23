@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 
 from typing import Any
@@ -194,7 +196,7 @@ class InvestmentRulesMixin:
         return "\n".join(parts)
 
     def _investment_cost_standard_from_text(self, text: str) -> str | None:
-        match = re.search(r"《?\s*(?P<title>[陆路]上风电场工程设计概算编制规定及费用标准)\s*》?", text)
+        match = re.search(domain_regex(self, "investment", "search_001", r"《?\s*(?P<title>[陆路]上风电场工程设计概算编制规定及费用标准)\s*》?"), text)
         if not match:
             return None
         title = match.group("title").replace("路上", "陆上")
@@ -208,7 +210,7 @@ class InvestmentRulesMixin:
         title = match.group("title").replace("路上", "陆上")
         code = match.group("code")
         if code:
-            normalized_code = re.sub(r"\s+", "", code).replace("－", "-").replace("—", "-")
+            normalized_code = re.sub(domain_regex(self, "investment", "sub_002", r"\s+"), "", code).replace("－", "-").replace("—", "-")
             return f"《{title}》({normalized_code})"
         return f"《{title}》"
 
@@ -221,8 +223,8 @@ class InvestmentRulesMixin:
             match = re.search(pattern, text)
             if match:
                 return f"{match.group('year')}年第{self._quarter_number(match.group('quarter'))}季度"
-        material = re.search(r"材料价格[^。；;\n]{0,30}?([0-9]{4})\s*年\s*第\s*([0-9一二三四]+)\s*期", text)
-        equipment = re.search(r"设备价格[^。；;\n]{0,35}?([0-9]{4})\s*年\s*第\s*([一二三四1234])\s*季度", text)
+        material = re.search(domain_regex(self, "investment", "search_003", r"材料价格[^。；;\n]{0,30}?([0-9]{4})\s*年\s*第\s*([0-9一二三四]+)\s*期"), text)
+        equipment = re.search(domain_regex(self, "investment", "search_004", r"设备价格[^。；;\n]{0,35}?([0-9]{4})\s*年\s*第\s*([一二三四1234])\s*季度"), text)
         levels = []
         if material:
             levels.append(f"材料：{material.group(1)}年第{material.group(2)}期")
@@ -280,7 +282,7 @@ class InvestmentRulesMixin:
                 matrix = self._table_matrix(table)
                 for row in matrix:
                     label = self._row_label(row)
-                    if not re.search(r"(?:智慧管理平台|(?:集控|集中控制).*?(?:场站侧|平台).*?费用?)", label):
+                    if not re.search(domain_regex(self, "investment", "search_005", r"(?:智慧管理平台|(?:集控|集中控制).*?(?:场站侧|平台).*?费用?)"), label):
                         continue
                     amount = self._amount_numeric_cell(row)
                     if amount is not None:

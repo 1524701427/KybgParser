@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex, domain_strings
+
 import re
 
 from typing import Any
@@ -37,26 +39,26 @@ class FinanceRulesMixin:
             header = matrix[0] if matrix else []
             data_row = matrix[1] if len(matrix) > 1 else []
             if "项目总投资" in " | ".join(header) and data_row:
-                row["projectTotalInvestment"] = row["projectTotalInvestment"] or self._cell_at_alias(header, data_row, ["项目总投资"])
-                row["totalCost"] = row["totalCost"] or self._cell_at_alias(header, data_row, ["总成本费用"])
-                row["workingCapitalLoanRatio"] = row["workingCapitalLoanRatio"] or self._cell_at_alias(header, data_row, ["流动资金贷款比例", "贷款比例"])
-                row["workingCapitalCapitalRatio"] = row["workingCapitalCapitalRatio"] or self._cell_at_alias(header, data_row, ["流动资本金比例", "流动资金自有资金比例"])
-                row["workingCapitalLoanInterestRate"] = row["workingCapitalLoanInterestRate"] or self._cell_at_alias(header, data_row, ["流动资金贷款利率", "贷款利率"])
-                row["constructionCapitalRatio"] = row["constructionCapitalRatio"] or self._cell_at_alias(header, data_row, ["建设资本金比例", "资本金比例"])
-                row["constructionFundLoanRatio"] = row["constructionFundLoanRatio"] or self._cell_at_alias(header, data_row, ["建设资金贷款比例"])
-                row["repaymentMethod"] = row["repaymentMethod"] or self._cell_at_alias(header, data_row, ["还款方式"])
-                row["repaymentPeriod"] = row["repaymentPeriod"] or self._cell_at_alias(header, data_row, ["偿还年限"])
-                row["annualLoanInterestRate"] = row["annualLoanInterestRate"] or self._cell_at_alias(header, data_row, ["年贷款利率"])
+                row["projectTotalInvestment"] = row["projectTotalInvestment"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_001", ["项目总投资"]))
+                row["totalCost"] = row["totalCost"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_002", ["总成本费用"]))
+                row["workingCapitalLoanRatio"] = row["workingCapitalLoanRatio"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_003", ["流动资金贷款比例", "贷款比例"]))
+                row["workingCapitalCapitalRatio"] = row["workingCapitalCapitalRatio"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_004", ["流动资本金比例", "流动资金自有资金比例"]))
+                row["workingCapitalLoanInterestRate"] = row["workingCapitalLoanInterestRate"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_005", ["流动资金贷款利率", "贷款利率"]))
+                row["constructionCapitalRatio"] = row["constructionCapitalRatio"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_006", ["建设资本金比例", "资本金比例"]))
+                row["constructionFundLoanRatio"] = row["constructionFundLoanRatio"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_007", ["建设资金贷款比例"]))
+                row["repaymentMethod"] = row["repaymentMethod"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_008", ["还款方式"]))
+                row["repaymentPeriod"] = row["repaymentPeriod"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_009", ["偿还年限"]))
+                row["annualLoanInterestRate"] = row["annualLoanInterestRate"] or self._cell_at_alias(header, data_row, domain_strings(self, "finance", "list_010", ["年贷款利率"]))
             if "项目总投资" in text and row["projectTotalInvestment"] is None:
-                row["projectTotalInvestment"] = self._value_by_row_label(matrix, ["项目总投资"], prefer_total=True)
+                row["projectTotalInvestment"] = self._value_by_row_label(matrix, domain_strings(self, "finance", "list_011", ["项目总投资"]), prefer_total=True)
             if "总成本费用" in text and row["totalCost"] is None:
-                row["totalCost"] = self._value_by_row_label(matrix, ["总成本费用"], prefer_total=True)
+                row["totalCost"] = self._value_by_row_label(matrix, domain_strings(self, "finance", "list_012", ["总成本费用"]), prefer_total=True)
             if "流动资金" in text and row["workingCapital"] is None:
-                row["workingCapital"] = self._value_by_row_label(matrix, ["流动资金"], prefer_total=True)
+                row["workingCapital"] = self._value_by_row_label(matrix, domain_strings(self, "finance", "list_013", ["流动资金"]), prefer_total=True)
             if "流动资金" in text and row["workingCapitalUnitKwIndicator"] is None:
-                row["workingCapitalUnitKwIndicator"] = self._value_by_row_label(matrix, ["流动资金单位千瓦指标", "估算指标"])
+                row["workingCapitalUnitKwIndicator"] = self._value_by_row_label(matrix, domain_strings(self, "finance", "list_014", ["流动资金单位千瓦指标", "估算指标"]))
             if "建设期" in text and row["constructionPeriodYears"] is None:
-                period = self._value_by_row_label(matrix, ["建设期"], unit_hint="年")
+                period = self._value_by_row_label(matrix, domain_strings(self, "finance", "list_015", ["建设期"]), unit_hint="年")
                 if isinstance(period, (int, float)) and period <= 20:
                     row["constructionPeriodYears"] = period
         self._supplement_financing_row_from_text(ast, row)
@@ -67,21 +69,21 @@ class FinanceRulesMixin:
         if row.get("constructionPeriodYears") is None:
             value = self._first_matching_text(
                 text,
-                [r"建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))", r"其中建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))"],
+                domain_strings(self, "finance", "list_016", [r"建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))", r"其中建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))"]),
             )
             row["constructionPeriodYears"] = value
         if row.get("constructionCapitalRatio") is None:
             row["constructionCapitalRatio"] = self._first_matching_number(
                 text,
-                [r"资本金占(?:静态投资|动态投资|总投资)?的?\s*([0-9]+(?:\.[0-9]+)?)%"],
+                domain_strings(self, "finance", "list_017", [r"资本金占(?:静态投资|动态投资|总投资)?的?\s*([0-9]+(?:\.[0-9]+)?)%"]),
             )
         if row.get("constructionFundLoanRatio") is None:
             value = self._first_matching_number(
                 text,
-                [
+                domain_strings(self, "finance", "list_018", [
                     r"总投资的\s*([0-9]+(?:\.[0-9]+)?)%\s*利用[^。；;\n]{0,20}?贷款",
                     r"资本金占(?:动态投资|总投资)?的?\s*([0-9]+(?:\.[0-9]+)?)%[^。；;\n]{0,40}?贷款",
-                ],
+                ]),
             )
             if isinstance(value, (int, float)) and value < 50:
                 value = self._clean_number(100 - float(value))
@@ -89,34 +91,34 @@ class FinanceRulesMixin:
         if row.get("workingCapitalLoanRatio") is None:
             row["workingCapitalLoanRatio"] = self._first_matching_number(
                 text,
-                [r"流动资金[^。；;\n]{0,120}?([0-9]+(?:\.[0-9]+)?)%\s*采用[^。；;\n]{0,20}?贷款"],
+                domain_strings(self, "finance", "list_019", [r"流动资金[^。；;\n]{0,120}?([0-9]+(?:\.[0-9]+)?)%\s*采用[^。；;\n]{0,20}?贷款"]),
             )
         if row.get("workingCapitalUnitKwIndicator") is None:
             row["workingCapitalUnitKwIndicator"] = self._first_matching_number(
                 text,
-                [r"流动资金[^。；;\n]{0,80}?估算指标为\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW"],
+                domain_strings(self, "finance", "list_020", [r"流动资金[^。；;\n]{0,80}?估算指标为\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW"]),
             )
         if row.get("workingCapitalCapitalRatio") is None:
             row["workingCapitalCapitalRatio"] = self._first_matching_number(
                 text,
-                [r"流动资金[^。；;\n]{0,120}?其中\s*([0-9]+(?:\.[0-9]+)?)%\s*为(?:自有资金|资本金)"],
+                domain_strings(self, "finance", "list_021", [r"流动资金[^。；;\n]{0,120}?其中\s*([0-9]+(?:\.[0-9]+)?)%\s*为(?:自有资金|资本金)"]),
             )
         if row.get("workingCapitalLoanInterestRate") is None:
             row["workingCapitalLoanInterestRate"] = self._first_matching_number(
                 text,
-                [r"流动资金[^。；;\n]{0,120}?贷款年利率为\s*([0-9]+(?:\.[0-9]+)?)%"],
+                domain_strings(self, "finance", "list_022", [r"流动资金[^。；;\n]{0,120}?贷款年利率为\s*([0-9]+(?:\.[0-9]+)?)%"]),
             )
         if row.get("repaymentPeriod") is None:
             row["repaymentPeriod"] = self._first_matching_number(
                 text,
-                [r"贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"银行\s*\d*\s*贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年"],
+                domain_strings(self, "finance", "list_023", [r"贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"银行\s*\d*\s*贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年"]),
             )
-        if row.get("repaymentMethod") is None and re.search(r"等额(?:还本|本)利息照付", text):
+        if row.get("repaymentMethod") is None and re.search(domain_regex(self, "finance", "search_001", r"等额(?:还本|本)利息照付"), text):
             row["repaymentMethod"] = "每年按贷款等额还本利息照付"
         if row.get("annualLoanInterestRate") is None:
             row["annualLoanInterestRate"] = self._first_matching_number(
                 text,
-                [r"年贷款利率为\s*([0-9]+(?:\.[0-9]+)?)%", r"五年期及以上年贷款利率按\s*([0-9]+(?:\.[0-9]+)?)%"],
+                domain_strings(self, "finance", "list_024", [r"年贷款利率为\s*([0-9]+(?:\.[0-9]+)?)%", r"五年期及以上年贷款利率按\s*([0-9]+(?:\.[0-9]+)?)%"]),
             )
 
     def _financial_evaluation_table_from_document(self, ast: DocumentAST) -> dict[str, Any] | None:
@@ -137,23 +139,23 @@ class FinanceRulesMixin:
             index = text.find(marker)
             if index >= 0:
                 tail = text[index : index + 80]
-                match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]", tail)
+                match = re.search(domain_regex(self, "finance", "search_002", r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]"), tail)
                 if match:
                     row["insuranceRate"] = self._clean_number(float(match.group(1)))
         if row["materialCost"] is None:
             row["materialCost"] = self._first_matching_number(
                 text,
-                [r"材料费[^。；;\n]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*万元"],
+                domain_strings(self, "finance", "list_025", [r"材料费[^。；;\n]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*万元"]),
             )
         if row["otherCost"] is None:
             row["otherCost"] = self._first_matching_number(
                 text,
-                [r"其他费用[^。；;\n]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*(?:元/kW|万元)", r"其他费用取\s*([0-9]+(?:\.[0-9]+)?)\s*(?:元/kW|万元)"],
+                domain_strings(self, "finance", "list_026", [r"其他费用[^。；;\n]{0,60}?([0-9]+(?:\.[0-9]+)?)\s*(?:元/kW|万元)", r"其他费用取\s*([0-9]+(?:\.[0-9]+)?)\s*(?:元/kW|万元)"]),
             )
         if row["landUseTax"] is None:
             row["landUseTax"] = self._first_matching_number(
                 text,
-                [r"土地使用税[^。；;\n]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*万元", r"土地使用税每年取\s*([0-9]+(?:\.[0-9]+)?)\s*万元"],
+                domain_strings(self, "finance", "list_027", [r"土地使用税[^。；;\n]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*万元", r"土地使用税每年取\s*([0-9]+(?:\.[0-9]+)?)\s*万元"]),
             )
         for table in ast.tables:
             section_text = " / ".join(table.section_path)
@@ -162,13 +164,13 @@ class FinanceRulesMixin:
             if "财务评价" not in section_text and "财务评价" not in text:
                 continue
             if "材料费" in text:
-                row["materialCost"] = row["materialCost"] or self._value_by_row_label(matrix, ["材料费"], prefer_total=True)
+                row["materialCost"] = row["materialCost"] or self._value_by_row_label(matrix, domain_strings(self, "finance", "list_028", ["材料费"]), prefer_total=True)
             if "其他费用" in text:
-                row["otherCost"] = row["otherCost"] or self._value_by_row_label(matrix, ["其他费用"], prefer_total=True)
+                row["otherCost"] = row["otherCost"] or self._value_by_row_label(matrix, domain_strings(self, "finance", "list_029", ["其他费用"]), prefer_total=True)
             if "土地使用税" in text:
-                row["landUseTax"] = row["landUseTax"] or self._value_by_row_label(matrix, ["土地使用税"], prefer_total=True)
+                row["landUseTax"] = row["landUseTax"] or self._value_by_row_label(matrix, domain_strings(self, "finance", "list_030", ["土地使用税"]), prefer_total=True)
             if ("上网电价" in text or "风电场上网电价" in text) and row["windFarmGridPrice"] is None:
-                price = self._value_by_row_label(matrix, ["风电场上网电价", "上网电价"])
+                price = self._value_by_row_label(matrix, domain_strings(self, "finance", "list_031", ["风电场上网电价", "上网电价"]))
                 if isinstance(price, (int, float)) and 0 < price < 2:
                     row["windFarmGridPrice"] = price
         return self._schema_row_table("financialEvaluation", row) if any(value is not None for value in row.values()) else None
@@ -205,7 +207,7 @@ class FinanceRulesMixin:
         )
 
     def _looks_like_financial_indicator_summary_table(self, caption_text: str, header_text: str, table_text: str) -> bool:
-        if re.search(r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表", caption_text):
+        if re.search(domain_regex(self, "finance", "search_003", r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表"), caption_text):
             return True
         if "财务指标汇总表" in caption_text:
             return True
@@ -231,7 +233,7 @@ class FinanceRulesMixin:
 
     def _financial_indicator_summary_score(self, context: str, header_text: str) -> int:
         score = 0
-        if re.search(r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表", context):
+        if re.search(domain_regex(self, "finance", "search_004", r"(?:附表|表)\s*16(?:\.1)?\s*财务指标汇总表"), context):
             score += 20
         if any(keyword in context for keyword in ("财务指标汇总", "财务指标表", "主要财务指标", "财务评价指标", "财务分析指标", "经济评价指标")):
             score += 8
@@ -295,7 +297,7 @@ class FinanceRulesMixin:
     def _normalize_staff_salary(self, value: Any) -> Any:
         if not isinstance(value, str):
             return value
-        found = re.search(r"(\d+(?:\.\d+)?)\s*万元", value)
+        found = re.search(domain_regex(self, "finance", "search_005", r"(\d+(?:\.\d+)?)\s*万元"), value)
         return f"人均年工资{found.group(1)}万元" if found else value
 
     def _irr_pair(self, fields: dict[str, ParsedField]) -> str | None:
@@ -313,27 +315,27 @@ class FinanceRulesMixin:
             index = text.find(marker)
             if index >= 0:
                 tail = text[index : index + 80]
-                match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]", tail)
+                match = re.search(domain_regex(self, "finance", "search_006", r"([0-9]+(?:\.[0-9]+)?)\s*[%%％]"), tail)
                 if match:
                     self._set_field(fields, "insuranceRate", "保险费率", self._clean_number(float(match.group(1))), "%", marker, source_type="regex")
         specs: dict[str, tuple[str, Any, str | None]] = {
-            "depreciationYears": ("折旧年限", self._first_matching_number(text, [r"折旧年限按\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"折旧年限[^。；;\n]{0,20}?([0-9]+(?:\.[0-9]+)?)\s*年"]), "年"),
-            "salvageRate": ("残值率", self._first_matching_number(text, [r"残值率\s*([0-9]+(?:\.[0-9]+)?)%", r"残值率[^0-9]{0,10}([0-9]+(?:\.[0-9]+)?)%"]), "%"),
-            "repairCost": ("修理费", self._first_matching_text(text, [r"(修理费采用分段取费计算[\s\S]{0,220}?其余年份取\s*[0-9]+(?:\.[0-9]+)?\s*元/kW)", r"(修理费率[\s\S]{0,220}?其余年份取\s*[0-9]+(?:\.[0-9]+)?\s*元/kW)"]), None),
-            "materialCostPerKw": ("材料费（元/KW）", self._first_matching_number(text, [r"材料费(?:定额)?取\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW"]) or self._first_matching_text(text, [r"(材料费采用分段取费计算[\s\S]{0,220}?其余年份取\s*[0-9]+(?:\.[0-9]+)?\s*元/kW)", r"(材料费[^。；;\n]{0,180}?(?:元/kW|元/KW)[^。；;\n]{0,120})"]), None),
-            "constructionPeriodYears": ("建设期（月/年)", self._first_matching_text(text, [r"建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))", r"其中建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))"]), None),
-            "workingCapitalUnitKwIndicator": ("流动资金单位千瓦指标", self._first_matching_number(text, [r"流动资金按\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW\s*估算", r"流动资金[^。；;\n]{0,80}?估算指标为\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW"]), "元/KW"),
-            "workingCapitalLoanRatio": ("流动资金贷款比例", self._first_matching_number(text, [r"流动资金[^。；;\n]{0,120}?([0-9]+(?:\.[0-9]+)?)%\s*采用[^。；;\n]{0,20}?贷款"]), "%"),
-            "workingCapitalCapitalRatio": ("流动资本金比例", self._first_matching_number(text, [r"流动资金[^。；;\n]{0,120}?其中\s*([0-9]+(?:\.[0-9]+)?)%\s*为(?:自有资金|资本金)"]), "%"),
-            "workingCapitalLoanInterestRate": ("流动资金贷款利率", self._first_matching_number(text, [r"流动资金[^。；;\n]{0,120}?贷款年利率为\s*([0-9]+(?:\.[0-9]+)?)%"]), "%"),
-            "constructionCapitalRatio": ("建设资本金比例", self._first_matching_number(text, [r"资本金占(?:静态投资|动态投资|总投资)?的?\s*([0-9]+(?:\.[0-9]+)?)%"]), "%"),
+            "depreciationYears": ("折旧年限", self._first_matching_number(text, domain_strings(self, "finance", "list_032", [r"折旧年限按\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"折旧年限[^。；;\n]{0,20}?([0-9]+(?:\.[0-9]+)?)\s*年"])), "年"),
+            "salvageRate": ("残值率", self._first_matching_number(text, domain_strings(self, "finance", "list_033", [r"残值率\s*([0-9]+(?:\.[0-9]+)?)%", r"残值率[^0-9]{0,10}([0-9]+(?:\.[0-9]+)?)%"])), "%"),
+            "repairCost": ("修理费", self._first_matching_text(text, domain_strings(self, "finance", "list_034", [r"(修理费采用分段取费计算[\s\S]{0,220}?其余年份取\s*[0-9]+(?:\.[0-9]+)?\s*元/kW)", r"(修理费率[\s\S]{0,220}?其余年份取\s*[0-9]+(?:\.[0-9]+)?\s*元/kW)"])), None),
+            "materialCostPerKw": ("材料费（元/KW）", self._first_matching_number(text, domain_strings(self, "finance", "list_035", [r"材料费(?:定额)?取\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW"])) or self._first_matching_text(text, domain_strings(self, "finance", "list_036", [r"(材料费采用分段取费计算[\s\S]{0,220}?其余年份取\s*[0-9]+(?:\.[0-9]+)?\s*元/kW)", r"(材料费[^。；;\n]{0,180}?(?:元/kW|元/KW)[^。；;\n]{0,120})"])), None),
+            "constructionPeriodYears": ("建设期（月/年)", self._first_matching_text(text, domain_strings(self, "finance", "list_037", [r"建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))", r"其中建设期\s*([0-9]+(?:\.[0-9]+)?\s*(?:年|个月|月))"])), None),
+            "workingCapitalUnitKwIndicator": ("流动资金单位千瓦指标", self._first_matching_number(text, domain_strings(self, "finance", "list_038", [r"流动资金按\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW\s*估算", r"流动资金[^。；;\n]{0,80}?估算指标为\s*([0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW"])), "元/KW"),
+            "workingCapitalLoanRatio": ("流动资金贷款比例", self._first_matching_number(text, domain_strings(self, "finance", "list_039", [r"流动资金[^。；;\n]{0,120}?([0-9]+(?:\.[0-9]+)?)%\s*采用[^。；;\n]{0,20}?贷款"])), "%"),
+            "workingCapitalCapitalRatio": ("流动资本金比例", self._first_matching_number(text, domain_strings(self, "finance", "list_040", [r"流动资金[^。；;\n]{0,120}?其中\s*([0-9]+(?:\.[0-9]+)?)%\s*为(?:自有资金|资本金)"])), "%"),
+            "workingCapitalLoanInterestRate": ("流动资金贷款利率", self._first_matching_number(text, domain_strings(self, "finance", "list_041", [r"流动资金[^。；;\n]{0,120}?贷款年利率为\s*([0-9]+(?:\.[0-9]+)?)%"])), "%"),
+            "constructionCapitalRatio": ("建设资本金比例", self._first_matching_number(text, domain_strings(self, "finance", "list_042", [r"资本金占(?:静态投资|动态投资|总投资)?的?\s*([0-9]+(?:\.[0-9]+)?)%"])), "%"),
             "constructionFundLoanRatio": ("建设资金贷款比例", None, "%"),
-            "repaymentMethod": ("还款方式", self._first_matching_text(text, [r"((?:每年)?按贷款等额(?:还本|本)利息照付)"]), None),
-            "repaymentPeriod": ("偿还年限", self._first_matching_number(text, [r"银行\s*\d*\s*贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年"]), "年"),
-            "annualLoanInterestRate": ("年贷款利率", self._first_matching_number(text, [r"年贷款利率为\s*([0-9]+(?:\.[0-9]+)?)%", r"五年期及以上年贷款利率按\s*([0-9]+(?:\.[0-9]+)?)%"]), "%"),
-            "staffingCount": ("定员人数", self._first_matching_number(text, [r"风电场定员\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*人", r"定员\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*人"]), "人"),
-            "staffSalary": ("人员工资", self._first_matching_number(text, [r"(?:人年均工资|人均年工资|年工资)按\s*([0-9]+(?:\.[0-9]+)?)\s*万元", r"人员工资[^。；;\n]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*万元"]), "万元"),
-            "welfareOtherRatio": ("职工福利费及其他占比", self._first_matching_number(text, [r"职工福利费及其他[\s\S]{0,80}?工资总(?:额)?的\s*([0-9]+(?:\.[0-9]+)?)%", r"职工福利费[\s\S]{0,80}?工资总(?:额)?的\s*([0-9]+(?:\.[0-9]+)?)%", r"职工福利费[^\d]{0,80}?([0-9]+(?:\.[0-9]+)?)%"]), "%"),
+            "repaymentMethod": ("还款方式", self._first_matching_text(text, domain_strings(self, "finance", "list_043", [r"((?:每年)?按贷款等额(?:还本|本)利息照付)"])), None),
+            "repaymentPeriod": ("偿还年限", self._first_matching_number(text, domain_strings(self, "finance", "list_044", [r"银行\s*\d*\s*贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年", r"贷款偿还期为\s*([0-9]+(?:\.[0-9]+)?)\s*年"])), "年"),
+            "annualLoanInterestRate": ("年贷款利率", self._first_matching_number(text, domain_strings(self, "finance", "list_045", [r"年贷款利率为\s*([0-9]+(?:\.[0-9]+)?)%", r"五年期及以上年贷款利率按\s*([0-9]+(?:\.[0-9]+)?)%"])), "%"),
+            "staffingCount": ("定员人数", self._first_matching_number(text, domain_strings(self, "finance", "list_046", [r"风电场定员\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*人", r"定员\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*人"])), "人"),
+            "staffSalary": ("人员工资", self._first_matching_number(text, domain_strings(self, "finance", "list_047", [r"(?:人年均工资|人均年工资|年工资)按\s*([0-9]+(?:\.[0-9]+)?)\s*万元", r"人员工资[^。；;\n]{0,40}?([0-9]+(?:\.[0-9]+)?)\s*万元"])), "万元"),
+            "welfareOtherRatio": ("职工福利费及其他占比", self._first_matching_number(text, domain_strings(self, "finance", "list_048", [r"职工福利费及其他[\s\S]{0,80}?工资总(?:额)?的\s*([0-9]+(?:\.[0-9]+)?)%", r"职工福利费[\s\S]{0,80}?工资总(?:额)?的\s*([0-9]+(?:\.[0-9]+)?)%", r"职工福利费[^\d]{0,80}?([0-9]+(?:\.[0-9]+)?)%"])), "%"),
         }
         capital_ratio = specs["constructionCapitalRatio"][1]
         if specs["constructionFundLoanRatio"][1] is None and isinstance(capital_ratio, (int, float)):
@@ -392,7 +394,7 @@ class FinanceRulesMixin:
 
         method = fields.get("repaymentMethod")
         if method is None or method.value is None:
-            match = re.search(r"(?:长期借款|贷款)[^。；;]{0,20}?(?:采用|按)\s*(等额还本利息照付)(?:方式)?", text)
+            match = re.search(domain_regex(self, "finance", "search_007", r"(?:长期借款|贷款)[^。；;]{0,20}?(?:采用|按)\s*(等额还本利息照付)(?:方式)?"), text)
             if match:
                 self._set_field(
                     fields, "repaymentMethod", "还款方式", match.group(1), None,
@@ -471,8 +473,8 @@ class FinanceRulesMixin:
             values[label] = self._normalize_scalar(match.group("value"))
         if values:
             return values
-        inline = re.findall(r"(?:限电率|弃电率)[^。；;\n]{0,120}", text)
-        found = [self._normalize_scalar(value) for part in inline for value in re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*%", part)]
+        inline = re.findall(domain_regex(self, "finance", "findall_008", r"(?:限电率|弃电率)[^。；;\n]{0,120}"), text)
+        found = [self._normalize_scalar(value) for part in inline for value in re.findall(domain_regex(self, "finance", "findall_009", r"([0-9]+(?:\.[0-9]+)?)\s*%"), part)]
         unique = []
         for value in found:
             if value not in unique:
@@ -484,7 +486,7 @@ class FinanceRulesMixin:
             return next(iter(segments.values()))
         if segments:
             return None
-        match = re.search(r"(?:限电率|弃电率)[^0-9%]{0,20}([0-9]+(?:\.[0-9]+)?)\s*%", text)
+        match = re.search(domain_regex(self, "finance", "search_010", r"(?:限电率|弃电率)[^0-9%]{0,20}([0-9]+(?:\.[0-9]+)?)\s*%"), text)
         return self._normalize_scalar(match.group(1)) if match else None
 
     def _finance_curtailment_on_grid_energy_mwh(self, text: str) -> Any:
@@ -503,19 +505,19 @@ class FinanceRulesMixin:
     def _finance_curtailment_full_load_hours(self, text: str) -> Any:
         context = self._keyword_window(text, ["限电率", "弃电率"], 260) or text
         after_curtailment = re.search(
-            r"(?:考虑弃电后|弃电后|限电后)[^。；;\n]{0,100}?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h",
+            domain_regex(self, "finance", "search_011", r"(?:考虑弃电后|弃电后|限电后)[^。；;\n]{0,100}?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h"),
             context, flags=re.IGNORECASE,
         )
         if after_curtailment:
             return self._normalize_scalar(after_curtailment.group(1))
-        match = re.search(r"(?:限电后|考虑弃电后)?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h", context, flags=re.IGNORECASE)
+        match = re.search(domain_regex(self, "finance", "search_012", r"(?:限电后|考虑弃电后)?(?:年)?等效满负荷小时数[^0-9。；;\n]{0,20}([0-9]+(?:\.[0-9]+)?)\s*h"), context, flags=re.IGNORECASE)
         return self._normalize_scalar(match.group(1)) if match else None
 
     def _energy_value_to_mwh(self, value_text: str, unit: str) -> Any:
         value = self._normalize_scalar(value_text)
         if not isinstance(value, (int, float)):
             return None
-        normalized_unit = re.sub(r"\s+", "", unit)
+        normalized_unit = re.sub(domain_regex(self, "finance", "sub_013", r"\s+"), "", unit)
         if "万" in normalized_unit:
             return self._clean_number(float(value) * 10)
         return value
@@ -604,7 +606,7 @@ class FinanceRulesMixin:
     def _capital_irr_values_from_financial_indicator_matrix(self, matrix: list[list[str]], table: DocumentTable) -> list[tuple[Any, str, DocumentTable]]:
         header_index = self._financial_indicator_header_index(matrix)
         header = matrix[header_index] if header_index is not None else matrix[0]
-        label_index = self._find_header_index(header, ["项目", "指标", "名称"])
+        label_index = self._find_header_index(header, domain_strings(self, "finance", "list_049", ["项目", "指标", "名称"]))
         unit_indices = {index for index, value in enumerate(header) if any(keyword in value for keyword in ("单位", "序号", "编号"))}
         data_rows = matrix[(header_index + 1 if header_index is not None else 1) :]
         values: list[tuple[Any, str, DocumentTable]] = []

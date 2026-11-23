@@ -1,0 +1,16 @@
+# 最终映射阶段：只允许已注册的 Python 方法，保持原有执行顺序及选值规则。
+# 此列表控制映射后处理顺序，抽取字段规则仍在 fields/*.yaml。
+version: 1
+compatibility_mode: strict_legacy_order
+operators:
+  - sync_secondary_outputs
+  - combine_finance_cost
+  - combine_finance_price
+  - align_combined_tables
+  - hide_duplicate_combined_fields
+  - fill_transformers
+  - fill_station_transformers
+  - map_final_investment
+  - merge_turbulence
+  - fill_missing_final_fields
+  - validate_final_mapping

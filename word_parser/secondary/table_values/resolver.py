@@ -27,6 +27,30 @@ from word_parser.secondary.table_values.locator import TableLocatorMixin
 
 
 class TableValueResolver(RuleExpansionMixin, CellOperationsMixin, ProjectionOperationsMixin, TableLocatorMixin):
+
+    # Operators continue to be selected by table_field_extractors.yaml.
+    # The dispatch registry replaces the growing Python if/elif chain without
+    # modifying the existing operator implementations or their output types.
+    _FIELD_OPERATIONS = {
+        "cell": "_extract_cell",
+        "max_row_label": "_extract_max_row_label",
+        "sector_max": "_extract_sector_max",
+        "column_values": "_extract_column_values",
+        "cell_series": "_extract_cell_series",
+        "cell_ratio": "_extract_cell_ratio",
+        "sum_fields": "_extract_sum_fields",
+    }
+    _MULTI_FIELD_OPERATIONS = {
+        "cell_items": "_extract_cell_items",
+        "investment_group_fields": "_extract_investment_group_fields",
+    }
+    _TABLE_OPERATIONS = {
+        "table_projection": "_extract_table_projection",
+        "filter_table_projection": "_extract_filter_table_projection",
+        "copy_table": "_extract_copy_table",
+    }
+
+
     """从 result.json 已有表格中执行配置化二次抽取。
 
     支持的操作包括：
@@ -72,32 +96,16 @@ class TableValueResolver(RuleExpansionMixin, CellOperationsMixin, ProjectionOper
         context = ResultContext(enhanced)
         for rule in self._expand_rules(self.rules, context):
             operation = str(rule.get("operation") or "cell")
-            if operation == "cell":
-                context.add_table_field(self._extract_cell(context, rule))
-            elif operation == "cell_items":
-                for field in self._extract_cell_items(context, rule):
+            if operation in self._FIELD_OPERATIONS:
+                handler = getattr(self, self._FIELD_OPERATIONS[operation])
+                context.add_table_field(handler(context, rule))
+            elif operation in self._MULTI_FIELD_OPERATIONS:
+                handler = getattr(self, self._MULTI_FIELD_OPERATIONS[operation])
+                for field in handler(context, rule):
                     context.add_table_field(field)
-            elif operation == "investment_group_fields":
-                for field in self._extract_investment_group_fields(context, rule):
-                    context.add_table_field(field)
-            elif operation == "max_row_label":
-                context.add_table_field(self._extract_max_row_label(context, rule))
-            elif operation == "sector_max":
-                context.add_table_field(self._extract_sector_max(context, rule))
-            elif operation == "column_values":
-                context.add_table_field(self._extract_column_values(context, rule))
-            elif operation == "cell_series":
-                context.add_table_field(self._extract_cell_series(context, rule))
-            elif operation == "cell_ratio":
-                context.add_table_field(self._extract_cell_ratio(context, rule))
-            elif operation == "sum_fields":
-                context.add_table_field(self._extract_sum_fields(context, rule))
-            elif operation == "table_projection":
-                context.add_derived_table(self._extract_table_projection(context, rule))
-            elif operation == "filter_table_projection":
-                context.add_derived_table(self._extract_filter_table_projection(context, rule))
-            elif operation == "copy_table":
-                context.add_derived_table(self._extract_copy_table(context, rule))
+            elif operation in self._TABLE_OPERATIONS:
+                handler = getattr(self, self._TABLE_OPERATIONS[operation])
+                context.add_derived_table(handler(context, rule))
             else:
                 context.add_table_field(nil_field(rule, "unsupported_operation", f"不支持的二次抽取操作：{operation}"))
         summary = context.summary()

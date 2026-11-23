@@ -13,6 +13,7 @@ from word_parser.document.ast.document import DocumentAST
 
 from word_parser.document.ast.evidence import ParsedField
 from word_parser.output.builder_support.explicit_text_fallback import explicit_text_values
+from word_parser.primary.domain_dispatch import apply_domain_field_operators, collect_domain_scalar_overrides
 
 
 class DeterministicRulesMixin:
@@ -112,31 +113,15 @@ class DeterministicRulesMixin:
             | self.WIND_FOUNDATION_TABLE_PREFERRED_FIELD_CODES
         )
         combined_skip_codes = configured_scalar_override_codes - table_preferred_codes
-        self._apply_land_field_overrides(fields, details)
-        self._drop_combined_detail_only_field_candidates(fields, skip_codes=combined_skip_codes)
-        self._apply_combined_detail_field_overrides(fields, details, skip_codes=combined_skip_codes)
-        self._apply_wind_resource_collection_overrides(ast, fields, details, skip_codes=combined_skip_codes)
-        self._apply_road_parameter_field_overrides(fields, details, skip_codes=combined_skip_codes)
-        self._apply_electrical_primary_table_field_overrides(ast, fields, skip_codes=combined_skip_codes)
-        self._apply_generation_field_overrides(ast, fields, skip_codes=generation_skip_codes)
-        self._apply_wind_foundation_table_field_overrides(ast, fields, skip_codes=combined_skip_codes)
-        self._apply_finance_field_overrides(ast, fields, skip_codes=configured_scalar_override_codes)
-        self._apply_earthwork_field_overrides(ast, fields, skip_codes=configured_scalar_override_codes)
-        self._apply_investment_summary_field_overrides(ast, fields, skip_codes=configured_scalar_override_codes)
-        self._apply_cover_text_overrides(ast, fields)
-        self._apply_cover_ocr_overrides(ast, fields)
-        overrides = self._extract_scalar_overrides(ast, skip_codes=configured_scalar_override_codes)
-        overrides.update(configured_scalar_overrides)
-        overrides.update(self._common_project_overview_scalar_override_values(ast))
-        overrides.update(self._geology_scalar_override_values(ast))
-        overrides.update(self._resource_scalar_override_values(ast))
-        overrides.update(self._environmental_water_conservation_scalar_values(ast, skip_codes=configured_scalar_override_codes))
-        overrides.update(self._investment_basis_scalar_values(ast, skip_codes=configured_scalar_override_codes))
-        overrides.update(self._finance_curtailment_scalar_values(ast, skip_codes=configured_scalar_override_codes))
-        overrides.update(self._finance_grid_price_scalar_values(ast, skip_codes=configured_scalar_override_codes))
-        overrides.update(self._finance_text_scalar_override_values(ast, skip_codes=configured_scalar_override_codes))
-        overrides.update(self._finance_capital_irr_scalar_values(ast, skip_codes=configured_scalar_override_codes))
-        overrides.update(self._finance_table_scalar_override_values(ast, skip_codes=configured_scalar_override_codes))
+        apply_domain_field_operators(
+            self, ast, fields, details,
+            configured_scalar_codes=configured_scalar_override_codes,
+            combined_skip_codes=combined_skip_codes,
+            generation_skip_codes=generation_skip_codes,
+        )
+        overrides = collect_domain_scalar_overrides(
+            self, ast, configured_scalar_overrides, configured_scalar_override_codes,
+        )
         explicit_road_table_keys = self._road_parameter_row_from_tables(ast)[1] if ast is not None else set()
         for code, override in overrides.items():
             name, value, unit, evidence_text, *rest = override

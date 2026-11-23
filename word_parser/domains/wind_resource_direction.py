@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -26,14 +28,14 @@ class WindDirectionRulesMixin:
                 for occurrence in re.finditer(re.escape(code), text):
                     position = occurrence.start()
                     window_end = position + 600
-                    next_tower = re.search(r"[A-Za-z0-9]{2,8}#", text[position + len(code) : window_end])
+                    next_tower = re.search(domain_regex(self, "wind_resource_direction", "search_001", r"[A-Za-z0-9]{2,8}#"), text[position + len(code) : window_end])
                     if next_tower:
                         window_end = position + len(code) + next_tower.start()
                     window = text[position:window_end]
-                    direction_match = re.search(r"(?:主导风向|主风向)为\s*([A-Z]{1,4})", window)
-                    secondary_direction_match = re.search(r"(?:次主导风向|次主风向|次风向)(?:为)?\s*([A-Z]{1,4})", window)
-                    energy_match = re.search(r"(?:主导风能方向|主风能方向)为\s*([A-Z]{1,4})", window)
-                    secondary_energy_match = re.search(r"(?:次主导风能方向|次主风能方向|次风能方向)(?:为)?\s*([A-Z]{1,4})", window)
+                    direction_match = re.search(domain_regex(self, "wind_resource_direction", "search_002", r"(?:主导风向|主风向)为\s*([A-Z]{1,4})"), window)
+                    secondary_direction_match = re.search(domain_regex(self, "wind_resource_direction", "search_003", r"(?:次主导风向|次主风向|次风向)(?:为)?\s*([A-Z]{1,4})"), window)
+                    energy_match = re.search(domain_regex(self, "wind_resource_direction", "search_004", r"(?:主导风能方向|主风能方向)为\s*([A-Z]{1,4})"), window)
+                    secondary_energy_match = re.search(domain_regex(self, "wind_resource_direction", "search_005", r"(?:次主导风能方向|次主风能方向|次风能方向)(?:为)?\s*([A-Z]{1,4})"), window)
                     if direction_match or secondary_direction_match or energy_match or secondary_energy_match:
                         matched_window = window
                         break
@@ -70,7 +72,7 @@ class WindDirectionRulesMixin:
         page_titles: dict[int, list[str]] = {}
         for page in (ast.meta or {}).get("pdf_page_texts") or []:
             text = str(page.get("text") or "")
-            titles = re.findall(r"表\s*\d+(?:[-－.]\d+)+\s*[：:]\s*([A-Za-z0-9]{2,8}#)\s*测风塔[^。\n]{0,50}风向[^。\n]{0,20}风能[^。\n]{0,30}(?:统计|分布|频率)", text)
+            titles = re.findall(domain_regex(self, "wind_resource_direction", "findall_006", r"表\s*\d+(?:[-－.]\d+)+\s*[：:]\s*([A-Za-z0-9]{2,8}#)\s*测风塔[^。\n]{0,50}风向[^。\n]{0,20}风能[^。\n]{0,30}(?:统计|分布|频率)"), text)
             if titles:
                 page_titles[int(page["page"])] = list(dict.fromkeys(titles))
         frequency: dict[str, dict[str, dict[str, Any]]] = {}
@@ -85,7 +87,7 @@ class WindDirectionRulesMixin:
                 has_sector_header = bool(matrix and "扇区" in matrix[0][0] and any("风向" in cell for cell in matrix[0]) and any("风能" in cell for cell in matrix[0]))
                 if has_sector_header and len(page_codes) == 1:
                     # PDF 表题有时被上一页标题覆盖；同页唯一的原文表题优先。
-                    caption = re.sub(r"[A-Za-z0-9]{2,8}#(?=\s*测风塔)", page_codes[0], caption, count=1)
+                    caption = re.sub(domain_regex(self, "wind_resource_direction", "sub_007", r"[A-Za-z0-9]{2,8}#(?=\s*测风塔)"), page_codes[0], caption, count=1)
                 title_text = f"{caption}\n{self._section_path_caption(table)}"
                 patterns = spec.get("patterns") or []
                 if not has_sector_header and last_header and last_tower and last_page is not None and table.page in (last_page, last_page + 1):
@@ -95,7 +97,7 @@ class WindDirectionRulesMixin:
                         continue
                 if patterns and not any(re.search(str(pattern), title_text, flags=re.IGNORECASE) for pattern in patterns):
                     continue
-                tower_match = re.search(r"([A-Za-z0-9]{2,8}#)\s*测风塔", caption)
+                tower_match = re.search(domain_regex(self, "wind_resource_direction", "search_008", r"([A-Za-z0-9]{2,8}#)\s*测风塔"), caption)
                 if has_sector_header and tower_match:
                     last_tower = self._normalize_tower_code(tower_match.group(1))
                     last_header = matrix[0]
@@ -128,7 +130,7 @@ class WindDirectionRulesMixin:
         for label in ("风向", "风能"):
             height_columns = []
             for index, heading in enumerate(header):
-                match = re.search(r"(\d+(?:\.\d+)?)\s*m\s*" + label, str(heading), re.I)
+                match = re.search(domain_regex(self, "wind_resource_direction", "direction_dynamic_prefix", r"(\d+(?:\.\d+)?)\s*m\s*") + label, str(heading), re.I)
                 if match:
                     height_columns.append((float(match.group(1)), index))
             if not height_columns:
@@ -182,15 +184,15 @@ class WindDirectionRulesMixin:
         current_tower: str | None = None
         for row_index, row in data_rows:
             row_text = " | ".join(row)
-            tower_candidates = [self._normalize_tower_code(code) for code in re.findall(r"[A-Za-z0-9]{2,8}#", row_text)]
+            tower_candidates = [self._normalize_tower_code(code) for code in re.findall(domain_regex(self, "wind_resource_direction", "findall_009", r"[A-Za-z0-9]{2,8}#"), row_text)]
             if tower_index is not None and tower_index < len(row):
-                tower_candidates = [self._normalize_tower_code(code) for code in re.findall(r"[A-Za-z0-9]{2,8}#", row[tower_index])] or tower_candidates
+                tower_candidates = [self._normalize_tower_code(code) for code in re.findall(domain_regex(self, "wind_resource_direction", "findall_010", r"[A-Za-z0-9]{2,8}#"), row[tower_index])] or tower_candidates
             if tower_candidates:
                 current_tower = tower_candidates[0]
             if not current_tower:
                 continue
             direction = row[direction_index].strip() if direction_index < len(row) else ""
-            if not re.fullmatch(r"[A-Z]{1,4}", direction):
+            if not re.fullmatch(domain_regex(self, "wind_resource_direction", "fullmatch_011", r"[A-Z]{1,4}"), direction):
                 continue
             for metric, column_index in metric_indexes:
                 if column_index is None or column_index >= len(row):
@@ -215,7 +217,7 @@ class WindDirectionRulesMixin:
         current_labels: list[tuple[int, str]] = []
         for row_index, row in enumerate(matrix):
             row_text = self._clean_text(" ".join(row))
-            tower_candidates = [self._normalize_tower_code(code) for code in re.findall(r"[A-Za-z0-9]{2,8}#", row_text)]
+            tower_candidates = [self._normalize_tower_code(code) for code in re.findall(domain_regex(self, "wind_resource_direction", "findall_012", r"[A-Za-z0-9]{2,8}#"), row_text)]
             tower_candidates = [code for code in tower_candidates if code]
             if tower_candidates:
                 current_tower = tower_candidates[0]
@@ -262,7 +264,7 @@ class WindDirectionRulesMixin:
 
     def _clean_direction_label(self, value: Any) -> str | None:
         text = self._clean_text(str(value or "")).upper()
-        match = re.search(r"\b(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW)\b", text)
+        match = re.search(domain_regex(self, "wind_resource_direction", "search_013", r"\b(N|NNE|NE|ENE|E|ESE|SE|SSE|S|SSW|SW|WSW|W|WNW|NW|NNW)\b"), text)
         return match.group(1) if match else None
 
     def _wind_direction_metric_target_from_label(self, label: str, metric_specs: list[dict[str, Any]]) -> str | None:
@@ -340,7 +342,7 @@ class WindDirectionRulesMixin:
         best: dict[str, dict[str, tuple[float, str, int, int]]] = {}
         for row_index, row in enumerate(matrix[metric_header_index + 1 :], start=metric_header_index + 1):
             direction = row[direction_index].strip() if direction_index < len(row) else ""
-            if not re.fullmatch(r"[A-Z]{1,4}", direction):
+            if not re.fullmatch(domain_regex(self, "wind_resource_direction", "fullmatch_014", r"[A-Z]{1,4}"), direction):
                 continue
             for tower, metric_indexes in tower_metric_indexes.items():
                 tower_best = best.setdefault(tower, {})

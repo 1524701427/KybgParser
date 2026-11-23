@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -179,9 +181,9 @@ class WindResourceSummaryRulesMixin:
             }
         overview = "\n".join(str(item.get("text") or "") for item in pages if "测风塔资料一览表" in str(item.get("text") or "") or "测风时间段" in str(item.get("text") or ""))
         tower_pattern = re.compile(
-            r"(?m)^\s*(?P<code>\d{4}#)\s*\n\s*(?P<lat>\d{1,2}°[^\n]{3,25})\s*\n"
+            domain_regex(self, "wind_resource_summary", "compile_001", r"(?m)^\s*(?P<code>\d{4}#)\s*\n\s*(?P<lat>\d{1,2}°[^\n]{3,25})\s*\n"
             r"\s*(?P<lon>\d{2,3}°[^\n]{3,25})\s*\n\s*\d{3,4}\s*\n"
-            r"\s*(?P<period>\d{4}\.\d{1,2}\.\d{1,2}\s*[~～-]\s*\d{4}\.\d{1,2}\.\d{1,2})"
+            r"\s*(?P<period>\d{4}\.\d{1,2}\.\d{1,2}\s*[~～-]\s*\d{4}\.\d{1,2}\.\d{1,2})")
         )
         for match in tower_pattern.finditer(overview):
             row = by_code.get(match.group("code"))
@@ -197,8 +199,8 @@ class WindResourceSummaryRulesMixin:
             text = str(item.get("text") or "")
             if "各测风塔各高度风速及风功率" not in text and "测风塔订正后各高度风速及风功率" not in text:
                 continue
-            codes = re.findall(r"\b\d{4}#", text[:250])
-            match = re.search(r"(?m)^\s*105\s*\n" + r"\s*(\d+(?:\.\d+)?)\s*\n" * (2 * len(codes)), text) if codes else None
+            codes = re.findall(domain_regex(self, "wind_resource_summary", "findall_002", r"\b\d{4}#"), text[:250])
+            match = re.search(domain_regex(self, "wind_resource_summary", "tower_dynamic_prefix", r"(?m)^\s*105\s*\n") + domain_regex(self, "wind_resource_summary", "tower_dynamic_value", r"\s*(\d+(?:\.\d+)?)\s*\n") * (2 * len(codes)), text) if codes else None
             if not match:
                 continue
             for index, code in enumerate(codes):
@@ -217,7 +219,7 @@ class WindResourceSummaryRulesMixin:
             text = str(item.get("text") or "")
             if "空气密度" not in text:
                 continue
-            for match in re.finditer(r"(?P<code>\d{4}#)\s*测风塔[^。；;]{0,100}?空气密度为\s*(?P<density>\d(?:\.\d+)?)\s*kg/m[³3]", text):
+            for match in re.finditer(domain_regex(self, "wind_resource_summary", "finditer_003", r"(?P<code>\d{4}#)\s*测风塔[^。；;]{0,100}?空气密度为\s*(?P<density>\d(?:\.\d+)?)\s*kg/m[³3]"), text):
                 row = by_code.get(match.group("code"))
                 if row is not None and row.get("高度对应的空气密度") in (None, "", "---"):
                     row["高度对应的空气密度"] = float(match.group("density"))
@@ -225,10 +227,10 @@ class WindResourceSummaryRulesMixin:
 
         # PDF 中常以一句话列出测风塔推算高度、风速和风功率，表格抽取器不会生成这一行。
         speed_power_pattern = re.compile(
-            r"(?P<code>\d{3,5}#)\s*测风塔\s*(?P<height>\d{2,3})\s*m"
+            domain_regex(self, "wind_resource_summary", "compile_004", r"(?P<code>\d{3,5}#)\s*测风塔\s*(?P<height>\d{2,3})\s*m"
             r"[^。；;\n]{0,45}?高度平均风速和风功率密度分别为\s*"
             r"(?P<speed>\d+(?:\.\d+)?)\s*m/s\s*和\s*"
-            r"(?P<power>\d+(?:\.\d+)?)\s*W/m[²2]"
+            r"(?P<power>\d+(?:\.\d+)?)\s*W/m[²2]")
         )
         for item in pages:
             text = str(item.get("text") or "")
@@ -247,8 +249,8 @@ class WindResourceSummaryRulesMixin:
 
         # 轮毂高度密度只归给报告明确作为推算基准的测风塔。
         density_pattern = re.compile(
-            r"以\s*(?P<code>\d{3,5}#)\s*测风塔为基准[^。；;]{0,100}?"
-            r"轮毂高度处的空气密度\s*为\s*(?P<density>\d+(?:\.\d+)?)\s*kg/m[³3]"
+            domain_regex(self, "wind_resource_summary", "compile_005", r"以\s*(?P<code>\d{3,5}#)\s*测风塔为基准[^。；;]{0,100}?"
+            r"轮毂高度处的空气密度\s*为\s*(?P<density>\d+(?:\.\d+)?)\s*kg/m[³3]")
         )
         for item in pages:
             for match in density_pattern.finditer(str(item.get("text") or "")):
@@ -268,14 +270,14 @@ class WindResourceSummaryRulesMixin:
 
         # 测风时长不足的塔仅被提及，随后出现的全场密度不能复制为逐塔轮毂密度。
         insufficient_pattern = re.compile(
-            r"(?P<codes>(?:\d{3,5}#[、，,]?\s*)+)测风塔测风时长不足"
+            domain_regex(self, "wind_resource_summary", "compile_006", r"(?P<codes>(?:\d{3,5}#[、，,]?\s*)+)测风塔测风时长不足"
             r"[^。]{0,80}?使用\s*(?P<reference>\d{3,5}#)\s*测风塔"
-            r"[^。]{0,150}?该风电\s*场的空气密度为\s*(?P<density>\d+(?:\.\d+)?)"
+            r"[^。]{0,150}?该风电\s*场的空气密度为\s*(?P<density>\d+(?:\.\d+)?)")
         )
         for item in pages:
             for match in insufficient_pattern.finditer(str(item.get("text") or "")):
                 density = float(match.group("density"))
-                for code in re.findall(r"\d{3,5}#", match.group("codes")):
+                for code in re.findall(domain_regex(self, "wind_resource_summary", "findall_007", r"\d{3,5}#"), match.group("codes")):
                     row = by_code.get(code)
                     if row is not None and row.get("高度对应的空气密度") == density:
                         row["高度对应的空气密度"] = "---"
@@ -284,7 +286,7 @@ class WindResourceSummaryRulesMixin:
     def _resource_shear_from_summary(self, ast: DocumentAST, tower_codes: list[str]) -> dict[str, dict[str, Any]]:
         """优先采用汇总中明确标注的综合切变指数。"""
         result: dict[str, dict[str, Any]] = {}
-        pattern = re.compile(r"综合风切变指数\s*(?:为|是|取|：|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", re.I)
+        pattern = re.compile(domain_regex(self, "wind_resource_summary", "compile_008", r"综合风切变指数\s*(?:为|是|取|：|:)?\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), re.I)
         for block in self._body_blocks(ast):
             if not any("小结" in str(part) for part in (block.section_path or [])):
                 continue
@@ -304,7 +306,7 @@ class WindResourceSummaryRulesMixin:
     def _resource_shear_from_tables(self, ast: DocumentAST, tower_codes: list[str]) -> dict[str, dict[str, Any]]:
         """将拟合或综合切变值关联到对应测风塔编号。"""
         result: dict[str, dict[str, Any]] = {}
-        title_pattern = re.compile(r"风切变指数计算成果|切变统计|风切变指数统计")
+        title_pattern = re.compile(domain_regex(self, "wind_resource_summary", "compile_009", r"风切变指数计算成果|切变统计|风切变指数统计"))
         value_labels = ("综合风切变系数", "综合风切变", "拟合值")
         known = set(tower_codes)
         for table in self._resource_related_tables(ast):
@@ -384,8 +386,8 @@ class WindResourceSummaryRulesMixin:
         result: dict[str, dict[str, Any]] = {}
         known = set(tower_codes)
         pattern = re.compile(
-            r"年平均风速分别为(?P<speeds>[^。；;\n]{0,220}?)"
-            r"(?:相对应|对应)?风功率密度分别为(?P<powers>[^。；;\n]{0,220})"
+            domain_regex(self, "wind_resource_summary", "compile_010", r"年平均风速分别为(?P<speeds>[^。；;\n]{0,220}?)"
+            r"(?:相对应|对应)?风功率密度分别为(?P<powers>[^。；;\n]{0,220})")
         )
         for block in self._body_blocks(ast):
             text = self._clean_text(block.text or "")
@@ -394,11 +396,11 @@ class WindResourceSummaryRulesMixin:
                 continue
             prefix = text[: match.start()]
             towers = [code for code in dict.fromkeys(self._tower_codes_in_text(prefix)) if code in known]
-            speeds = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", match.group("speeds"), re.I)
-            powers = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*W\s*/\s*m(?:2|²)", match.group("powers"), re.I)
+            speeds = re.findall(domain_regex(self, "wind_resource_summary", "findall_011", r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), match.group("speeds"), re.I)
+            powers = re.findall(domain_regex(self, "wind_resource_summary", "findall_012", r"([0-9]+(?:\.[0-9]+)?)\s*W\s*/\s*m(?:2|²)"), match.group("powers"), re.I)
             if not towers or len(towers) != len(speeds) or len(towers) != len(powers):
                 continue
-            height_match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*高度", prefix[-80:], re.I)
+            height_match = re.search(domain_regex(self, "wind_resource_summary", "search_013", r"([0-9]+(?:\.[0-9]+)?)\s*m\s*高度"), prefix[-80:], re.I)
             height = self._normalize_scalar(height_match.group(1)) if height_match else None
             source = self._text_block_source(
                 block, match.group(0), "按原文塔号顺序对应年均风速和风功率密度。",
@@ -516,7 +518,7 @@ class WindResourceSummaryRulesMixin:
         for row in matrix[: min(len(matrix), 5)]:
             for index, cell in enumerate(row):
                 text = self._clean_text(cell)
-                if re.search(r"年\s*(?:均|平均)|平均", text) and "风速" not in text and "风功率" not in text:
+                if re.search(domain_regex(self, "wind_resource_summary", "search_014", r"年\s*(?:均|平均)|平均"), text) and "风速" not in text and "风功率" not in text:
                     return index
         return None
 
@@ -563,7 +565,7 @@ class WindResourceSummaryRulesMixin:
         for row_index, row in enumerate(matrix[: min(len(matrix), 6)]):
             columns: list[tuple[float, int]] = []
             for column_index, cell in enumerate(row):
-                match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m", self._clean_text(cell), flags=re.IGNORECASE)
+                match = re.search(domain_regex(self, "wind_resource_summary", "search_015", r"([0-9]+(?:\.[0-9]+)?)\s*m"), self._clean_text(cell), flags=re.IGNORECASE)
                 if match:
                     columns.append((float(match.group(1)), column_index))
             if columns:
@@ -683,7 +685,7 @@ class WindResourceSummaryRulesMixin:
         for index, row in enumerate(matrix[:4]):
             columns = []
             for column, cell in enumerate(row[1:], start=1):
-                if re.fullmatch(r"\s*[0-9]+(?:\.[0-9]+)?\s*(?:m|米)\s*", str(cell), re.I):
+                if re.fullmatch(domain_regex(self, "wind_resource_summary", "fullmatch_016", r"\s*[0-9]+(?:\.[0-9]+)?\s*(?:m|米)\s*"), str(cell), re.I):
                     columns.append((column, self._height_cell_value(str(cell))))
             if len(columns) >= 2:
                 header_index, heights = index, columns
@@ -696,7 +698,7 @@ class WindResourceSummaryRulesMixin:
             "",
         )
         title = re.search(
-            r"表\s*[0-9]+(?:[-－—.][0-9]+)*\s*[:：]\s*([A-Za-z0-9_-]+\s*[#＃])\s*测风塔[^。\n]{0,24}?湍流",
+            domain_regex(self, "wind_resource_summary", "search_017", r"表\s*[0-9]+(?:[-－—.][0-9]+)*\s*[:：]\s*([A-Za-z0-9_-]+\s*[#＃])\s*测风塔[^。\n]{0,24}?湍流"),
             page_text,
             re.I,
         )
@@ -713,7 +715,7 @@ class WindResourceSummaryRulesMixin:
             if "代表" in label and "湍流" in label:
                 representative, row_indices["representative"] = row, index
             elif "平均" in label:
-                speed = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", label, re.I)
+                speed = re.search(domain_regex(self, "wind_resource_summary", "search_018", r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), label, re.I)
                 if speed:
                     segmented, segment, row_indices["segmented"] = row, self._normalize_scalar(speed.group(1)), index
                 else:
@@ -778,7 +780,7 @@ class WindResourceSummaryRulesMixin:
             if "图" not in text or "湍流" not in text:
                 continue
             tower = self._tower_code_from_text(text)
-            height_match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*高度", text, flags=re.IGNORECASE)
+            height_match = re.search(domain_regex(self, "wind_resource_summary", "search_019", r"([0-9]+(?:\.[0-9]+)?)\s*m\s*高度"), text, flags=re.IGNORECASE)
             if tower and height_match:
                 heights[tower] = self._normalize_scalar(height_match.group(1))
         rows: list[dict[str, Any]] = []
@@ -797,7 +799,7 @@ class WindResourceSummaryRulesMixin:
                 continue
             if not tower or tower not in heights or average_col is None or representative_col is None:
                 continue
-            if not values or not re.fullmatch(r"15(?:\.0+)?", values[0]):
+            if not values or not re.fullmatch(domain_regex(self, "wind_resource_summary", "fullmatch_020", r"15(?:\.0+)?"), values[0]):
                 continue
             if max(average_col, representative_col) >= len(values):
                 continue
@@ -846,7 +848,7 @@ class WindResourceSummaryRulesMixin:
 
     def _tower_code_from_text(self, text: str) -> str | None:
         normalized_text = (text or "").replace("＃", "#")
-        match = re.search(r"([A-Za-z0-9][A-Za-z0-9_-]{0,19})\s*#", normalized_text)
+        match = re.search(domain_regex(self, "wind_resource_summary", "search_021", r"([A-Za-z0-9][A-Za-z0-9_-]{0,19})\s*#"), normalized_text)
         if not match:
             return None
         return self._normalize_tower_code(f"{match.group(1)}#")
@@ -867,7 +869,7 @@ class WindResourceSummaryRulesMixin:
     def _turbulence_wind_speed_segment(self, text: str) -> Any:
         """提取湍流统计对应的风速段，不限定为10m/s或15m/s。"""
         matches = re.findall(
-            r"(?:V\s*=\s*)?([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s",
+            domain_regex(self, "wind_resource_summary", "findall_022", r"(?:V\s*=\s*)?([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"),
             text or "",
             flags=re.IGNORECASE,
         )
@@ -875,7 +877,7 @@ class WindResourceSummaryRulesMixin:
 
     def _height_cell_value(self, text: str) -> str | None:
         clean = self._clean_text(text)
-        match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*(m|米)?", clean, flags=re.IGNORECASE)
+        match = re.search(domain_regex(self, "wind_resource_summary", "search_023", r"([0-9]+(?:\.[0-9]+)?)\s*(m|米)?"), clean, flags=re.IGNORECASE)
         if not match:
             return None
         number = self._clean_number(match.group(1))
@@ -966,18 +968,18 @@ class WindResourceSummaryRulesMixin:
     def _resource_tower_codes_from_text(self, ast: DocumentAST) -> list[str]:
         text = "\n".join(self._clean_text(block.text or "") for block in ast.blocks if block.text)
         codes: list[str] = []
-        for segment in re.split("[\n\u3002\uff1b;]", text):
+        for segment in re.split(domain_regex(self, "wind_resource_summary", "unicode_split_001", "[\n\u3002\uff1b;]"), text):
             if any(keyword in segment for keyword in ("编号", "测风塔", "雷达测风")) and ("#" in segment or "＃" in segment):
                 for code in self._tower_codes_in_text(segment):
                     if code and code not in codes:
                         codes.append(code)
-        for match in re.finditer("(?:\u6d4b\u98ce\u5854\u7f16\u53f7|\u96f7\u8fbe\u6d4b\u98ce\u7f16\u53f7|\u6d4b\u98ce\u7f16\u53f7)[^\n\u3002\uff1b;]{0,80}", text):
-            for code in re.findall(r"[A-Za-z0-9]{2,8}#", match.group(0)):
+        for match in re.finditer(domain_regex(self, "wind_resource_summary", "unicode_finditer_002", "(?:\u6d4b\u98ce\u5854\u7f16\u53f7|\u96f7\u8fbe\u6d4b\u98ce\u7f16\u53f7|\u6d4b\u98ce\u7f16\u53f7)[^\n\u3002\uff1b;]{0,80}"), text):
+            for code in re.findall(domain_regex(self, "wind_resource_summary", "findall_024", r"[A-Za-z0-9]{2,8}#"), match.group(0)):
                 code = self._normalize_tower_code(code)
                 if code and code not in codes:
                     codes.append(code)
-        for match in re.finditer("([A-Za-z0-9#\u3001,\uff0c\\s]+)#?\\s*\u6d4b\u98ce\u5854", text):
-            for code in re.findall(r"[A-Za-z0-9]{2,8}#", match.group(1) + "#"):
+        for match in re.finditer(domain_regex(self, "wind_resource_summary", "unicode_finditer_003", "([A-Za-z0-9#\u3001,\uff0c\\s]+)#?\\s*\u6d4b\u98ce\u5854"), text):
+            for code in re.findall(domain_regex(self, "wind_resource_summary", "findall_025", r"[A-Za-z0-9]{2,8}#"), match.group(1) + "#"):
                 code = self._normalize_tower_code(code)
                 if code and code not in codes:
                     codes.append(code)
@@ -1078,7 +1080,7 @@ class WindResourceSummaryRulesMixin:
         if len(block_towers) <= 1:
             return block_towers or (tower_codes if len(tower_codes) == 1 else [])
         selected: list[str] = []
-        for match in re.finditer(r"(?:\u53ea\u91c7\u7528|\u91c7\u7528|\u4f7f\u7528)\s*([A-Za-z0-9]{2,8}#)[^\n\u3002\uff1b;]{0,120}?(?:\u8fdb\u884c\u5206\u6790|\u7a7a\u6c14\u5bc6\u5ea6|\u5e73\u5747\u98ce\u901f|\u98ce\u529f\u7387\u5bc6\u5ea6|\u7efc\u5408\u5206\u6790)", text):
+        for match in re.finditer(domain_regex(self, "wind_resource_summary", "finditer_026", r"(?:\u53ea\u91c7\u7528|\u91c7\u7528|\u4f7f\u7528)\s*([A-Za-z0-9]{2,8}#)[^\n\u3002\uff1b;]{0,120}?(?:\u8fdb\u884c\u5206\u6790|\u7a7a\u6c14\u5bc6\u5ea6|\u5e73\u5747\u98ce\u901f|\u98ce\u529f\u7387\u5bc6\u5ea6|\u7efc\u5408\u5206\u6790)"), text):
             code = self._normalize_tower_code(match.group(1))
             if code in tower_codes and code not in selected:
                 selected.append(code)
@@ -1186,10 +1188,10 @@ class WindResourceSummaryRulesMixin:
 
     def _resource_summary_directions_from_text(self, text: str) -> dict[str, str]:
         result: dict[str, str] = {}
-        direction_match = re.search(r"(?:\u4e3b\u5bfc\u98ce\u5411|\u4e3b\u98ce\u5411)(?:\u4e3a|\u548c\u4e3b\u98ce\u80fd\u65b9\u5411\u4e00\u81f4\uff0c\u4ee5)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)", text)
-        secondary_direction_match = re.search(r"(?:\u6b21\u4e3b\u5bfc\u98ce\u5411|\u6b21\u4e3b\u98ce\u5411|\u6b21\u98ce\u5411)(?:\u4e3a)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)", text)
-        energy_match = re.search(r"\u4e3b\u98ce\u80fd\u65b9\u5411(?:\u4e3a)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)", text)
-        secondary_energy_match = re.search(r"(?:\u6b21\u4e3b\u5bfc\u98ce\u80fd\u65b9\u5411|\u6b21\u4e3b\u98ce\u80fd\u65b9\u5411|\u6b21\u98ce\u80fd\u65b9\u5411)(?:\u4e3a)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)", text)
+        direction_match = re.search(domain_regex(self, "wind_resource_summary", "search_027", r"(?:\u4e3b\u5bfc\u98ce\u5411|\u4e3b\u98ce\u5411)(?:\u4e3a|\u548c\u4e3b\u98ce\u80fd\u65b9\u5411\u4e00\u81f4\uff0c\u4ee5)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)"), text)
+        secondary_direction_match = re.search(domain_regex(self, "wind_resource_summary", "search_028", r"(?:\u6b21\u4e3b\u5bfc\u98ce\u5411|\u6b21\u4e3b\u98ce\u5411|\u6b21\u98ce\u5411)(?:\u4e3a)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)"), text)
+        energy_match = re.search(domain_regex(self, "wind_resource_summary", "search_029", r"\u4e3b\u98ce\u80fd\u65b9\u5411(?:\u4e3a)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)"), text)
+        secondary_energy_match = re.search(domain_regex(self, "wind_resource_summary", "search_030", r"(?:\u6b21\u4e3b\u5bfc\u98ce\u80fd\u65b9\u5411|\u6b21\u4e3b\u98ce\u80fd\u65b9\u5411|\u6b21\u98ce\u80fd\u65b9\u5411)(?:\u4e3a)?\s*([^。，；;]+?(?:\uff09|\))?(?:\u3001[^。，；;]+?(?:\uff09|\))?)*)\s*(?:\u6247\u533a|\uff0c|,|。|；|;)"), text)
         if direction_match:
             result["mainWindDirection"] = self._clean_direction_text(direction_match.group(1))
         if secondary_direction_match:
@@ -1209,7 +1211,7 @@ class WindResourceSummaryRulesMixin:
     def _clean_direction_text(self, text: str) -> str:
         cleaned = self._clean_text(text)
         cleaned = cleaned.strip(" ，,、及和")
-        cleaned = re.split(r"(?:\u98ce\u7684|\u98ce\u5411\u548c|\u98ce\u80fd\u5206\u5e03|\u5206\u5e03\u9891\u7387)", cleaned, maxsplit=1)[0]
+        cleaned = re.split(domain_regex(self, "wind_resource_summary", "split_031", r"(?:\u98ce\u7684|\u98ce\u5411\u548c|\u98ce\u80fd\u5206\u5e03|\u5206\u5e03\u9891\u7387)"), cleaned, maxsplit=1)[0]
         cleaned = cleaned.strip(" ，,、及和")
         return cleaned
 

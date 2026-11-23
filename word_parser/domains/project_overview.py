@@ -54,8 +54,8 @@ class ProjectOverviewRulesMixin:
         return overrides
 
     def _investment_owner_company_from_blocks(self, ast: DocumentAST) -> tuple[str, str, list[str]] | None:
-        company_pattern = re.compile(r"(?P<value>[\u4e00-\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))")
-        keyword_pattern = re.compile(r"(?:投资方|建设单位|项目单位)[:：\s]*[为是]?\s*(?P<value>[\u4e00-\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))")
+        company_pattern = re.compile(self._deterministic_rule_section("project_overview").get("company_pattern", r"(?P<value>[\u4e00-\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))"))
+        keyword_pattern = re.compile(self._deterministic_rule_section("project_overview").get("owner_keyword_pattern", r"(?:投资方|建设单位|项目单位)[:：\s]*[为是]?\s*(?P<value>[\u4e00-\u9fa5A-Za-z0-9（）()·]{2,60}(?:有限责任公司|股份有限公司|集团有限公司|有限公司|公司))"))
         best: tuple[str, str, list[str]] | None = None
         owner_context_remaining = 0
         for block in ast.blocks:
@@ -86,7 +86,7 @@ class ProjectOverviewRulesMixin:
         return best
 
     def _project_address_from_blocks(self, ast: DocumentAST) -> tuple[str, str | None, str | None, str | None, str, list[str]] | None:
-        location_pattern = re.compile(r"(?:项目|工程|场址|拟建场区)[^。；;\n]{0,30}(?:位于|地处)\s*(?P<value>[^，。；;\n]{2,120})")
+        location_pattern = re.compile(self._deterministic_rule_section("project_overview").get("project_location_pattern", r"(?:项目|工程|场址|拟建场区)[^。；;\n]{0,30}(?:位于|地处)\s*(?P<value>[^，。；;\n]{2,120})"))
         for block in ast.blocks:
             text = self._clean_text(block.text or "")
             if not text:

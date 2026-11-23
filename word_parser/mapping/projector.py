@@ -9,31 +9,70 @@ from typing import Any
 from word_parser.mapping.wind import merge_turbulence_records
 
 
-# 同一业务指标在一次和二次抽取中的历史代码不同，优先保留二次抽取结果。
-_FIELD_FALLBACKS = {"financeInsuranceRate": "insuranceRate"}
+def _density_records_to_height_range(value: Any) -> list[dict[str, Any]]:
+    """Registered transform. Preserve original record ordering and shapes."""
+    return [
+        {"tower_code": record.get("tower_code"), "height": record["height"], "value": record["value"]}
+        for record in (value if isinstance(value, list) else [])
+        if isinstance(record, dict) and record.get("height") is not None and record.get("value") is not None
+    ]
+
+
+TRANSFORMS = {
+    "density_records_to_height_range": _density_records_to_height_range,
+    "merge_turbulence_records": merge_turbulence_records,
+}
+
+
+def _resolve_field_value(
+    field_code: str,
+    field_index: dict[str, Any],
+    *,
+    fallbacks: dict[str, str],
+    transforms: dict[str, Any],
+) -> tuple[bool, Any]:
+    """Apply only transforms referenced by output_schema.yaml."""
+    specification = transforms.get(field_code)
+    if specification is not None and not isinstance(specification, dict):
+        raise ValueError(f"output_schema.yaml: invalid field_value_transforms.{field_code}")
+    if specification is not None:
+        operator = specification.get("operator")
+        if operator not in TRANSFORMS:
+            raise ValueError(f"output_schema.yaml: unknown mapping operator {operator!r} for {field_code}")
+        source_code = specification.get("source_field", field_code)
+        if not isinstance(source_code, str) or not source_code:
+            raise ValueError(f"output_schema.yaml: invalid mapping source for {field_code}")
+        if specification.get("always", False):
+            value = (field_index.get(source_code) or {}).get("value")
+            return True, TRANSFORMS[operator](value)
+
+    if field_code not in field_index:
+        return False, None
+
+    value = (field_index.get(field_code) or {}).get("value")
+    fallback_code = fallbacks.get(field_code)
+    if value is None and fallback_code:
+        value = (field_index.get(fallback_code) or {}).get("value")
+    if specification is not None:
+        value = TRANSFORMS[specification["operator"]](value)
+    return True, value
 
 
 def mapping_from_detail_json(detail_json: dict[str, Any], result_builder: Any) -> dict[str, Any]:
-    """按输出 schema 将一次抽取详情投影成占位符映射。"""
+    """Project completed fields/tables by YAML, without extracting new values."""
     field_index = detail_json.get("fieldIndex", {}) or {}
     table_index = detail_json.get("tableIndex", {}) or {}
     table_codes = set(result_builder._required_table_keys())
+    fallbacks = getattr(result_builder, "field_value_fallbacks", {})
+    transforms = getattr(result_builder, "field_value_transforms", {})
+    if not isinstance(fallbacks, dict) or not isinstance(transforms, dict):
+        raise ValueError("output_schema.yaml: invalid field fallback/transform mappings")
     mapped: dict[str, Any] = {}
     for internal_code, placeholder in result_builder.output_field_codes.items():
-        if internal_code == "hubHeightAirDensityRange":
-            source = (field_index.get("windResourceAirDensityRecords") or {}).get("value")
-            mapped[placeholder] = [
-                {"tower_code": record.get("tower_code"), "height": record["height"], "value": record["value"]}
-                for record in (source if isinstance(source, list) else [])
-                if isinstance(record, dict) and record.get("height") is not None and record.get("value") is not None
-            ]
-            continue
-        if internal_code in field_index:
-            value = field_index[internal_code].get("value")
-            if value is None and internal_code in _FIELD_FALLBACKS:
-                value = (field_index.get(_FIELD_FALLBACKS[internal_code]) or {}).get("value")
-            if internal_code == "windResourceTurbulenceIntensityRecords":
-                value = merge_turbulence_records(value)
+        found, value = _resolve_field_value(
+            internal_code, field_index, fallbacks=fallbacks, transforms=transforms,
+        )
+        if found:
             mapped[placeholder] = value
             continue
         table = table_index.get(internal_code)

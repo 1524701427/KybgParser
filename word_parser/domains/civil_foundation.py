@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex, domain_strings
+
 import re
 from typing import Any
 
@@ -31,11 +33,11 @@ class WindFoundationRulesMixin:
             if not any(keyword in text or keyword in caption or keyword in section_text for keyword in ("风机基础", "风电机组基础", "机组基础工程")):
                 continue
             wind_rows = self._wind_foundation_rows(matrix) or matrix
-            row["foundationType"] = row["foundationType"] or self._text_by_row_label(matrix, ["基础形式", "地基处理措施"])
-            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(wind_rows, ["垫层混凝土 C20", "垫层混凝土C20", "垫层及散水混凝土C20"])
-            row["c40Concrete"] = row["c40Concrete"] or self._value_by_row_label(wind_rows, ["基础混凝土 C40", "基础混凝土C40", "基础混凝土 C45", "基础混凝土C45", "基础承台C40混凝土"])
-            row["rebar"] = row["rebar"] or self._value_by_row_label(wind_rows, ["钢筋制作", "钢筋工程量", "钢筋制作与安装"])
-            row["steel"] = row["steel"] or self._value_by_row_label(wind_rows, ["钢结构制作", "钢结构制作与安装"])
+            row["foundationType"] = row["foundationType"] or self._text_by_row_label(matrix, domain_strings(self, "civil_foundation", "list_001", ["基础形式", "地基处理措施"]))
+            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_002", ["垫层混凝土 C20", "垫层混凝土C20", "垫层及散水混凝土C20"]))
+            row["c40Concrete"] = row["c40Concrete"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_003", ["基础混凝土 C40", "基础混凝土C40", "基础混凝土 C45", "基础混凝土C45", "基础承台C40混凝土"]))
+            row["rebar"] = row["rebar"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_004", ["钢筋制作", "钢筋工程量", "钢筋制作与安装"]))
+            row["steel"] = row["steel"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_005", ["钢结构制作", "钢结构制作与安装"]))
         return self._schema_row_table("windFoundationConstruction", row) if any(value is not None for value in row.values()) else None
 
     def _wind_foundation_rows(self, matrix: list[list[str]]) -> list[list[str]]:
@@ -48,7 +50,7 @@ class WindFoundationRulesMixin:
                 active = True
                 rows.append(row)
                 continue
-            if active and re.match(r"^(?:1\.2|2|二|三|四)\b", code):
+            if active and re.match(domain_regex(self, "civil_foundation", "match_001", r"^(?:1\.2|2|二|三|四)\b"), code):
                 break
             if active:
                 rows.append(row)
@@ -157,7 +159,7 @@ class WindFoundationRulesMixin:
         """
         if not isinstance(value, str):
             return value
-        match = re.match(r"\s*([0-9]+(?:\.[0-9]+)?)", value.replace(",", ""))
+        match = re.match(domain_regex(self, "civil_foundation", "match_002", r"\s*([0-9]+(?:\.[0-9]+)?)"), value.replace(",", ""))
         if not match:
             return value
         return self._clean_number(float(match.group(1)))
@@ -167,7 +169,7 @@ class WindFoundationRulesMixin:
             label = self._row_label(row)
             if not any(alias in label for alias in ("基础承台底面半径", "底面半径", "圆形基础地面直径")):
                 continue
-            if "半径" not in label and not re.search(r"\bR\b|R（|R\(", label):
+            if "半径" not in label and not re.search(domain_regex(self, "civil_foundation", "search_003", r"\bR\b|R（|R\("), label):
                 continue
             value = self._value_by_row_label([row], [label])
             if value is not None:
@@ -194,17 +196,17 @@ class WindFoundationRulesMixin:
             source = box_rows
             is_direct_quantity_table = bool(matrix and any("工程量" in cell for cell in matrix[0]))
             row["concreteGrade"] = row["concreteGrade"] or self._box_foundation_concrete_grade(source)
-            row["c30Concrete"] = row["c30Concrete"] or self._value_by_row_label(source, ["基础混凝土C30", "混凝土 C30", "混凝土C30", "混凝土 C25", "混凝土C25", "混凝土（C25）", "混凝土（C30）", "混凝土量（C30）", "混凝土量（C25）", "基层混凝土量"])
-            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(source, ["垫层混凝土", "垫层混凝土C20", "垫层混凝土 C20"])
-            row["rebarInstallation"] = row["rebarInstallation"] or self._value_by_row_label(source, ["钢筋制作与安装", "基础钢筋", "钢筋（", "钢筋"])
-            row["steelInstallation"] = row["steelInstallation"] or self._value_by_row_label(source, ["铁件制作安装", "钢结构制作与安装"])
+            row["c30Concrete"] = row["c30Concrete"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_006", ["基础混凝土C30", "混凝土 C30", "混凝土C30", "混凝土 C25", "混凝土C25", "混凝土（C25）", "混凝土（C30）", "混凝土量（C30）", "混凝土量（C25）", "基层混凝土量"]))
+            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_007", ["垫层混凝土", "垫层混凝土C20", "垫层混凝土 C20"]))
+            row["rebarInstallation"] = row["rebarInstallation"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_008", ["钢筋制作与安装", "基础钢筋", "钢筋（", "钢筋"]))
+            row["steelInstallation"] = row["steelInstallation"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_009", ["铁件制作安装", "钢结构制作与安装"]))
             if is_direct_quantity_table and row["c30Concrete"] is not None and row["rebarInstallation"] is not None:
                 return self._box_foundation_result_table(row)
         return self._box_foundation_result_table(row) if any(value is not None for key, value in row.items() if key != "concreteGrade") else None
 
     def _box_foundation_concrete_grade(self, rows: list[list[str]]) -> str | None:
         text = self._matrix_text(rows)
-        match = re.search(r"C\s*([0-9]{2})", text, flags=re.IGNORECASE)
+        match = re.search(domain_regex(self, "civil_foundation", "search_004", r"C\s*([0-9]{2})"), text, flags=re.IGNORECASE)
         return f"C{match.group(1)}" if match else None
 
     def _box_foundation_result_table(self, row: dict[str, Any]) -> dict[str, Any]:
@@ -249,7 +251,7 @@ class WindFoundationRulesMixin:
             if "机组变压器基础" in text or "箱变基础" in text:
                 active = True
                 continue
-            if active and re.match(r"^(?:1\.3|2|二|三|四)\b", code):
+            if active and re.match(domain_regex(self, "civil_foundation", "match_005", r"^(?:1\.3|2|二|三|四)\b"), code):
                 break
             if active:
                 rows.append(row)
@@ -267,7 +269,7 @@ class WindFoundationRulesMixin:
     def _normalize_piles_per_ring(self, value: Any) -> Any:
         if not isinstance(value, str):
             return value
-        return re.sub(r"，分布半径为[^，]+", "", value)
+        return re.sub(domain_regex(self, "civil_foundation", "sub_006", r"，分布半径为[^，]+"), "", value)
 
     def _apply_wind_foundation_table_field_overrides(self, ast: DocumentAST, fields: dict[str, ParsedField], skip_codes: set[str] | None = None) -> None:
         """从基础断面/尺寸表补齐风机基础字段，不再输出派生参数表。"""

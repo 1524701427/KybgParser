@@ -12,6 +12,9 @@ from typing import Any
 from word_parser.document.ast.document import DocumentAST
 
 from word_parser.document.ast.evidence import Extraction, FieldEvidence, ParsedField
+from word_parser.primary.domain_stage import DomainExtractionState, extract_domain_fields
+from word_parser.primary.domain_dispatch import DomainOperatorSchedule
+from word_parser.config.domain_regex import validate_domain_literals
 
 from word_parser.config.loader import ConfigLoader
 
@@ -72,6 +75,7 @@ class ResultBuilder(
         output_schema: dict[str, Any] | None = None,
         field_configs: dict[str, dict[str, Any]] | None = None,
         config_root: str | Path = "configs",
+        domain_operator_schedule: DomainOperatorSchedule | None = None,
     ):
         self.cover_ocr_extractor = cover_ocr_extractor or CoverOcrExtractor()
         self._cover_ocr_cache: dict[str, CoverOcrResult] = {}
@@ -82,21 +86,23 @@ class ResultBuilder(
         schema = output_schema if output_schema is not None else self._load_output_schema(self.config_root)
         self._configure_output_schema(schema or {})
         self.deterministic_rules = ConfigLoader(self.config_root).load_yaml("deterministic_rules.yaml")
+        self.domain_operator_schedule = domain_operator_schedule or DomainOperatorSchedule.legacy()
+        self.strict_domain_literals = bool(self.deterministic_rules.get("strict_domain_literals", False))
+        if self.strict_domain_literals:
+            validate_domain_literals(self.deterministic_rules)
         self._merge_field_meta_from_field_configs()
         self.original_table_resolver = OriginalTableResolver(self)
 
-    def build(self, ast: DocumentAST | None, fields: dict[str, ParsedField], file_path: str | None = None) -> dict[str, Any]:
-        """构建最终结果 JSON。"""
-        details = self._build_details(ast)
-        self._apply_detail_context_constraints(details)
-        fields = dict(fields)
-        if file_path and ast is not None:
-            ast.meta.setdefault("file_path", file_path)
-        if ast is not None:
-            self._apply_deterministic_overrides(ast, fields, details)
-            self._apply_quality_filters(fields, ast)
-        self._fill_foundation_equivalent_fields(fields)
-        self._fill_finance_insurance_equivalent_field(fields)
+    def prepare(
+        self, ast: DocumentAST | None, fields: dict[str, ParsedField],
+        file_path: str | None = None,
+    ) -> DomainExtractionState:
+        """一次抽取后执行领域专用抽取，尚不执行最终映射。"""
+        return extract_domain_fields(self, ast, fields, file_path=file_path)
+
+    def build_prepared(self, prepared: DomainExtractionState) -> dict[str, Any]:
+        """仅根据已抽取的字段和领域明细组装业务结果，不再次抽值。"""
+        ast, fields, details = prepared.ast, prepared.fields, prepared.details
         tables = self._build_tables(ast, details, fields)
         sections = self._build_sections(fields, tables)
         field_traces = self._build_field_traces(fields)
@@ -109,6 +115,10 @@ class ResultBuilder(
             "tables": tables,
             "sections": sections,
         }
+
+    def build(self, ast: DocumentAST | None, fields: dict[str, ParsedField], file_path: str | None = None) -> dict[str, Any]:
+        """保留旧 API；内部采用『领域抽取 → 纯结果组装』两步。"""
+        return self.build_prepared(self.prepare(ast, fields, file_path=file_path))
 
     def _apply_detail_context_constraints(self, details: dict[str, list[dict[str, Any]]]) -> None:
         """对明细行直接生成的值应用相同的工程对象规则。"""

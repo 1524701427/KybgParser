@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -15,7 +17,7 @@ class WindDensityRulesMixin:
         text = "\n".join(self._clean_text(block.text or "") for block in ast.blocks if block.text)
         selected: set[str] = set()
         selected_sources: dict[str, dict[str, Any]] = {}
-        for match in re.finditer(r"(?:选用|使用|采用)\s*([A-Za-z0-9]{2,8}#)[^\n。；;]{0,80}?(?:发电量评估|发电量计算|依据)", text):
+        for match in re.finditer(domain_regex(self, "wind_resource_density", "finditer_001", r"(?:选用|使用|采用)\s*([A-Za-z0-9]{2,8}#)[^\n。；;]{0,80}?(?:发电量评估|发电量计算|依据)"), text):
             code = self._normalize_tower_code(match.group(1))
             selected.add(code)
             source_block = self._block_containing_text(ast, match.group(0))
@@ -26,7 +28,7 @@ class WindDensityRulesMixin:
                     "资源章节正文发电量计算采用测风塔判断。",
                     resolver="wind_resource_generation_use_text",
                 )
-        for match in re.finditer(r"(?:根据|采用|使用|只采用)\s*([A-Za-z0-9]{2,8}#)[^\n。；;]{0,160}?(?:推算各风能要素|风能要素|综合分析)", text):
+        for match in re.finditer(domain_regex(self, "wind_resource_density", "finditer_002", r"(?:根据|采用|使用|只采用)\s*([A-Za-z0-9]{2,8}#)[^\n。；;]{0,160}?(?:推算各风能要素|风能要素|综合分析)"), text):
             code = self._normalize_tower_code(match.group(1))
             selected.add(code)
             source_block = self._block_containing_text(ast, match.group(0))
@@ -41,7 +43,7 @@ class WindDensityRulesMixin:
             # 仅出现测风塔编号不能证明其参与发电量计算。
             return {}
         known_towers = self._resource_tower_codes(ast)
-        towers = known_towers or self._merge_tower_codes([self._normalize_tower_code(code) for code in re.findall(r"[A-Za-z0-9]{2,8}#", text)])
+        towers = known_towers or self._merge_tower_codes([self._normalize_tower_code(code) for code in re.findall(domain_regex(self, "wind_resource_density", "findall_003", r"[A-Za-z0-9]{2,8}#"), text)])
         fallback_source = next(iter(selected_sources.values()), None)
         return {
             code: {
@@ -55,18 +57,18 @@ class WindDensityRulesMixin:
         blocks_text = "\n".join(self._clean_text(block.text or "") for block in ast.blocks if block.text)
         result: dict[str, Any] = {}
         selected_density_towers: set[str] = set()
-        for match in re.finditer("(?:\u53ea\u91c7\u7528|\u91c7\u7528|\u6839\u636e|\u4f7f\u7528)\\s*([A-Za-z0-9]{2,8}#)[^\n\u3002\uff1b;]{0,120}?(?:\u8fdb\u884c\u5206\u6790|\u7a7a\u6c14\u5bc6\u5ea6\u8ba1\u7b97)", blocks_text):
+        for match in re.finditer(domain_regex(self, "wind_resource_density", "unicode_finditer_001", "(?:\u53ea\u91c7\u7528|\u91c7\u7528|\u6839\u636e|\u4f7f\u7528)\\s*([A-Za-z0-9]{2,8}#)[^\n\u3002\uff1b;]{0,120}?(?:\u8fdb\u884c\u5206\u6790|\u7a7a\u6c14\u5bc6\u5ea6\u8ba1\u7b97)"), blocks_text):
             code = self._normalize_tower_code(match.group(1))
             if code:
                 selected_density_towers.add(code)
-        for code in set(re.findall(r"[A-Za-z0-9]{2,8}#", blocks_text)):
+        for code in set(re.findall(domain_regex(self, "wind_resource_density", "findall_004", r"[A-Za-z0-9]{2,8}#"), blocks_text)):
             normalized_code = self._normalize_tower_code(code)
             if selected_density_towers and normalized_code not in selected_density_towers:
                 continue
             context_match = re.search(re.escape(code) + r"[^\n。；;]{0,80}?(?:空气密度计算|空气密度)", blocks_text)
             if context_match:
                 window = blocks_text[context_match.start() : context_match.start() + 500]
-                density_matches = re.findall(r"(?:推算至|轮毂高度|[0-9]+m\s*高度)[^\n。；;]{0,60}?空气密度为\s*([0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m", window, flags=re.IGNORECASE)
+                density_matches = re.findall(domain_regex(self, "wind_resource_density", "findall_005", r"(?:推算至|轮毂高度|[0-9]+m\s*高度)[^\n。；;]{0,60}?空气密度为\s*([0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m"), window, flags=re.IGNORECASE)
                 if density_matches and normalized_code:
                     source_block = self._block_containing_text(ast, context_match.group(0))
                     result[normalized_code] = {
@@ -81,7 +83,7 @@ class WindDensityRulesMixin:
         if result:
             return result
         if selected_density_towers:
-            for segment in re.split(r"[\n\u3002\uff1b;]", blocks_text):
+            for segment in re.split(domain_regex(self, "wind_resource_density", "split_006", r"[\n\u3002\uff1b;]"), blocks_text):
                 if "空气密度" not in segment or not any(code in segment for code in selected_density_towers):
                     continue
                 densities = self._air_density_values_from_text(segment)
@@ -102,9 +104,9 @@ class WindDensityRulesMixin:
                     }
             if result:
                 return result
-        for segment in re.split(r"[\n\u3002\uff1b;]", blocks_text):
+        for segment in re.split(domain_regex(self, "wind_resource_density", "split_007", r"[\n\u3002\uff1b;]"), blocks_text):
             if "空气密度" not in segment or "分别为" not in segment:
-                match = re.search(r"([A-Za-z0-9]{2,8}#)[^\n。；;]{0,120}?空气密度[^\n。；;]{0,30}?为\s*([0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m", segment, flags=re.IGNORECASE)
+                match = re.search(domain_regex(self, "wind_resource_density", "search_008", r"([A-Za-z0-9]{2,8}#)[^\n。；;]{0,120}?空气密度[^\n。；;]{0,30}?为\s*([0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m"), segment, flags=re.IGNORECASE)
                 if match:
                     source_block = self._block_containing_text(ast, segment)
                     result[self._normalize_tower_code(match.group(1))] = {
@@ -133,7 +135,7 @@ class WindDensityRulesMixin:
                 }
         if result:
             return result
-        density_match = re.search(r"\u7a7a\u6c14\u5bc6\u5ea6[^\n\u3002]{0,30}?\u5206\u522b\u4e3a([^\n\u3002]+)", blocks_text)
+        density_match = re.search(domain_regex(self, "wind_resource_density", "search_009", r"\u7a7a\u6c14\u5bc6\u5ea6[^\n\u3002]{0,30}?\u5206\u522b\u4e3a([^\n\u3002]+)"), blocks_text)
         if density_match:
             before = blocks_text[max(0, density_match.start() - 500): density_match.start()]
             towers = self._tower_codes_near_air_density_list(before)
@@ -161,7 +163,7 @@ class WindDensityRulesMixin:
         ]
         for block in self._body_blocks(ast):
             text = self._clean_text(block.text or "")
-            if "空气密度" not in text or "轮毂高度" in text and not re.search(r"(?:该|本)(?:风电场|项目)|风电场区域|项目区域", text):
+            if "空气密度" not in text or "轮毂高度" in text and not re.search(domain_regex(self, "wind_resource_density", "search_010", r"(?:该|本)(?:风电场|项目)|风电场区域|项目区域"), text):
                 continue
             for match in self._wind_farm_air_density_matches(text, patterns):
                 tower_codes = self._tower_codes_for_wind_farm_density_text(text, match.start(), all_tower_codes)
@@ -189,7 +191,7 @@ class WindDensityRulesMixin:
         preferred_codes = self._preferred_tower_codes_near_wind_farm_density_text(before, all_tower_codes)
         if preferred_codes:
             return preferred_codes
-        codes = [self._normalize_tower_code(code) for code in re.findall(r"[A-Za-z0-9]{2,8}#", before)]
+        codes = [self._normalize_tower_code(code) for code in re.findall(domain_regex(self, "wind_resource_density", "findall_011", r"[A-Za-z0-9]{2,8}#"), before)]
         codes = [code for code in dict.fromkeys(codes) if code]
         if codes:
             return [codes[-1]]
@@ -230,7 +232,7 @@ class WindDensityRulesMixin:
                 continue
             tower_codes = [
                 self._normalize_tower_code(code)
-                for code in re.findall(r"[A-Za-z0-9][A-Za-z0-9_-]{0,19}\s*[#＃]", text)
+                for code in re.findall(domain_regex(self, "wind_resource_density", "findall_012", r"[A-Za-z0-9][A-Za-z0-9_-]{0,19}\s*[#＃]"), text)
             ]
             tower_codes = [code for code in dict.fromkeys(tower_codes) if code]
             if not tower_codes:
@@ -239,14 +241,14 @@ class WindDensityRulesMixin:
                 for occurrence in re.finditer(re.escape(tower), text):
                     window_end = occurrence.start() + 520
                     next_tower = re.search(
-                        r"[A-Za-z0-9][A-Za-z0-9_-]{0,19}\s*[#＃]",
+                        domain_regex(self, "wind_resource_density", "search_013", r"[A-Za-z0-9][A-Za-z0-9_-]{0,19}\s*[#＃]"),
                         text[occurrence.end() : window_end],
                     )
                     if next_tower:
                         window_end = occurrence.end() + next_tower.start()
                     window = text[occurrence.start() : window_end]
                     for density_match in re.finditer(
-                        r"(?P<height>[0-9]+(?:\.[0-9]+)?)\s*m\s*高度(?:处)?的?空气密度(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m",
+                        domain_regex(self, "wind_resource_density", "finditer_014", r"(?P<height>[0-9]+(?:\.[0-9]+)?)\s*m\s*高度(?:处)?的?空气密度(?:为)?\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m"),
                         window,
                         flags=re.IGNORECASE,
                     ):
@@ -263,10 +265,10 @@ class WindDensityRulesMixin:
         return result
 
     def _tower_codes_near_air_density_list(self, text: str) -> list[str]:
-        candidates = re.findall(r"((?:[A-Za-z0-9]{2,8}#[\u3001,，\s]*)+)[^#\n\u3002\uff1b;]{0,40}?\u6d4b\u98ce\u5854", text)
+        candidates = re.findall(domain_regex(self, "wind_resource_density", "findall_015", r"((?:[A-Za-z0-9]{2,8}#[\u3001,，\s]*)+)[^#\n\u3002\uff1b;]{0,40}?\u6d4b\u98ce\u5854"), text)
         source = candidates[-1] if candidates else text[-180:]
         codes: list[str] = []
-        for code in re.findall(r"[A-Za-z0-9]{2,8}#", source):
+        for code in re.findall(domain_regex(self, "wind_resource_density", "findall_016", r"[A-Za-z0-9]{2,8}#"), source):
             normalized = self._normalize_tower_code(code)
             if normalized and normalized not in codes:
                 codes.append(normalized)
@@ -285,7 +287,7 @@ class WindDensityRulesMixin:
             for row in matrix[1:]:
                 if len(row) < 2:
                     continue
-                code_match = re.search(r"[A-Za-z0-9][A-Za-z0-9_-]{0,19}\s*[#＃]", row[0])
+                code_match = re.search(domain_regex(self, "wind_resource_density", "search_017", r"[A-Za-z0-9][A-Za-z0-9_-]{0,19}\s*[#＃]"), row[0])
                 if code_match is None:
                     continue
                 code = self._normalize_tower_code(code_match.group(0))
@@ -308,7 +310,7 @@ class WindDensityRulesMixin:
         cleaned = self._clean_text(str(text))
         if not cleaned or cleaned in {"---", "--", "??", "/"} or "??" in cleaned:
             return None
-        matches = re.findall(r"(?:90\s*[:?])?([01](?:\.\d+)?)", cleaned)
+        matches = re.findall(domain_regex(self, "wind_resource_density", "findall_018", r"(?:90\s*[:?])?([01](?:\.\d+)?)"), cleaned)
         for value in matches:
             number = self._normalize_scalar(value)
             try:
@@ -319,10 +321,10 @@ class WindDensityRulesMixin:
         return None
 
     def _air_density_values_from_text(self, text: str) -> list[Any]:
-        values = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m(?:[\u00b3\uff13\^]?3)?", text, flags=re.IGNORECASE)
+        values = re.findall(domain_regex(self, "wind_resource_density", "findall_019", r"([0-9]+(?:\.[0-9]+)?)\s*kg\s*/?\s*m(?:[\u00b3\uff13\^]?3)?"), text, flags=re.IGNORECASE)
         if not values:
-            cleaned = re.sub(r"kg\s*/?\s*m(?:[\u00b3\uff13\^]?3)?", " ", text, flags=re.IGNORECASE)
-            values = re.findall(r"\d+\.\d+", cleaned)
+            cleaned = re.sub(domain_regex(self, "wind_resource_density", "sub_020", r"kg\s*/?\s*m(?:[\u00b3\uff13\^]?3)?"), " ", text, flags=re.IGNORECASE)
+            values = re.findall(domain_regex(self, "wind_resource_density", "findall_021", r"\d+\.\d+"), cleaned)
         return [self._normalize_scalar(value) for value in values]
 
     def _resource_table_key(self, caption: str) -> str | None:

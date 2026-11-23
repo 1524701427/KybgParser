@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -30,7 +32,7 @@ class WindResourceOverrideRulesMixin:
         return overrides
 
     def _wind_power_density_grade_from_blocks(self, ast: DocumentAST) -> tuple[str, str, list[str]] | None:
-        pattern = re.compile(r"风功率密度等级[^。；;\n]{0,20}?(?:为|是)?\s*(?P<value>[A-ZＡ-Ｚ]-?\s*[0-9ⅠⅡⅢⅣⅤⅥ一二三四五六]+)\s*级?")
+        pattern = re.compile(domain_regex(self, "wind_resource_overrides", "compile_001", r"风功率密度等级[^。；;\n]{0,20}?(?:为|是)?\s*(?P<value>[A-ZＡ-Ｚ]-?\s*[0-9ⅠⅡⅢⅣⅤⅥ一二三四五六]+)\s*级?"))
         for block in self._body_blocks(ast):
             text = self._clean_text(block.text or "")
             if not text or "风功率密度等级" not in text:
@@ -158,8 +160,8 @@ class WindResourceOverrideRulesMixin:
                         for table_row in matrix[1:]:
                             if len(table_row) <= tower_column or "空气密度" not in table_row[0]:
                                 continue
-                            height_match = re.search(r"[（(]\s*(\d{2,5})\s*m\s*[）)]", table_row[0])
-                            density_match = re.fullmatch(r"\s*(\d(?:\.\d+)?)\s*", table_row[tower_column])
+                            height_match = re.search(domain_regex(self, "wind_resource_overrides", "search_002", r"[（(]\s*(\d{2,5})\s*m\s*[）)]"), table_row[0])
+                            density_match = re.fullmatch(domain_regex(self, "wind_resource_overrides", "fullmatch_003", r"\s*(\d(?:\.\d+)?)\s*"), table_row[tower_column])
                             if not height_match or not density_match:
                                 continue
                             density_records.append(self._wind_resource_value_record(
@@ -302,7 +304,7 @@ class WindResourceOverrideRulesMixin:
         """把“120m”“120 米”等高度统一为数值。"""
         if value is None:
             return None
-        match = re.search(r"[0-9]+(?:\.[0-9]+)?", str(value))
+        match = re.search(domain_regex(self, "wind_resource_overrides", "search_004", r"[0-9]+(?:\.[0-9]+)?"), str(value))
         return self._normalize_scalar(match.group(0)) if match else None
 
     def _valid_wind_speed_50_year(self, value: Any) -> bool:
@@ -333,18 +335,18 @@ class WindResourceOverrideRulesMixin:
         if projection_value is not None:
             return projection_value
         candidates: list[tuple[int, int, Any]] = []
-        for segment in re.split(r"[\n\u3002\uff1b;]", combined):
-            if not re.search(r"50\s*\u5e74\s*\u4e00\s*\u9047", segment, flags=re.IGNORECASE):
+        for segment in re.split(domain_regex(self, "wind_resource_overrides", "split_005", r"[\n\u3002\uff1b;]"), combined):
+            if not re.search(domain_regex(self, "wind_resource_overrides", "search_006", r"50\s*\u5e74\s*\u4e00\s*\u9047"), segment, flags=re.IGNORECASE):
                 continue
             if "最大风速" not in segment:
                 continue
-            for keyword in re.finditer(r"50\s*\u5e74\s*\u4e00\s*\u9047[^\uff0c\u3001\u3002\uff1b;]{0,60}?\u6700\u5927(?:10\s*min)?(?:\u5e73\u5747)?\u98ce\u901f", segment, flags=re.IGNORECASE):
+            for keyword in re.finditer(domain_regex(self, "wind_resource_overrides", "finditer_007", r"50\s*\u5e74\s*\u4e00\s*\u9047[^\uff0c\u3001\u3002\uff1b;]{0,60}?\u6700\u5927(?:10\s*min)?(?:\u5e73\u5747)?\u98ce\u901f"), segment, flags=re.IGNORECASE):
                 search_text = segment[keyword.end():keyword.end() + 90]
-                match = re.search(r"(?:\u4e3a|\u503c|[:\uff1a])?\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", search_text, flags=re.IGNORECASE)
+                match = re.search(domain_regex(self, "wind_resource_overrides", "search_008", r"(?:\u4e3a|\u503c|[:\uff1a])?\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), search_text, flags=re.IGNORECASE)
                 if match is None:
                     continue
                 prefix = segment[max(0, match.start() - 8):match.start()]
-                if re.search(r"(?:\u5c0f\u4e8e|\u4f4e\u4e8e|\u4e0d\u5927\u4e8e|[<\u2264])\s*$", prefix):
+                if re.search(domain_regex(self, "wind_resource_overrides", "search_009", r"(?:\u5c0f\u4e8e|\u4f4e\u4e8e|\u4e0d\u5927\u4e8e|[<\u2264])\s*$"), prefix):
                     continue
                 value = self._normalize_scalar(match.group(1))
                 if self._valid_wind_speed_50_year(value):
@@ -367,13 +369,13 @@ class WindResourceOverrideRulesMixin:
         candidates: list[tuple[int, Any]] = []
         for block in self._blocks_in_sections(ast, ["\u98ce\u80fd\u8d44\u6e90", "\u8d44\u6e90\u7ae0\u8282", "\u8d44\u6e90"]):
             text = self._clean_text(block.text or "")
-            if not re.search(r"50\s*\u5e74\s*\u4e00\s*\u9047", text, flags=re.IGNORECASE) or "\u6700\u5927\u98ce\u901f" not in text:
+            if not re.search(domain_regex(self, "wind_resource_overrides", "search_010", r"50\s*\u5e74\s*\u4e00\s*\u9047"), text, flags=re.IGNORECASE) or "\u6700\u5927\u98ce\u901f" not in text:
                 continue
-            for match in re.finditer(r"\u63a8\u7b97(?:\u81f3|\u5230)\s*160\s*m\s*\u9ad8\u5ea6\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", text, flags=re.IGNORECASE):
+            for match in re.finditer(domain_regex(self, "wind_resource_overrides", "finditer_011", r"\u63a8\u7b97(?:\u81f3|\u5230)\s*160\s*m\s*\u9ad8\u5ea6\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), text, flags=re.IGNORECASE):
                 value = self._normalize_scalar(match.group(1))
                 if self._valid_wind_speed_50_year(value):
                     candidates.append((80, value))
-            for match in re.finditer(r"\u63a8\u7b97\u81f3\s*160\s*m\s*\u9ad8\u5ea6\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", text, flags=re.IGNORECASE):
+            for match in re.finditer(domain_regex(self, "wind_resource_overrides", "finditer_012", r"\u63a8\u7b97\u81f3\s*160\s*m\s*\u9ad8\u5ea6\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), text, flags=re.IGNORECASE):
                 value = self._normalize_scalar(match.group(1))
                 if not self._valid_wind_speed_50_year(value):
                     continue
@@ -393,7 +395,7 @@ class WindResourceOverrideRulesMixin:
             text = self._clean_text(block.text or "")
             if "\u5b9e\u6d4b\u6700\u5927\u98ce\u901f" not in text or "\u63a8\u7b97\u81f3" not in text:
                 continue
-            match = re.search(r"\u63a8\u7b97\u81f3\s*160\s*m\s*\u9ad8\u5ea6\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", text, flags=re.IGNORECASE)
+            match = re.search(domain_regex(self, "wind_resource_overrides", "search_013", r"\u63a8\u7b97\u81f3\s*160\s*m\s*\u9ad8\u5ea6\u4e3a\s*([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), text, flags=re.IGNORECASE)
             if match:
                 value = self._normalize_scalar(match.group(1))
                 if self._valid_wind_speed_50_year(value):
@@ -404,23 +406,23 @@ class WindResourceOverrideRulesMixin:
         all_candidates: list[Any] = []
         strong_candidates: list[Any] = []
         standard_density_candidates: list[Any] = []
-        value_pattern = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s", flags=re.IGNORECASE)
-        for segment in re.split(r"[\n\u3002\uff1b;]", text):
-            if not re.search(r"50\s*\u5e74\s*\u4e00\s*\u9047", segment, flags=re.IGNORECASE) or "最大风速" not in segment:
+        value_pattern = re.compile(domain_regex(self, "wind_resource_overrides", "compile_014", r"([0-9]+(?:\.[0-9]+)?)\s*m\s*/\s*s"), flags=re.IGNORECASE)
+        for segment in re.split(domain_regex(self, "wind_resource_overrides", "split_015", r"[\n\u3002\uff1b;]"), text):
+            if not re.search(domain_regex(self, "wind_resource_overrides", "search_016", r"50\s*\u5e74\s*\u4e00\s*\u9047"), segment, flags=re.IGNORECASE) or "最大风速" not in segment:
                 continue
             for match in value_pattern.finditer(segment):
                 value = self._normalize_scalar(match.group(1))
                 if not self._valid_wind_speed_50_year(value):
                     continue
                 prefix = segment[max(0, match.start() - 12):match.start()]
-                if re.search(r"(?:小于|低于|不大于|不超过|[<≤])\s*$", prefix):
+                if re.search(domain_regex(self, "wind_resource_overrides", "search_017", r"(?:小于|低于|不大于|不超过|[<≤])\s*$"), prefix):
                     continue
                 all_candidates.append(value)
                 strong_prefix = segment[max(0, match.start() - 60):match.start()]
                 standard_density_prefix = segment[max(0, match.start() - 80):match.start()]
-                if "标准空气密度" in standard_density_prefix and re.search(r"(?:订正到|订正至|换算成|换算至|折算到|折算至)", standard_density_prefix):
+                if "标准空气密度" in standard_density_prefix and re.search(domain_regex(self, "wind_resource_overrides", "search_018", r"(?:订正到|订正至|换算成|换算至|折算到|折算至)"), standard_density_prefix):
                     standard_density_candidates.append(value)
-                if re.search(r"(?:推算至|推算到|折算至|换算至|得到|取值|较大值|最终)", strong_prefix):
+                if re.search(domain_regex(self, "wind_resource_overrides", "search_019", r"(?:推算至|推算到|折算至|换算至|得到|取值|较大值|最终)"), strong_prefix):
                     strong_candidates.append(value)
         candidates = strong_candidates or standard_density_candidates or all_candidates
         if not candidates:
@@ -431,7 +433,7 @@ class WindResourceOverrideRulesMixin:
         score = 0
         if any(keyword in segment for keyword in ("初步估算", "初步判定", "判定", "选用", "安全等级")):
             score += 100
-        if re.search(r"(?:\u5c0f\u4e8e|<)\s*37\.5\s*m\s*/\s*s", segment, flags=re.IGNORECASE):
+        if re.search(domain_regex(self, "wind_resource_overrides", "search_020", r"(?:\u5c0f\u4e8e|<)\s*37\.5\s*m\s*/\s*s"), segment, flags=re.IGNORECASE):
             score += 80
         if "IEC" in segment or "III" in segment or "Ⅲ" in segment:
             score += 40

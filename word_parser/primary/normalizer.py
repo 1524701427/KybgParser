@@ -11,9 +11,10 @@ from word_parser.logger import logger
 class Normalizer:
     """字段值归一化器。"""
 
-    def __init__(self, field_configs: dict[str, dict] | None = None):
-        """使用可选字段类型配置初始化归一化器。"""
+    def __init__(self, field_configs: dict[str, dict] | None = None, unit_map: dict | None = None):
+        """字段归一化。新运行时由 YAML 注入单位别名，旧构造方式不变。"""
         self.field_configs = field_configs or {}
+        self.UNIT_MAP = dict(self.UNIT_MAP if unit_map is None else unit_map)
 
     UNIT_MAP = {
         "米/秒": "m/s",

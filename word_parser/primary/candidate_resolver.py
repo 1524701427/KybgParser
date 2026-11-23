@@ -20,13 +20,30 @@ class CandidateResolver:
         "regex_multi",
     }
 
-    def __init__(self, field_configs: dict[str, dict] | None = None):
-        """初始化候选消解器。
-
-        参数：
-            field_configs: 字段配置，用于在最终选择前做质量评分。
-        """
+    def __init__(
+        self,
+        field_configs: dict[str, dict] | None = None,
+        scoring_config: dict | None = None,
+    ):
+        """初始化候选消解器；由 YAML 注入评分策略，旧调用方式兼容。"""
         self.field_configs = field_configs or {}
+        scoring_config = scoring_config or {}
+        default_weights = {
+            "table_lookup": 1.2,
+            "table_rule": 0.55,
+            "table_aggregate": 1.0,
+            "table_list": 0.9,
+            "regex": 0.15,
+            "regex_multi": 0.05,
+            "regex_derived": 0.25,
+            "regex_fallback": -1.2,
+        }
+        self.method_weights = {
+            **default_weights, **(scoring_config.get("method_weights") or {})
+        }
+        self.STRONG_RULE_METHODS = set(
+            scoring_config.get("strong_rule_methods", self.STRONG_RULE_METHODS)
+        )
 
     def resolve(self, extractions: list[Extraction]) -> dict[str, ParsedField]:
         """消解字段候选。
@@ -232,17 +249,7 @@ class CandidateResolver:
             elif extraction.unit is not None:
                 score -= 0.8
 
-        method_weight = {
-            "table_lookup": 1.2,
-            "table_rule": 0.55,
-            "table_aggregate": 1.0,
-            "table_list": 0.9,
-            "regex": 0.15,
-            "regex_multi": 0.05,
-            "regex_derived": 0.25,
-            "regex_fallback": -1.2,
-        }
-        score += method_weight.get(extraction.method, 0.0)
+        score += self.method_weights.get(extraction.method, 0.0)
         score += self._policy_bonus(extraction, config, candidates or [])
         score += self._validator_bonus(extraction, config)
         if extraction.debug.get("column_index") is not None or extraction.debug.get("row_index") is not None:

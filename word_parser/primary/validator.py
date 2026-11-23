@@ -64,3 +64,10 @@ class Validator:
         if standard_unit and field.unit and field.unit != standard_unit:
             field.status = "WARNING"
             field.messages.append(f"单位与标准单位不一致：标准={standard_unit}，实际={field.unit}")
+
+
+class PassThroughValidator:
+    """Explicit no-op validator for pipeline.yaml validator.enabled: false."""
+
+    def validate(self, fields: dict[str, ParsedField]) -> dict[str, ParsedField]:
+        return fields

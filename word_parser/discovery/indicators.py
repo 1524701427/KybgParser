@@ -64,13 +64,14 @@ class IndicatorLexicon:
         """报告当前进程能否执行模糊相似度匹配。"""
         return fuzz is not None and process is not None
 
-    def __init__(self, field_configs: dict[str, dict[str, Any]]):
+    def __init__(self, field_configs: dict[str, dict[str, Any]], matching_config: dict | None = None):
         """构建可复用的词典索引。
 
         参数：
             field_configs: 已有字段定义及其别名。
         """
         self.field_configs = field_configs
+        self.matching_config = matching_config or {}
         self.codes_by_label: dict[str, set[str]] = {}
         for code, config in field_configs.items():
             for label in [config.get("name"), *(config.get("aliases") or [])]:
@@ -153,7 +154,8 @@ class IndicatorLexicon:
                  if code not in self.codes_by_label[other_label]),
                 default=0.0,
             )
-            if score >= 92 and score - competing_score >= 8:
+            if (score >= float(self.matching_config.get("acceptance_score", 92))
+                    and score - competing_score >= float(self.matching_config.get("minimum_competing_gap", 8))):
                 return code, "rapidfuzz", float(score)
         return None, "suggestion", float(score)
 
@@ -174,6 +176,28 @@ class IndicatorValueParser:
 
     NON_INDICATOR_LABELS = {"序号", "编号", "备注", "说明", "单位", "类别", "阶段", "项目", "指标", "名称"}
     NUMBER_CELL = re.compile(r"[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\s*[^\d\s]*")
+
+    def __init__(self, settings: dict | None = None):
+        settings = settings or {}
+        self.NON_INDICATOR_LABELS = set(settings.get("non_indicator_labels", self.NON_INDICATOR_LABELS))
+        self.column_header_exclusions = set(settings.get(
+            "column_header_exclusions",
+            ["数量", "数值", "指标值", "金额", "总价", "单价", "单位", "备注"],
+        ))
+        self.paragraph_separators = tuple(settings.get("paragraph_separators", ("：", ":", "为", "取")))
+        self.label_min_length = int(settings.get("label_min_length", 2))
+        self.label_max_length = int(settings.get("label_max_length", 30))
+        self.paragraph_clause_max_length = int(settings.get("paragraph_clause_max_length", 180))
+        self.string_value_max_length = int(settings.get("string_value_max_length", 60))
+        self.NUMBER_CELL = re.compile(settings.get("number_cell_pattern", self.NUMBER_CELL.pattern))
+        self.column_header_unit_pattern = re.compile(settings.get(
+            "column_header_unit_pattern", r"(.+?)[（(]([^()（）]{1,16})[）)]"))
+        self.paragraph_clause_pattern = re.compile(settings.get(
+            "paragraph_clause_pattern", r"[。；;，\n]|,(?!\d{3}(?:\D|$))"))
+        self.two_cell_text_max_length = int(settings.get("two_cell_text_max_length", 60))
+        self.two_cell_value_exclusions = frozenset(settings.get(
+            "two_cell_value_exclusions", ("单位", "备注", "说明")
+        ))
 
     def parse_table_pairs(self, cells: list[str]) -> list[tuple[str, str, str | None, int]]:
         """识别同一行中并列的多组“名称、数值”，不依赖字段配置。"""
@@ -207,9 +231,9 @@ class IndicatorValueParser:
         headers: dict[int, tuple[str, str | None]] = {}
         for index, cell in enumerate(cells[1:], start=1):
             token = cell.strip()
-            match = re.fullmatch(r"(.+?)[（(]([^()（）]{1,16})[）)]", token)
+            match = self.column_header_unit_pattern.fullmatch(token)
             name, unit = (match.group(1).strip(), match.group(2).strip()) if match else (token, None)
-            if name in {"数量", "数值", "指标值", "金额", "总价", "单价", "单位", "备注"}:
+            if name in self.column_header_exclusions:
                 continue
             if self.label_allowed(name) and self.parse_number(name) is None:
                 headers[index] = (name, unit)
@@ -259,7 +283,7 @@ class IndicatorValueParser:
         返回：
             标签、原始数值和单位；未找到时返回 ``None``。
         """
-        for separator in ("：", ":", "为", "取"):
+        for separator in self.paragraph_separators:
             label, found, remainder = text.partition(separator)
             if not found or not self.label_allowed(label.strip()):
                 continue
@@ -271,12 +295,12 @@ class IndicatorValueParser:
     def parse_paragraph_pairs(self, text: str) -> list[tuple[str, str, str | None]]:
         """扫描段落内的多组名称和值，保留未配置字段的原文候选。"""
         pairs: list[tuple[str, str, str | None]] = []
-        clauses = re.split(r"[。；;，\n]|,(?!\d{3}(?:\D|$))", text)
+        clauses = self.paragraph_clause_pattern.split(text)
         for clause in clauses:
             clause = clause.strip()
-            if not clause or len(clause) > 180:
+            if not clause or len(clause) > self.paragraph_clause_max_length:
                 continue
-            for separator in ("：", ":", "为", "取"):
+            for separator in self.paragraph_separators:
                 label, found, remainder = clause.partition(separator)
                 label = label.strip()
                 if not found or not self.label_allowed(label):
@@ -285,7 +309,7 @@ class IndicatorValueParser:
                 parsed = self.parse_number(remainder)
                 if parsed is not None:
                     pairs.append((label, *parsed))
-                elif separator in ("：", ":") and 1 <= len(remainder) <= 60:
+                elif separator in ("：", ":") and 1 <= len(remainder) <= self.string_value_max_length:
                     pairs.append((label, remainder, None))
                 break
         return pairs
@@ -321,12 +345,11 @@ class IndicatorValueParser:
             return None
         return match.group(1), match.group(2) or None
 
-    @classmethod
-    def label_allowed(cls, label: str) -> bool:
+    def label_allowed(self, label: str) -> bool:
         """排除过短的表头，同时保留有明确名称的电压指标。"""
         text = label.strip()
         chinese_count = sum("\u4e00" <= char <= "\u9fff" for char in text)
-        return bool(2 <= len(text) <= 30 and text not in cls.NON_INDICATOR_LABELS
+        return bool(self.label_min_length <= len(text) <= self.label_max_length and text not in self.NON_INDICATOR_LABELS
                     and (chinese_count >= 2 or (text.isalpha() and len(text) >= 3)))
 
     @staticmethod
@@ -369,7 +392,7 @@ class IndicatorDiscovery:
     )
     CONTEXT_VALUE = re.compile(r"^\s*(?:为|约为|达到|达|是|取|：|:)\s*(.+)$")
 
-    def __init__(self, field_configs: dict[str, dict[str, Any]], mode: str = "active"):
+    def __init__(self, field_configs: dict[str, dict[str, Any]], mode: str = "active", settings: dict | None = None, lexicon: IndicatorLexicon | None = None):
         """使用已配置的字段词典初始化指标发现器。
 
         参数：
@@ -378,8 +401,18 @@ class IndicatorDiscovery:
         """
         self.field_configs = field_configs
         self.mode = mode
-        self.lexicon = IndicatorLexicon(field_configs)
-        self.value_parser = IndicatorValueParser()
+        settings = settings or {}
+        self.lexicon = lexicon if lexicon is not None else IndicatorLexicon(field_configs, matching_config=settings.get("rapidfuzz"))
+        self.value_parser = IndicatorValueParser(settings)
+        self.SCOPE_TERMS = tuple(tuple(group) for group in settings.get("scope_terms", self.SCOPE_TERMS))
+        self.CONTEXT_VALUE = re.compile(settings.get("context_value_pattern", self.CONTEXT_VALUE.pattern))
+        self.safe_fallback_min_label_length = int(
+            (settings.get("rapidfuzz") or {}).get("safe_fallback_min_label_length", 8)
+        )
+        self.contextual_clause_pattern = re.compile(settings.get(
+            "contextual_clause_pattern", r"[。；;，,\n]"))
+        self.contextual_label_min_length = int(settings.get("contextual_label_min_length", 4))
+        self.contextual_prefix_guard_chars = int(settings.get("contextual_prefix_guard_chars", 10))
 
     def discover(self, ast: DocumentAST) -> list[Indicator]:
         """按配置的各阶段发现并匹配指标。
@@ -423,7 +456,7 @@ class IndicatorDiscovery:
                                                  row=row_number, column=value_index))
                 if len(cells) == 2 and not pairs and self.value_parser.label_allowed(cells[0]):
                     text_value = cells[1].strip()
-                    if text_value and len(text_value) <= 60 and text_value not in {"单位", "备注", "说明"}:
+                    if text_value and len(text_value) <= self.value_parser.two_cell_text_max_length and text_value not in self.value_parser.two_cell_value_exclusions:
                         found.append(self._indicator(cells[0], text_value, None, "table", table.page,
                                                      table.section_path, table_id=table.id,
                                                      row=row_number, column=1))
@@ -477,14 +510,14 @@ class IndicatorDiscovery:
     def _contextual_values(self, text: str) -> list[tuple[str, str, str | None]]:
         """读取语句中紧跟数值的已配置标签。"""
         found: list[tuple[str, str, str | None]] = []
-        for clause in re.split(r"[。；;，,\n]", text):
-            if not clause or len(clause) > 180:
+        for clause in self.contextual_clause_pattern.split(text):
+            if not clause or len(clause) > self.value_parser.paragraph_clause_max_length:
                 continue
             key = self.lexicon._key(clause)
             if self.lexicon.automaton is not None:
-                labels = {label for _, label in self.lexicon.automaton.iter(key) if len(label) >= 4}
+                labels = {label for _, label in self.lexicon.automaton.iter(key) if len(label) >= self.contextual_label_min_length}
             else:
-                labels = {label for label in self.lexicon.labels if len(label) >= 4 and label in key}
+                labels = {label for label in self.lexicon.labels if len(label) >= self.contextual_label_min_length and label in key}
             for label in sorted(labels, key=len, reverse=True):
                 # 在原始语句上匹配，以保留标点和数值偏移位置。
                 compact = "".join(clause.split())
@@ -492,7 +525,7 @@ class IndicatorDiscovery:
                 if start < 0:
                     continue
                 prefix = compact[:start]
-                if any(term in prefix[-10:] and term not in label for group in self.SCOPE_TERMS for term in group):
+                if any(term in prefix[-self.contextual_prefix_guard_chars:] and term not in label for group in self.SCOPE_TERMS for term in group):
                     continue
                 suffix = compact[start + len(label):]
                 match = self.CONTEXT_VALUE.match(suffix)
@@ -707,7 +740,7 @@ class IndicatorDiscovery:
             模糊匹配建议能否补充缺失的映射字段。
         """
         name = self.lexicon._key(item.name)
-        if len(name) < 8 or not self._section_allowed(item.section_path, config):
+        if len(name) < self.safe_fallback_min_label_length or not self._section_allowed(item.section_path, config):
             return False
         labels = (label for label, codes in self.lexicon.codes_by_label.items() if code in codes)
         return any(self._one_edit(name, label) and self._scope_agrees(name, label)
@@ -726,13 +759,12 @@ class IndicatorDiscovery:
             index += 1
         return shorter[index:] == longer[index + 1:]
 
-    @classmethod
-    def _scope_agrees(cls, observed: str, configured: str) -> bool:
+    def _scope_agrees(self, observed: str, configured: str) -> bool:
         """修正拼写错误时保持明确的对象词和阶段词不变。"""
         return all(
             {term for term in group if term in observed}
             == {term for term in group if term in configured}
-            for group in cls.SCOPE_TERMS
+            for group in self.SCOPE_TERMS
         )
 
     @staticmethod

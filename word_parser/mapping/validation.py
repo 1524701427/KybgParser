@@ -11,8 +11,7 @@ from typing import Any
 from word_parser.config.loader import ConfigLoader
 from word_parser.output.presentation import ResultPresentationMixin
 from word_parser.secondary.table_values.results import final_result_with_table_values
-from word_parser.mapping.projector import _FIELD_FALLBACKS
-from word_parser.mapping.wind import merge_turbulence_records
+from word_parser.mapping.projector import TRANSFORMS
 
 from word_parser.mapping.common import (
     _COMBINED_TABLE_DISPLAY_FIELDS,
@@ -31,7 +30,10 @@ def _validate_final_mapping(parse_result: dict[str, Any], config_root: str | Pat
     """导出的占位字段集合或可见值不一致时明确报错。"""
     result = parse_result.get("result") or {}
     mapped = parse_result.get("mapped") or {}
-    output_codes = ConfigLoader(config_root).load_yaml("output_schema.yaml").get("output_field_codes") or {}
+    schema = ConfigLoader(config_root).load_yaml("output_schema.yaml")
+    output_codes = schema.get("output_field_codes") or {}
+    fallbacks = schema.get("field_value_fallbacks") or {}
+    transforms = schema.get("field_value_transforms") or {}
     placeholders = {
         code: value if str(value).startswith("${") else "${" + str(value) + "}"
         for code, value in output_codes.items()
@@ -49,10 +51,14 @@ def _validate_final_mapping(parse_result: dict[str, Any], config_root: str | Pat
             code = field.get("fieldCode")
             placeholder = placeholders.get(code)
             expected = field.get("value")
-            if expected is None and code in _FIELD_FALLBACKS:
-                expected = values_by_code.get(_FIELD_FALLBACKS[code])
-            if code == "windResourceTurbulenceIntensityRecords":
-                expected = merge_turbulence_records(expected)
+            if expected is None and code in fallbacks:
+                expected = values_by_code.get(fallbacks[code])
+            specification = transforms.get(code)
+            if isinstance(specification, dict) and specification.get("validate_result_value", False):
+                operator = specification.get("operator")
+                if operator not in TRANSFORMS:
+                    raise ValueError(f"Unknown mapping validation operator: {operator!r}")
+                expected = TRANSFORMS[operator](expected)
             if placeholder in mapped and expected != mapped[placeholder]:
                 mismatches.append(code)
         for table in section.get("tables") or []:

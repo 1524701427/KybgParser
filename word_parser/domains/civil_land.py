@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_strings
+
 import re
 from typing import Any
 
@@ -28,13 +30,13 @@ class LandAreaRulesMixin:
             if "永久性占地项目" in header_text:
                 details["permanentLandArea"] = [
                     {
-                        "item": self._cell_at_alias(header, row, ["永久性占地项目"]),
-                        "windFoundation": self._cell_at_alias(header, row, ["风机基础"]),
-                        "boxTransformerFoundation": self._cell_at_alias(header, row, ["箱变基础"]),
-                        "substation110kv": self._cell_at_alias(header, row, ["升压站", "110kV升压站"]),
-                        "collectorTower": self._cell_at_alias(header, row, ["集电线路杆塔征地", "杆塔"]),
-                        "accessRoad": self._cell_at_alias(header, row, ["进升压站道路"]),
-                        "total": self._cell_at_alias(header, row, ["合计"]),
+                        "item": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_001", ["永久性占地项目"])),
+                        "windFoundation": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_002", ["风机基础"])),
+                        "boxTransformerFoundation": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_003", ["箱变基础"])),
+                        "substation110kv": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_004", ["升压站", "110kV升压站"])),
+                        "collectorTower": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_005", ["集电线路杆塔征地", "杆塔"])),
+                        "accessRoad": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_006", ["进升压站道路"])),
+                        "total": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_007", ["合计"])),
                     }
                 ]
             elif "长期租地项目" in header_text:
@@ -51,13 +53,13 @@ class LandAreaRulesMixin:
             elif "临时性占地项目" in header_text:
                 details["temporaryLandArea"] = [
                     {
-                        "item": self._cell_at_alias(header, row, ["临时性占地项目"]),
-                        "road": self._cell_at_alias(header, row, ["风场道路", "临时施工道路"]),
-                        "platform": self._cell_at_alias(header, row, ["吊装平台", "安装平台", "场内平整"]),
-                        "collectorLine": self._cell_at_alias(header, row, ["集电线路"]),
-                        "directBuriedCable": self._cell_at_alias(header, row, ["电缆直埋"]),
-                        "constructionSite": self._cell_at_alias(header, row, ["施工临建场地", "生活临建"]),
-                        "total": self._cell_at_alias(header, row, ["合计"]),
+                        "item": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_008", ["临时性占地项目"])),
+                        "road": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_009", ["风场道路", "临时施工道路"])),
+                        "platform": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_010", ["吊装平台", "安装平台", "场内平整"])),
+                        "collectorLine": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_011", ["集电线路"])),
+                        "directBuriedCable": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_012", ["电缆直埋"])),
+                        "constructionSite": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_013", ["施工临建场地", "生活临建"])),
+                        "total": self._cell_at_alias(header, row, domain_strings(self, "civil_land", "list_014", ["合计"])),
                     }
                 ]
             elif self._looks_like_mixed_land_header(header_text):
@@ -251,8 +253,8 @@ class LandAreaRulesMixin:
 
     def _permanent_land_from_item_area_table(self, matrix: list[list[str]]) -> dict[str, Any] | None:
         header = matrix[0]
-        item_index = self._find_header_index(header, ["项目"])
-        area_index = self._find_header_index(header, ["面积（㎡）", "面积(m2)", "面积"])
+        item_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_015", ["项目"]))
+        area_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_016", ["面积（㎡）", "面积(m2)", "面积"]))
         if item_index is None or area_index is None:
             return None
         values: dict[str, Any] = {}
@@ -279,9 +281,9 @@ class LandAreaRulesMixin:
     def _temporary_land_from_item_area_table(self, matrix: list[list[str]]) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
         header = matrix[1] if matrix and len(matrix[0]) == 1 and len(matrix) > 1 else matrix[0]
         data_rows = matrix[2:] if matrix and len(matrix[0]) == 1 and len(matrix) > 1 else matrix[1:]
-        item_index = self._find_header_index(header, ["项目"])
-        temp_index = self._find_header_index(header, ["临时用地", "临时征地"])
-        compensation_index = self._find_header_index(header, ["临征永补"])
+        item_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_017", ["项目"]))
+        temp_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_018", ["临时用地", "临时征地"]))
+        compensation_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_019", ["临征永补"]))
         if item_index is None:
             return None, None
         values: dict[str, Any] = {}
@@ -324,9 +326,9 @@ class LandAreaRulesMixin:
 
     def _land_area_rows_from_mixed_table(self, matrix: list[list[str]]) -> dict[str, list[dict[str, Any]]]:
         header = matrix[0]
-        permanent_index = self._find_header_index(header, ["永久征地", "永久占地", "征地", "永久"])
-        long_index = self._find_header_index(header, ["长期租地"])
-        temporary_index = self._find_header_index(header, ["短期租地", "临时性占地", "临时租地", "临时"])
+        permanent_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_020", ["永久征地", "永久占地", "征地", "永久"]))
+        long_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_021", ["长期租地"]))
+        temporary_index = self._find_header_index(header, domain_strings(self, "civil_land", "list_022", ["短期租地", "临时性占地", "临时租地", "临时"]))
         values: dict[str, Any] = {}
         for row in matrix[1:]:
             label = row[0] if row else ""

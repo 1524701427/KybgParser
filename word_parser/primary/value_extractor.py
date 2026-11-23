@@ -15,11 +15,39 @@ class ValueExtractor:
     VALUE_HEADER_KEYWORDS = ("数值", "指标值", "推荐值", "取值", "金额", "投资", "容量", "规模", "长度", "数量", "台数")
     UNIT_HEADER_KEYWORDS = ("单位", "计量单位")
     NOISE_HEADER_KEYWORDS = ("序号", "编号", "备注", "说明", "类别", "阶段")
+    RAW_UNIT_HEADER_KEYWORDS = ("单位", "unit", "Unit")
+    SUMMARY_ROW_KEYWORDS = ("合计", "总计", "总长", "小计", "求和", "平均", "total", "Total")
+    MATERIAL_GRADE_PATTERN = r"\b(?:C|AC|HRB|HPB)\s*[-]?\d+"
+    HEADING_EXCLUSION_PATTERNS = (
+        r"\d+(?:\.\d+){1,4}\s+[^|:]{1,40}",
+        r"\s*\d+(?:[-.]\d+)+(?:\s+[^|:]{0,40})?",
+    )
+    HEADING_VALUE_MARKERS = (":", "：", "|")
+    # Preserve the original order and table-lookup short-circuit semantics.
+    DEFAULT_TABLE_OPERATORS = ("table_aggregate", "table_list", "table_lookup")
+    TABLE_OPERATOR_METHODS = {
+        "table_aggregate": "_extract_by_table_aggregate",
+        "table_list": "_extract_by_table_list",
+        "table_lookup": "_extract_by_table_lookup",
+    }
+    DEFAULT_SCORE_BONUSES = {
+        "table_rule_header": 0.95,
+        "table_rule_row": 0.6,
+        "table_aggregate": 1.35,
+        "table_lookup": 0.75,
+        "table_list": 1.1,
+        "regex": 0.4,
+        "regex_derived": 0.45,
+        "regex_fallback": 0.1,
+        "regex_multi": 0.35,
+    }
 
     def __init__(
         self,
         table_rule_enabled: bool = True,
         regex_enabled: bool = True,
+        table_header_config: dict | None = None,
+        value_config: dict | None = None,
     ):
         """初始化抽取器。
 
@@ -29,6 +57,34 @@ class ValueExtractor:
         """
         self.table_rule_enabled = table_rule_enabled
         self.regex_enabled = regex_enabled
+        # Keep legacy defaults for direct callers, but read all active table labels
+        # from configs/extraction_runtime.yaml in the application factory.
+        headers = table_header_config or {}
+        self.VALUE_HEADER_KEYWORDS = tuple(headers.get("value", self.VALUE_HEADER_KEYWORDS))
+        self.UNIT_HEADER_KEYWORDS = tuple(headers.get("unit", self.UNIT_HEADER_KEYWORDS))
+        self.NOISE_HEADER_KEYWORDS = tuple(headers.get("noise", self.NOISE_HEADER_KEYWORDS))
+        self.RAW_UNIT_HEADER_KEYWORDS = tuple(headers.get("raw_unit", self.RAW_UNIT_HEADER_KEYWORDS))
+        self.SUMMARY_ROW_KEYWORDS = tuple(headers.get("summary", self.SUMMARY_ROW_KEYWORDS))
+        self.MATERIAL_GRADE_PATTERN = str(headers.get("material_grade_pattern", self.MATERIAL_GRADE_PATTERN))
+        policy = value_config or {}
+        self.table_operator_order = tuple(policy.get("table_operator_order", self.DEFAULT_TABLE_OPERATORS))
+        # This compatibility phase does not permit reordering: lookup suppresses
+        # the coarse table rule, so changing order can alter business results.
+        if self.table_operator_order != self.DEFAULT_TABLE_OPERATORS:
+            raise ValueError(
+                "table_operator_order must preserve the legacy table extraction order: "
+                + ", ".join(self.DEFAULT_TABLE_OPERATORS)
+            )
+        bonuses = policy.get("score_bonuses") or {}
+        self.score_bonuses = {**self.DEFAULT_SCORE_BONUSES, **bonuses}
+        self.number_near_alias_window = int(policy.get("number_near_alias_window", 80))
+        self.table_group_header_max_cells = int(policy.get("table_group_header_max_cells", 2))
+        self.heading_exclusion_patterns = tuple(
+            policy.get("heading_exclusion_patterns", self.HEADING_EXCLUSION_PATTERNS)
+        )
+        self.heading_value_markers = tuple(
+            policy.get("heading_value_markers", self.HEADING_VALUE_MARKERS)
+        )
 
     def extract(self, matches: list[FieldMatch]) -> list[Extraction]:
         """从匹配候选中抽取字段值。
@@ -83,12 +139,12 @@ class ValueExtractor:
             return []
         aliases = match.candidate.field_config.get("aliases") or []
         results: list[Extraction] = []
-        results.extend(self._extract_by_table_aggregate(match, table))
-        results.extend(self._extract_by_table_list(match, table))
-        lookup_results = self._extract_by_table_lookup(match, table)
-        if lookup_results:
-            results.extend(lookup_results)
-            return results
+        for operator in self.table_operator_order:
+            handler = getattr(self, self.TABLE_OPERATOR_METHODS[operator])
+            found = handler(match, table)
+            results.extend(found)
+            if operator == "table_lookup" and found:
+                return results
         if match.candidate.field_config.get("coarse_table_rule_enabled") is False:
             return results
         for row_index, row in enumerate(table.rows):
@@ -101,7 +157,7 @@ class ValueExtractor:
             if not alias_hit and not header_items:
                 continue
             extracted_items = header_items
-            score_bonus = 0.95 if extracted_items else 0.6
+            score_bonus = self.score_bonuses["table_rule_header" if extracted_items else "table_rule_row"]
             if not extracted_items:
                 extracted_items = [
                     item
@@ -211,7 +267,7 @@ class ValueExtractor:
                 raw_value=value_text,
                 value=value_text,
                 unit=aggregate.get("unit") or config.get("standard_unit"),
-                score=match.score + 1.35,
+                score=match.score + self.score_bonuses["table_aggregate"],
                 method="table_aggregate",
                 evidence=self._build_evidence(match, evidence_text, "table_aggregate"),
                 debug={
@@ -267,7 +323,7 @@ class ValueExtractor:
                         raw_value=value_text,
                         value=value_text,
                         unit=unit or self._unit_from_text(header_text, match.candidate.field_config),
-                        score=match.score + 0.75,
+                        score=match.score + self.score_bonuses["table_lookup"],
                         method="table_lookup",
                         evidence=self._build_evidence(match, evidence_text, "table_lookup"),
                         debug={"row_index": row_index, "column_index": column_index, "table_lookup": lookup},
@@ -327,7 +383,7 @@ class ValueExtractor:
                 raw_value=value_text,
                 value=value_text,
                 unit=None,
-                score=match.score + 1.1,
+                score=match.score + self.score_bonuses["table_list"],
                 method="table_list",
                 evidence=self._build_evidence(match, evidence_text, "table_list"),
                 debug={"table_list_count": len(values), "column_index": column_index},
@@ -424,7 +480,7 @@ class ValueExtractor:
 
     def _raw_unit_from_unit_column(self, row, headers: dict[int, str]) -> str | None:
         """读取单位列原始文本，不受允许单位配置限制。"""
-        unit_keywords = (chr(0x5355) + chr(0x4f4d), "unit", "Unit")
+        unit_keywords = self.RAW_UNIT_HEADER_KEYWORDS
         for index, cell in enumerate(row):
             header = headers.get(index, "")
             if any(keyword in header for keyword in unit_keywords):
@@ -445,26 +501,16 @@ class ValueExtractor:
         stripped = text.strip()
         if not stripped:
             return True
-        if re.search(r"\b(?:C|AC|HRB|HPB)\s*[-]?\d+", stripped):
+        if re.search(self.MATERIAL_GRADE_PATTERN, stripped):
             return True
         if any(keyword in header_text for keyword in self.NOISE_HEADER_KEYWORDS):
             return True
         return False
 
     def _row_has_summary_label(self, row) -> bool:
-        """识别长明细表中的合计或汇总行。"""
+        """识别长明细表中的合计或汇总行，词典由 YAML 配置。"""
         label = " ".join(cell.text for cell in row[:3])
-        keywords = [
-            chr(0x5408) + chr(0x8ba1),
-            chr(0x603b) + chr(0x8ba1),
-            chr(0x603b) + chr(0x957f),
-            chr(0x5c0f) + chr(0x8ba1),
-            chr(0x6c42) + chr(0x548c),
-            chr(0x5e73) + chr(0x5747),
-            "total",
-            "Total",
-        ]
-        return any(keyword in label for keyword in keywords)
+        return any(keyword in label for keyword in self.SUMMARY_ROW_KEYWORDS)
 
     def _unit_from_unit_column(self, row, headers: dict[int, str], unit_aliases: list[str]) -> str | None:
         """优先从表头为“单位”的列读取单位。"""
@@ -565,7 +611,7 @@ class ValueExtractor:
         non_empty = [cell.text.strip() for cell in row if cell.text.strip()]
         if not non_empty:
             return True
-        if len(non_empty) <= 2 and not any(re.search(r"\d", text) for text in non_empty):
+        if len(non_empty) <= self.table_group_header_max_cells and not any(re.search(r"\d", text) for text in non_empty):
             return True
         return False
 
@@ -730,7 +776,7 @@ class ValueExtractor:
                         raw_value=raw_value,
                         value=raw_value,
                         unit=unit,
-                        score=match.score + 0.4,
+                        score=match.score + self.score_bonuses["regex"],
                         method="regex",
                         evidence=evidence,
                         debug={"pattern": pattern},
@@ -785,7 +831,7 @@ class ValueExtractor:
                         raw_value=raw_value,
                         value=raw_value,
                         unit=unit or derived.get("unit"),
-                        score=match.score + 0.45,
+                        score=match.score + self.score_bonuses["regex_derived"],
                         method="regex_derived",
                         evidence=evidence,
                         debug={"pattern": pattern, "multiplier": derived.get("multiplier", 1.0)},
@@ -816,7 +862,7 @@ class ValueExtractor:
                 raw_value=value_text,
                 value=value_text,
                 unit=unit,
-                score=match.score + 0.1,
+                score=match.score + self.score_bonuses["regex_fallback"],
                 method="regex_fallback",
                 evidence=self._build_evidence(match, match.candidate.text, "regex_fallback"),
                 debug={},
@@ -866,7 +912,7 @@ class ValueExtractor:
                         raw_value=raw_value,
                         value=raw_value,
                         unit=unit or match.candidate.field_config.get('standard_unit'),
-                        score=match.score + 0.35,
+                        score=match.score + self.score_bonuses["regex_multi"],
                         method='regex_multi',
                         evidence=self._build_evidence(match, found.group(0), 'regex_multi'),
                         debug={'pattern': pattern},
@@ -902,13 +948,13 @@ class ValueExtractor:
             compact_text = self._compact_text(text)
             alias_indexes = [compact_text.find(self._compact_text(alias)) for alias in aliases if alias and compact_text.find(self._compact_text(alias)) >= 0]
             if alias_indexes:
-                value_text, unit = self._first_number_with_unit(compact_text[min(alias_indexes): min(len(compact_text), max(alias_indexes) + 80)], field_config)
+                value_text, unit = self._first_number_with_unit(compact_text[min(alias_indexes): min(len(compact_text), max(alias_indexes) + self.number_near_alias_window)], field_config)
                 if value_text is not None:
                     return value_text, unit
         if not alias_indexes:
             return None, None
         start = min(alias_indexes)
-        end = min(len(text), max(alias_indexes) + 80)
+        end = min(len(text), max(alias_indexes) + self.number_near_alias_window)
         value_text, unit = self._first_number_with_unit(text[start:end], field_config)
         if value_text is not None:
             return value_text, unit
@@ -928,11 +974,9 @@ class ValueExtractor:
             alias and (alias in stripped or self._compact_text(alias) in compact_stripped) for alias in aliases
         ):
             return True
-        if re.fullmatch(r"\d+(?:\.\d+){1,4}\s+[^|:]{1,40}", stripped):
+        if any(re.fullmatch(pattern, stripped) for pattern in self.heading_exclusion_patterns):
             return True
-        if re.fullmatch(r"\s*\d+(?:[-.]\d+)+(?:\s+[^|:]{0,40})?", stripped):
-            return True
-        if value_text and stripped.startswith(value_text) and not any(mark in stripped for mark in (":", chr(0xFF1A), "|")):
+        if value_text and stripped.startswith(value_text) and not any(mark in stripped for mark in self.heading_value_markers):
             return True
         return False
 

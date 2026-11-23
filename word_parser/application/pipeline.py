@@ -63,7 +63,7 @@ class ParserPipeline:
         self.indicator_discovery = indicator_discovery
         self.context_filter = context_filter
 
-    def parse(self, file_path: str, *, defer_mapping: bool = False) -> dict:
+    def parse(self, file_path: str, *, defer_mapping: bool = False, memory_only: bool = False) -> dict:
         """执行前置扫描和一次抽取，可按需延后最终映射。
 
         参数：
@@ -81,8 +81,26 @@ class ParserPipeline:
         indicators = discover_indicators(self, ctx)
         extract_primary_fields(self, ctx, indicators)
 
+        # 领域专项抽取属于一次抽取的最后阶段，而不是 JSON 组装阶段。
+        # 仅对支持 prepared 契约的正式 ResultBuilder 启用，其他历史
+        # exporter/测试替身仍保留原来的 export 调用方式。
+        builder = getattr(self.exporter, "result_builder", None)
+        prepared = None
+        if builder is not None and callable(getattr(builder, "prepare", None)):
+            started = perf_counter()
+            prepared = builder.prepare(ctx.ast, ctx.validated, file_path=ctx.file_path)
+            self._log_stage("一次抽取：领域规则", started, 字段数=len(prepared.fields))
+
         stage_started = perf_counter()
-        result = self.exporter.export(ctx, defer_mapping=True) if defer_mapping else self.exporter.export(ctx)
+        if memory_only and not defer_mapping:
+            raise ValueError("memory_only is supported only when final mapping is deferred")
+        if prepared is None:
+            result = self.exporter.export(ctx, defer_mapping=True) if defer_mapping else self.exporter.export(ctx)
+        else:
+            if memory_only:
+                result = self.exporter.export(ctx, defer_mapping=True, prepared=prepared, memory_only=True)
+            else:
+                result = self.exporter.export(ctx, defer_mapping=defer_mapping, prepared=prepared)
         mapped = result.get("mapped", {})
         self._log_stage("映射输出", stage_started, 映射键=len(mapped),
                         非空=sum(value is not None for value in mapped.values()))
