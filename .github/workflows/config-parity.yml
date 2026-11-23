@@ -12,11 +12,13 @@ on:
       - "tests/test_output_field_contract.py"
       - "tests/test_primary_operator_registry_parity.py"
       - "tests/test_funnel_yaml_parity.py"
+      - "tests/test_candidate_facts_adapter.py"
       - "tests/contracts/**"
       - "configs/output_schema.yaml"
       - "tests/test_extraction_config_audit.py"
       - "tests/test_mapped_parity_tool.py"
       - "tools/scripts/compare_mapped.py"
+      - "tools/scripts/audit_candidate_facts.py"
       - "tools/scripts/audit_extraction_config.py"
       - ".github/workflows/config-parity.yml"
 
@@ -34,8 +36,9 @@ jobs:
         run: |
           python -m compileall -q word_parser/application/factory.py word_parser/discovery/indicators.py word_parser/primary
           python -m compileall -q tools/scripts/compare_mapped.py tools/scripts/audit_extraction_config.py
+          python -m compileall -q word_parser/extraction/candidate_facts.py tools/scripts/audit_candidate_facts.py
           python -m compileall -q word_parser/secondary/table_values/resolver.py
       - name: Audit configuration rules
         run: python tools/scripts/audit_extraction_config.py --config-root configs
       - name: Check YAML parity and extraction contract
-        run: python -m pytest tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
+        run: python -m pytest tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
