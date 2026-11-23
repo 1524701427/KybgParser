@@ -124,3 +124,27 @@ def test_secondary_write_outputs_false_is_pure_memory(tmp_path, monkeypatch):
     assert enhanced["sections"][0]["name"] == "电气"
     assert result_path.read_bytes() == original
     assert not list(tmp_path.glob("*table_values*.json"))
+
+
+def test_run_full_parse_reuses_factory_config_for_secondary_and_mapping(monkeypatch, tmp_path):
+    import word_parser.application.workflow as workflow
+    custom = tmp_path / "custom_rules"
+    custom.mkdir()
+    class DummyPipeline:
+        exporter = type("Exporter", (), {
+            "result_builder": type("Builder", (), {"config_root": custom})()
+        })()
+        def parse(self, file_path, defer_mapping=False):
+            assert defer_mapping is True
+            return {"outputFiles": {"result": str(tmp_path / "case_result.json")}}
+    parser = type("Parser", (), {"pipeline": DummyPipeline()})()
+    observed = {}
+    def fake_enhance(data, config_path=None, config_root=None):
+        observed.update(root=config_root, table=config_path)
+        return {"ok": True}
+    monkeypatch.setattr(workflow, "enhance_parse_result", fake_enhance)
+    assert workflow.run_full_parse(parser, "case.docx") == {"ok": True}
+    assert observed == {
+        "root": custom,
+        "table": custom / "table_field_extractors.yaml",
+    }
