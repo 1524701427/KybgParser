@@ -58,7 +58,7 @@ class ConfigLoader:
         with path.open("r", encoding="utf-8") as file:
             return json.load(file)
 
-    def load_field_configs(self) -> dict[str, dict[str, Any]]:
+    def load_field_configs(self, *, strict_duplicates: bool = False) -> dict[str, dict[str, Any]]:
         """加载全部字段配置。
 
         返回：
@@ -74,6 +74,14 @@ class ConfigLoader:
             for code, config in (data.get("fields") or {}).items():
                 config["code"] = code
                 config["config_path"] = str(self.config_root / "fields" / path.name)
+                if code in all_fields:
+                    previous_path = all_fields[code].get("config_path")
+                    message = f"字段编码重复：{code}；文件={previous_path} 与 {path}"
+                    if strict_duplicates:
+                        raise ValueError(message)
+                    # Preserve legacy last-file-wins behavior until duplicates
+                    # are explicitly reconciled and baseline outputs verified.
+                    logger.warning(message + "；保持原有后文件覆盖行为")
                 all_fields[code] = config
         constraints_path = self.config_root / "field_constraints.yaml"
         if constraints_path.exists():
