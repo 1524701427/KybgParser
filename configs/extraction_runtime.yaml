@@ -20,7 +20,73 @@ discovery:
     - [一期, 二期, 本期, 远期]
     - [平均, 最大, 最小]
     - [年, 月, 日]
-  context_value_pattern: '^\s*(?:为|约为|达到|达|是|取|：|:)\s*(.+)$'
+  context_value_pattern: '^\s*(?:为|约为|达到|达|是|取|：|:)\s*(.+)
+
+value_extraction:
+  table_headers:
+    value: [数值, 指标值, 推荐值, 取值, 金额, 投资, 容量, 规模, 长度, 数量, 台数]
+    unit: [单位, 计量单位]
+    noise: [序号, 编号, 备注, 说明, 类别, 阶段]
+
+candidate_resolution:
+  method_weights:
+    table_lookup: 1.2
+    table_rule: 0.55
+    table_aggregate: 1.0
+    table_list: 0.9
+    regex: 0.15
+    regex_multi: 0.05
+    regex_derived: 0.25
+    regex_fallback: -1.2
+  strong_rule_methods: [table_lookup, table_aggregate, table_list, regex, regex_derived, regex_multi]
+
+normalization:
+  # Mirrors the original Normalizer.UNIT_MAP; does not change any conversions.
+  unit_aliases:
+    "米/秒": "m/s"
+    "m·s-1": "m/s"
+    "万千瓦时": "万kWh"
+    "小时": "h"
+    "兆瓦": "MW"
+    "千瓦": "kW"
+    "千伏": "kV"
+    "元/千瓦": "元/kW"
+    "元/千瓦时": "元/kWh"
+    "公里": "km"
+    "千米": "km"
+    "米": "m"
+    "平方米": "m2"
+    "㎡": "m2"
+    "m²": "m2"
+    "立方米": "m3"
+    "m³": "m3"
+    "公顷": "hm2"
+    "kg/m³": "kg/m3"
+    "W/m²": "W/m2"
+    "kN/㎡": "kN/m2"
+    "千牛/平方米": "kN/m2"
+    "千伏安": "kVA"
+    "兆伏安": "MVA"
+    "个月": "月"
+    "万元": "万元"
+    "年": "年"
+    "月": "月"
+    "度": "度"
+    "台": "台"
+    "座": "座"
+    "个": "个"
+    "根": "根"
+    "回": "回"
+    "基": "基"
+    "人": "人"
+    "吨": "t"
+
+  # Explicit label/value parsing policies (previously fixed Python literals).
+  paragraph_separators: ["：", ":", "为", "取"]
+  label_min_length: 2
+  label_max_length: 30
+  paragraph_clause_max_length: 180
+  string_value_max_length: 60
 
 value_extraction:
   table_headers:
