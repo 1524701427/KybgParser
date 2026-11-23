@@ -52,3 +52,21 @@ execute_final_mapping()                最终映射：先完整投影，再按 Y
 - GitHub Actions 继续比较 Linux 真实 DOCX、Windows Aspose 实际解析下的原版/重构版 `mapped.json`、`result.json`；另外两份原版会崩溃的报告做重构版烟测。
 - 领域算法和映射后处理方法仍在 Python；其中个别**业务条件**仍有硬编码，不能把此阶段描述为全面的『配置单一真源』。复杂计算应保持 Python，抽取/匹配/优先级条件应继续迁入 YAML。
 - 完整 DOC/PDF/OCR 及用户生产环境全字段验收仍需要更多真实报告。只有新旧全部符合约定后才合并 main。
+
+## 调用方式
+
+完整四阶段对外 API：
+
+```python
+from word_parser.application.factory import create_default_parser
+
+parser = create_default_parser(config_root='configs')
+result = parser.parse_full('项目可研报告.docx')
+print(result['outputFiles']['mapped'])
+```
+
+`parser.parse()` 和 `parse_document()` **仍保留原来的一次解析兼容接口**，避免现有调用方因为升级被意外改变返回结构。
+要完整运行预抽取、一次抽取、二次抽取及最终映射，应使用
+`parse_full()`、`run_full_parse()` 或现有 `parse_document_with_table_values()`。
+
+若调用方指定非默认 `config_root`，四阶段会使用同一个配置目录，二次表格配置默认从该目录的 `table_field_extractors.yaml` 获取。
