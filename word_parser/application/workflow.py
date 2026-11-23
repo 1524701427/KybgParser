@@ -15,7 +15,7 @@ DEFAULT_TABLE_VALUE_CONFIG = Path("configs") / "table_field_extractors.yaml"
 
 def enhance_parse_result(
     parse_result: dict[str, Any],
-    config_path: str | Path = DEFAULT_TABLE_VALUE_CONFIG,
+    config_path: str | Path | None = None,
     config_root: str | Path = "configs",
 ) -> dict[str, Any]:
     """第三阶段执行二次抽取，第四阶段统一映射并写出最终 JSON。"""
@@ -23,6 +23,8 @@ def enhance_parse_result(
     result_path = output_files.get("result")
     if not result_path:
         raise RuntimeError("主解析结果中没有 outputFiles.result，无法执行二次抽取。")
+    if config_path is None:
+        config_path = Path(config_root) / "table_field_extractors.yaml"
 
     # 二次抽取先保存在内存；不要提前发布尚未映射校验的中间结果。
     enhanced = enhance_primary_result(
