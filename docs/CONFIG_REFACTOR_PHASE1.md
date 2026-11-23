@@ -177,3 +177,53 @@ New tests: `tests/test_candidate_diagnostics_policy.py` (including source comple
 NIL reason, unit mismatch, rejected candidate exclusion, opt-out, invalid YAML, and
 immutable primary input/output). Real-document Aspose/OCR parity is still required
 before production merge.
+
+
+## Consolidated real-report acceptance gate
+
+This project is **not production-verified merely because unit tests pass**.
+Run the baseline and refactored branches against the SAME real `.doc`, `.docx`, and `.pdf` reports
+on the SAME Windows Aspose/OCR/.NET installation before merging.
+
+The repository now includes a strict regression runner:
+
+```bash
+# From your currently working main repository (Windows Git Bash)
+git fetch origin
+git worktree add ../KybgParser-refactor origin/refactor/config-driven-extraction-phase1
+
+# From the new KybgParser-refactor worktree, reuse the same Python/OCR runtime
+python tools/scripts/run_real_report_parity.py \
+  --baseline-root ../kybgparser-test \
+  --candidate-root . \
+  --report '../kybgparser-test/samples/reports/5.陕西华电咸阳永寿常宁镇10万千瓦风电项目可行性研究报告.docx' \
+  --out-dir ../KybgParser-parity
+```
+
+Replace `../kybgparser-test` with the actual original repository directory.
+To compare multiple documents in one run, repeat `--report` for every actual document.
+The runner spawns each codebase in a separate process, uses the same `--python` interpreter,
+and writes outputs to separate directories **outside both repositories**.
+The previous tracked `data/predictions` files are not overwritten.
+
+A comparison passes only when the baseline and candidate `_mapped.json` AND `_result.json`
+are exactly identical in keys, values, types, nested tables, and row counts.
+Differences and extraction failures make the command exit nonzero and are saved
+in `regression_summary.json`. This report may include extracted values and must be handled
+according to the user's document confidentiality requirements.
+
+The GitHub PR CI runs tests for the comparison tool, but DOES NOT perform the actual
+Aspose/OCR report execution. That execution requires the user's working runtime.
+
+## Additional domain YAML migration in this revision
+
+- `project_overview` owner-company and project-location text patterns now read from
+  `configs/deterministic_rules.yaml` with original Python defaults as fallback.
+- `civil_roads` caption recognition and combined-text road geometry/length patterns
+  are now YAML-driven with original defaults and original precedence.
+- `tests/test_domain_yaml_parity.py` compares the actual domain method outputs with
+  old empty-config defaults over project/road text fixtures, and validates regex compilation.
+
+This remains a draft migration, not a completed full-domain rewrite. Complex
+business computations and primary/secondary result selectors are deliberately still Python.
+No claim of exhaustive correctness is made before the real-document acceptance gate passes.
