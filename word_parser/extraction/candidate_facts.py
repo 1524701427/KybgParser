@@ -37,7 +37,9 @@ class CandidateFact:
 
 
 def _rows(payload: dict[str, Any], key: str, context: str) -> list[dict[str, Any]]:
-    rows = payload.get(key) or []
+    rows = payload.get(key)
+    if rows is None:
+        return []
     if not isinstance(rows, list):
         raise ValueError(f"{context}.{key} must be a list")
     for position, row in enumerate(rows):
@@ -70,7 +72,9 @@ def _primary_fact(record: dict[str, Any]) -> CandidateFact:
 
 
 def _secondary_field_fact(record: dict[str, Any], section_name: str | None) -> CandidateFact:
-    source = deepcopy(record.get("source") or {})
+    source = deepcopy(record.get("source"))
+    if source is None:
+        source = {}
     if not isinstance(source, dict):
         raise ValueError("secondary table field source must be an object")
     return CandidateFact(
@@ -86,7 +90,9 @@ def _secondary_field_fact(record: dict[str, Any], section_name: str | None) -> C
 
 
 def _secondary_table_fact(record: dict[str, Any], section_name: str | None) -> CandidateFact:
-    source = deepcopy(record.get("source") or {})
+    source = deepcopy(record.get("source"))
+    if source is None:
+        source = {}
     if not isinstance(source, dict):
         raise ValueError("secondary derived table source must be an object")
     value = (
@@ -123,7 +129,9 @@ def collect_candidate_facts(
     facts: list[CandidateFact] = []
     for row in _rows(primary_detail, "extractionCandidates", "primary"):
         facts.append(_primary_fact(row))
-    secondary = secondary_detail if secondary_detail is not None else primary_detail.get("tableValueExtraction") or {}
+    secondary = secondary_detail if secondary_detail is not None else primary_detail.get("tableValueExtraction")
+    if secondary is None:
+        secondary = {}
     if not isinstance(secondary, dict):
         raise ValueError("tableValueExtraction must be an object")
     for section in _rows(secondary, "sections", "secondary"):
