@@ -1,0 +1,31 @@
+# 域抽取算子执行顺序。只声明可注册的 Python 处理方法。
+# legacy_order 阶段顺序与旧 Python 代码一致，防止改变候选覆盖优先级。
+version: 1
+compatibility_mode: legacy_order
+field_operators:
+  - land_field_overrides
+  - drop_combined_detail_only
+  - combined_detail_field_overrides
+  - wind_resource_collection_overrides
+  - road_parameter_overrides
+  - electrical_primary_table_overrides
+  - generation_field_overrides
+  - wind_foundation_table_overrides
+  - finance_field_overrides
+  - earthwork_field_overrides
+  - investment_summary_field_overrides
+  - cover_text_overrides
+  - cover_ocr_overrides
+scalar_operators:
+  - original_scalar_overrides
+  - configured_scalar_overrides
+  - project_overview_values
+  - geology_values
+  - resource_values
+  - environment_values
+  - investment_basis_values
+  - finance_curtailment_values
+  - finance_grid_price_values
+  - finance_text_values
+  - finance_capital_irr_values
+  - finance_table_values
