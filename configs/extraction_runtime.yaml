@@ -54,6 +54,19 @@ discovery:
   contextual_prefix_guard_chars: 10
 
 value_extraction:
+  # Locked to legacy execution order; unknown/reordered stages fail configuration audit.
+  table_operator_order: [table_aggregate, table_list, table_lookup]
+  # Original ValueExtractor candidate score increments, unchanged.
+  score_bonuses:
+    table_rule_header: 0.95
+    table_rule_row: 0.6
+    table_aggregate: 1.35
+    table_lookup: 0.75
+    table_list: 1.1
+    regex: 0.4
+    regex_derived: 0.45
+    regex_fallback: 0.1
+    regex_multi: 0.35
   number_near_alias_window: 80
   table_group_header_max_cells: 2
   heading_exclusion_patterns:
