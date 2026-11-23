@@ -144,3 +144,18 @@ def test_cli_reads_details_and_only_writes_explicit_separate_report(tmp_path, ca
     assert audit_main([str(detail), "--output", str(detail)]) == 2
     assert audit_main([str(detail), "--output", str(tmp_path / "wind_mapped.json")]) == 2
     assert detail.read_bytes() == unchanged
+
+
+def test_empty_malformed_sections_or_source_are_not_accepted_as_missing():
+    with pytest.raises(ValueError, match="extractionCandidates"):
+        collect_candidate_facts({"extractionCandidates": {}})
+    with pytest.raises(ValueError, match="tableValueExtraction"):
+        collect_candidate_facts({"tableValueExtraction": []})
+    with pytest.raises(ValueError, match="source"):
+        collect_candidate_facts({
+            "tableValueExtraction": {
+                "sections": [{"name": "资源章节", "tableFields": [
+                    {"fieldCode": "x", "value": 1, "status": "OK", "source": []}
+                ]}]
+            }
+        })
