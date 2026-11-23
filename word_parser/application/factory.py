@@ -56,6 +56,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
             table_rule_enabled=_module_active(table_rule_config),
             regex_enabled=_module_active(regex_config),
             table_header_config=(extraction_runtime.get("value_extraction") or {}).get("table_headers"),
+            value_config=extraction_runtime.get("value_extraction"),
         ),
         funnel_pruner=FunnelPruner(
             enabled=bool(funnel_config.get("enabled", True)),
