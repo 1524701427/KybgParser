@@ -42,6 +42,16 @@ class ConfigLoader:
         logger.info(f"已加载配置：{path}")
         return data
 
+    def load_required_yaml(self, relative_path: str) -> dict[str, Any]:
+        """Load mandatory workflow configuration, never silently use empty rules."""
+        path = self.config_root / relative_path
+        if not path.is_file():
+            raise FileNotFoundError(f"缺少必需的 YAML 配置：{path}")
+        data = self.load_yaml(relative_path)
+        if not isinstance(data, dict) or not data:
+            raise ValueError(f"必需的 YAML 配置必须为非空对象：{path}")
+        return data
+
     def load_json(self, relative_path: str) -> dict[str, Any]:
         """读取 JSON 配置。
 
