@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 from typing import Any
@@ -62,10 +62,10 @@ class CollectorLineRulesMixin:
         joined += "\n" + "\n".join(self._table_text(table) for table in ast.tables if "架空线路长度" in self._table_text(table) or "电缆线路长度" in self._table_text(table))
         if "集电线路" not in joined and "架空线路长度" not in joined:
             return None
-        total = self._first_length_match(joined, [r"(?:线路总计长度|新建线路路径长|线路路径长|架空线路长度)[^0-9]{0,20}([0-9]+(?:\.[0-9]+)?)\s*km"])
+        total = self._first_length_match(joined, domain_strings(self, "electrical_collector", "list_001", [r"(?:线路总计长度|新建线路路径长|线路路径长|架空线路长度)[^0-9]{0,20}([0-9]+(?:\.[0-9]+)?)\s*km"]))
         single = self._first_circuit_length(joined, "单回")
         double = self._first_circuit_length(joined, "双回")
-        cable = self._first_length_match(joined, [r"电缆线路长度约?\s*([0-9]+(?:\.[0-9]+)?)\s*km", r"([0-9]+(?:\.[0-9]+)?)\s*km[^。；;\n]{0,20}电缆线路"])
+        cable = self._first_length_match(joined, domain_strings(self, "electrical_collector", "list_002", [r"电缆线路长度约?\s*([0-9]+(?:\.[0-9]+)?)\s*km", r"([0-9]+(?:\.[0-9]+)?)\s*km[^。；;\n]{0,20}电缆线路"]))
         single_value = self._length_numeric_value(single)
         double_value = self._length_numeric_value(double)
         if total is None and (single_value is not None or double_value is not None):
@@ -181,11 +181,11 @@ class CollectorLineRulesMixin:
             return row if any(value is not None for key, value in row.items() if not str(key).startswith("_")) else None
         self._set_collector_text_value(row, "collectorVoltage", ast, joined, source_blocks, self._first_number_after_pattern(joined, r"([0-9]+(?:\.\d+)?)\s*kV\s*集电线路"))
         self._set_collector_text_value(row, "circuitCount", ast, joined, source_blocks, self._first_number_after_pattern(joined, r"(?:设|建设|共建设?|回路数\D{0,8})([0-9]+)\s*回"))
-        self._set_collector_text_value(row, "newRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"(?:新建线路路径长度|新建线路径长度|新建线路路径长)\D{0,12}([0-9]+(?:\.\d+)?)\s*km"]))
-        self._set_collector_text_value(row, "newOverheadLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"新建架空线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
-        self._set_collector_text_value(row, "newSingleCircuitLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"新建单回路线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
-        self._set_collector_text_value(row, "newDoubleCircuitLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"新建双回路线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
-        self._set_collector_text_value(row, "newCableLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"新建电缆线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
+        self._set_collector_text_value(row, "newRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_003", [r"(?:新建线路路径长度|新建线路径长度|新建线路路径长)\D{0,12}([0-9]+(?:\.\d+)?)\s*km"])))
+        self._set_collector_text_value(row, "newOverheadLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_004", [r"新建架空线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
+        self._set_collector_text_value(row, "newSingleCircuitLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_005", [r"新建单回路线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
+        self._set_collector_text_value(row, "newDoubleCircuitLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_006", [r"新建双回路线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
+        self._set_collector_text_value(row, "newCableLineLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_007", [r"新建电缆线路(?:路径)?长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
         if row.get("newCableLineLength") is None:
             cable_total = self._collector_cable_total_from_equipment(ast)
             if cable_total is not None:
@@ -193,7 +193,7 @@ class CollectorLineRulesMixin:
                 row.setdefault("_cellSources", {})["newCableLineLength"] = self._collector_text_source(
                     ast, joined, source_blocks, "35kV集电电缆规格数量相加，作为电缆线路总长度。"
                 )
-        self._set_collector_text_value(row, "totalCollectorRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"全线集电线路路径长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
+        self._set_collector_text_value(row, "totalCollectorRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_008", [r"全线集电线路路径长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
         if row.get("totalCollectorRouteLength") is None:
             scoped_total = self._collector_total_route_from_section(ast)
             if scoped_total is not None:
@@ -205,9 +205,9 @@ class CollectorLineRulesMixin:
                 )
         self._set_collector_text_value(row, "doubleCircuitOverheadRouteLength", ast, joined, source_blocks, self._first_circuit_overhead_length(joined, "双回"))
         self._set_collector_text_value(row, "singleCircuitOverheadRouteLength", ast, joined, source_blocks, self._first_circuit_overhead_length(joined, "单回"))
-        self._set_collector_text_value(row, "boxToTerminalTowerCableRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"箱变至终端塔电缆路径长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
-        self._set_collector_text_value(row, "singleCircuitCableRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"单回(?:路)?电缆线路路径长(?:度)?约?\s*([0-9]+\s*[×xX]\s*[0-9]+(?:\.\d+)?|[0-9]+(?:\.\d+)?)\s*km"]))
-        self._set_collector_text_value(row, "doubleCircuitCableRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, [r"双回(?:路|进站)?电缆路径长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"]))
+        self._set_collector_text_value(row, "boxToTerminalTowerCableRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_009", [r"箱变至终端塔电缆路径长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
+        self._set_collector_text_value(row, "singleCircuitCableRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_010", [r"单回(?:路)?电缆线路路径长(?:度)?约?\s*([0-9]+\s*[×xX]\s*[0-9]+(?:\.\d+)?|[0-9]+(?:\.\d+)?)\s*km"])))
+        self._set_collector_text_value(row, "doubleCircuitCableRouteLength", ast, joined, source_blocks, self._first_length_text_match(joined, domain_strings(self, "electrical_collector", "list_011", [r"双回(?:路|进站)?电缆路径长(?:度)?约?\s*([0-9]+(?:\.\d+)?)\s*km"])))
         preferred_circuit_count = self._preferred_collector_circuit_count(joined)
         if preferred_circuit_count is not None:
             row["circuitCount"] = preferred_circuit_count
