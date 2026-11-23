@@ -24,4 +24,4 @@ jobs:
           python -m compileall -q word_parser/application/factory.py word_parser/discovery/indicators.py word_parser/primary
           python -m compileall -q tools/scripts/compare_mapped.py
       - name: Check YAML parity and extraction contract
-        run: python -m pytest tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py -q
+        run: python -m pytest tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_architecture_compatibility.py tests/test_public_structure.py -q
