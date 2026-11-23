@@ -130,3 +130,42 @@ jobs:
           name: docx-candidate-smoke-summary
           path: candidate-smoke-output/smoke_summary.json
           if-no-files-found: ignore
+
+  windows-aspose-parity:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout current refactor
+        uses: actions/checkout@v4
+        with:
+          path: candidate
+      - name: Checkout baseline main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Aspose/.NET and parser dependencies
+        run: python -m pip install pythonnet==3.0.5 pyyaml rapidfuzz pyahocorasick loguru pandas httpx regex pillow openpyxl
+      - name: Require actual Aspose .NET loader (no SimpleDocx fallback)
+        working-directory: candidate
+        run: |
+          python -c 'from word_parser.document.word.aspose_loader import AsposeWordsLoader; a=AsposeWordsLoader(fallback_to_simple=False); r=a._load_aspose_runtime(); assert r is not None, "Aspose .NET runtime failed to load"; print("Aspose mode:", r[0]); assert r[0] == "dotnet-dll", "Expected checked-in Aspose.Words.dll mode"'
+      - name: Compare actual Windows Aspose report extraction
+        run: |
+          python candidate/tools/scripts/run_real_report_parity.py --baseline-root baseline --candidate-root candidate --report 'candidate/samples/reports/项目建议书解析（陕西华电延安吴起庙沟50MW风电项目）.docx' --out-dir windows-aspose-parity-output --timeout-seconds 1200
+      - name: Upload Windows regression diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-aspose-parity-summary
+          path: windows-aspose-parity-output/regression_summary.json
+          if-no-files-found: ignore
