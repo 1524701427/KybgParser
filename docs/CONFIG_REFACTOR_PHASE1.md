@@ -142,3 +142,38 @@ locks legacy precedence: primary nonempty field/table values win; secondary only
 
 The existing 284 final output mappings remain protected by `tests/test_output_field_contract.py`.
 Full real-report PDF/Word+OCR parity remains outstanding; do not merge without it.
+
+
+## Continued migration: YAML-driven candidate quality observations
+
+The read-only candidate adapter now has an **optional diagnostic policy**,
+in `configs/candidate_audit.yaml`, implemented by
+`word_parser/extraction/candidate_diagnostics.py`.
+
+It observes and reports:
+- active field candidates with missing `fieldCode`;
+- missing block/table/row/source-location signals;
+- secondary `NIL` results that lack a reason;
+- primary-versus-secondary candidate value variations, **only when units match** by default.
+
+These findings are **review-only**. They are not proof of extraction errors:
+different phases, future schemes and statistical conventions can legitimately produce
+different reported values. Rejected primary candidates and secondary NIL records
+are excluded from value-variation comparisons. No source value is rounded or converted.
+
+The candidate audit CLI now automatically loads this YAML policy. Override using:
+
+```bash
+python tools/scripts/audit_candidate_facts.py data/predictions/PROJECT_details.json --policy configs/candidate_audit.yaml --output reports/PROJECT_candidate_facts.json
+```
+
+Only the separate audit file is written when `--output` is provided;
+the existing `_details.json`, `_result.json`, and `_mapped.json` cannot be overwritten.
+Malformed or empty audit configuration causes an explicit failure instead of
+silently switching back to default rules. The diagnostic adapter does not feed back
+into `CandidateResolver`, `FunnelPruner`, or the secondary result-merging functions.
+
+New tests: `tests/test_candidate_diagnostics_policy.py` (including source completeness,
+NIL reason, unit mismatch, rejected candidate exclusion, opt-out, invalid YAML, and
+immutable primary input/output). Real-document Aspose/OCR parity is still required
+before production merge.
