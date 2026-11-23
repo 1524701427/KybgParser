@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 from typing import Any
@@ -33,11 +33,11 @@ class WindFoundationRulesMixin:
             if not any(keyword in text or keyword in caption or keyword in section_text for keyword in ("风机基础", "风电机组基础", "机组基础工程")):
                 continue
             wind_rows = self._wind_foundation_rows(matrix) or matrix
-            row["foundationType"] = row["foundationType"] or self._text_by_row_label(matrix, ["基础形式", "地基处理措施"])
-            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(wind_rows, ["垫层混凝土 C20", "垫层混凝土C20", "垫层及散水混凝土C20"])
-            row["c40Concrete"] = row["c40Concrete"] or self._value_by_row_label(wind_rows, ["基础混凝土 C40", "基础混凝土C40", "基础混凝土 C45", "基础混凝土C45", "基础承台C40混凝土"])
-            row["rebar"] = row["rebar"] or self._value_by_row_label(wind_rows, ["钢筋制作", "钢筋工程量", "钢筋制作与安装"])
-            row["steel"] = row["steel"] or self._value_by_row_label(wind_rows, ["钢结构制作", "钢结构制作与安装"])
+            row["foundationType"] = row["foundationType"] or self._text_by_row_label(matrix, domain_strings(self, "civil_foundation", "list_001", ["基础形式", "地基处理措施"]))
+            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_002", ["垫层混凝土 C20", "垫层混凝土C20", "垫层及散水混凝土C20"]))
+            row["c40Concrete"] = row["c40Concrete"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_003", ["基础混凝土 C40", "基础混凝土C40", "基础混凝土 C45", "基础混凝土C45", "基础承台C40混凝土"]))
+            row["rebar"] = row["rebar"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_004", ["钢筋制作", "钢筋工程量", "钢筋制作与安装"]))
+            row["steel"] = row["steel"] or self._value_by_row_label(wind_rows, domain_strings(self, "civil_foundation", "list_005", ["钢结构制作", "钢结构制作与安装"]))
         return self._schema_row_table("windFoundationConstruction", row) if any(value is not None for value in row.values()) else None
 
     def _wind_foundation_rows(self, matrix: list[list[str]]) -> list[list[str]]:
@@ -196,10 +196,10 @@ class WindFoundationRulesMixin:
             source = box_rows
             is_direct_quantity_table = bool(matrix and any("工程量" in cell for cell in matrix[0]))
             row["concreteGrade"] = row["concreteGrade"] or self._box_foundation_concrete_grade(source)
-            row["c30Concrete"] = row["c30Concrete"] or self._value_by_row_label(source, ["基础混凝土C30", "混凝土 C30", "混凝土C30", "混凝土 C25", "混凝土C25", "混凝土（C25）", "混凝土（C30）", "混凝土量（C30）", "混凝土量（C25）", "基层混凝土量"])
-            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(source, ["垫层混凝土", "垫层混凝土C20", "垫层混凝土 C20"])
-            row["rebarInstallation"] = row["rebarInstallation"] or self._value_by_row_label(source, ["钢筋制作与安装", "基础钢筋", "钢筋（", "钢筋"])
-            row["steelInstallation"] = row["steelInstallation"] or self._value_by_row_label(source, ["铁件制作安装", "钢结构制作与安装"])
+            row["c30Concrete"] = row["c30Concrete"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_006", ["基础混凝土C30", "混凝土 C30", "混凝土C30", "混凝土 C25", "混凝土C25", "混凝土（C25）", "混凝土（C30）", "混凝土量（C30）", "混凝土量（C25）", "基层混凝土量"]))
+            row["c20Concrete"] = row["c20Concrete"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_007", ["垫层混凝土", "垫层混凝土C20", "垫层混凝土 C20"]))
+            row["rebarInstallation"] = row["rebarInstallation"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_008", ["钢筋制作与安装", "基础钢筋", "钢筋（", "钢筋"]))
+            row["steelInstallation"] = row["steelInstallation"] or self._value_by_row_label(source, domain_strings(self, "civil_foundation", "list_009", ["铁件制作安装", "钢结构制作与安装"]))
             if is_direct_quantity_table and row["c30Concrete"] is not None and row["rebarInstallation"] is not None:
                 return self._box_foundation_result_table(row)
         return self._box_foundation_result_table(row) if any(value is not None for key, value in row.items() if key != "concreteGrade") else None
