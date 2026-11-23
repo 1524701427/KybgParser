@@ -227,3 +227,29 @@ Aspose/OCR report execution. That execution requires the user's working runtime.
 This remains a draft migration, not a completed full-domain rewrite. Complex
 business computations and primary/secondary result selectors are deliberately still Python.
 No claim of exhaustive correctness is made before the real-document acceptance gate passes.
+
+## Pre-existing full-report failure discovered by acceptance testing
+
+The real-DOCX regression test uncovered that original `main` already crashes
+on two checked-in parsed report documents:
+
+- `samples/parsed/可研报告解析（陕西华电靖边韩家沟200MW项目）.docx`
+- `samples/parsed/可研报告解析（陕西华电白水15万千瓦项目）.docx`
+
+The crash was `AttributeError: 'ResultBuilder' object has no attribute '_cell_at_alias'`,
+triggered by land-area table extraction; finance also calls this missing helper.
+The compatibility fix restores the expected table-column alias lookup in
+`DocumentTableSupportMixin`, uses existing `_find_header_index` and `_normalize_table_cell`,
+and returns `None` for absent or short columns. It does not alter the OCR or mappings.
+
+Because baseline main crashes on those two documents, no honest old-vs-new final
+JSON parity is possible for them. The CI therefore separates:
+
+1. `real-docx-parity`: a DOCX report that already succeeded on main; requires
+   strictly identical final `mapped.json` and `result.json`.
+2. `real-docx-candidate-smoke`: the two previously crashing reports; requires
+   candidate parser success, nonempty mapped fields and populated result sections.
+
+The latter is a regression smoke check, **not proof that all field values are correct**.
+Their correctness still needs reviewed source annotations and Windows Aspose/OCR
+against expected ground truth before production rollout.
