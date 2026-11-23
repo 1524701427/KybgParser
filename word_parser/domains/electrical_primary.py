@@ -436,8 +436,8 @@ class ElectricalPrimaryRulesMixin:
             if "接入系统方案" not in text or "不宜作为" in text:
                 continue
             selected = re.search(
-                domain_regex(self, "electrical_primary", "search_013", r"([0-9]{2,3})\s*kV\s*(?:出线|线路)[^。；;]{0,40}?")
-                r"接入\s*([\u4e00-\u9fffA-Za-z0-9]+?)\s*(?<![0-9])([0-9]{2,3})\s*kV\s*变\s*电站",
+                domain_regex(self, "electrical_primary", "search_013", r"([0-9]{2,3})\s*kV\s*(?:出线|线路)[^。；;]{0,40}?"
+                r"接入\s*([\u4e00-\u9fffA-Za-z0-9]+?)\s*(?<![0-9])([0-9]{2,3})\s*kV\s*变\s*电站"),
                 text, re.I,
             )
             if selected and selected.group(1) == selected.group(3):
@@ -1170,8 +1170,8 @@ class ElectricalPrimaryRulesMixin:
     def _electrical_box_transformer_labelled_specs(self, text: str) -> list[dict[str, Any]]:
         """补充抽取带标签且重复出现的箱变型号参数。"""
         model_pattern = re.compile(
-            domain_regex(self, "electrical_primary", "compile_038", r"(?:变压器)?型号\s*(?:为|是|[:：])?\s*")
-            r"(?P<model>[A-Z][A-Z0-9.-]{1,30}/[0-9]+(?:\.[0-9]+)?)",
+            domain_regex(self, "electrical_primary", "compile_038", r"(?:变压器)?型号\s*(?:为|是|[:：])?\s*"
+            r"(?P<model>[A-Z][A-Z0-9.-]{1,30}/[0-9]+(?:\.[0-9]+)?)"),
             re.I,
         )
         box_pattern = re.compile(domain_regex(self, "electrical_primary", "compile_039", r"箱式变电站|箱式变压器|箱变|机组变压器"))
