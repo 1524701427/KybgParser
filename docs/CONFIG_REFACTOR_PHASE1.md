@@ -12,14 +12,23 @@
 - RapidFuzz acceptance score and minimum distance to competing fields
 - minimum label length for safe fuzzy correction
 - indicator discovery stop labels, column-header exclusions, scope terms, contextual value expression
-- ValueExtractor value/unit/noise table-header vocabularies
+- ValueExtractor value/unit/noise table-header vocabularies, summary rows, raw unit headers, material-grade exclusion pattern
+- IndicatorValueParser paragraph delimiters and length limits
 - CandidateResolver candidate-method weights
 - Normalizer unit aliases: the same 37 entries as the existing Python dictionary
 
+Secondary table extraction operations are now dispatched through an explicit registry, preserving existing YAML operations and the former implementations.
+
 Constructor defaults remain backward compatible. The committed YAML values reproduce the old Python defaults.
 
+## Configuration audit
+
+Run `python tools/scripts/audit_extraction_config.py --config-root configs`. The audit validates YAML policy, regular expressions, numeric thresholds, and detects duplicate field codes. By default duplicate field codes remain warnings to preserve legacy behavior; `--strict-duplicates` makes them errors. This tool is read-only and does not modify field values or output.
+
+The GitHub Actions PR workflow runs this audit and the lightweight rule/mapping comparator tests.
+
 ## Required test gates before merging
-1. python -m pytest tests/test_config_driven_parity.py -q
+1. `python -m pytest tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_mapped_parity_tool.py -q`
 2. Run the complete pytest suite in the real OCR/Aspose runtime.
 3. Generate old and new mapped JSON using the same real documents, runtime and configuration.
 4. python tools/scripts/compare_mapped.py old_mapped.json new_mapped.json --report mapping_diff.json
