@@ -19,10 +19,16 @@ def test_table_header_config_equals_legacy_defaults():
     assert tuple(spec["value"]) == ValueExtractor.VALUE_HEADER_KEYWORDS
     assert tuple(spec["unit"]) == ValueExtractor.UNIT_HEADER_KEYWORDS
     assert tuple(spec["noise"]) == ValueExtractor.NOISE_HEADER_KEYWORDS
+    assert tuple(spec["raw_unit"]) == ValueExtractor.RAW_UNIT_HEADER_KEYWORDS
+    assert tuple(spec["summary"]) == ValueExtractor.SUMMARY_ROW_KEYWORDS
+    assert spec["material_grade_pattern"] == ValueExtractor.MATERIAL_GRADE_PATTERN
     configured = ValueExtractor(table_header_config=spec)
     assert configured.VALUE_HEADER_KEYWORDS == ValueExtractor.VALUE_HEADER_KEYWORDS
     assert configured.UNIT_HEADER_KEYWORDS == ValueExtractor.UNIT_HEADER_KEYWORDS
     assert configured.NOISE_HEADER_KEYWORDS == ValueExtractor.NOISE_HEADER_KEYWORDS
+    assert configured.RAW_UNIT_HEADER_KEYWORDS == ValueExtractor.RAW_UNIT_HEADER_KEYWORDS
+    assert configured.SUMMARY_ROW_KEYWORDS == ValueExtractor.SUMMARY_ROW_KEYWORDS
+    assert configured.MATERIAL_GRADE_PATTERN == ValueExtractor.MATERIAL_GRADE_PATTERN
 
 
 def test_unit_alias_map_equals_legacy_defaults():
@@ -98,3 +104,21 @@ def test_secondary_table_rule_operations_are_registered():
         | set(TableValueResolver._TABLE_OPERATIONS)
     )
     assert configured <= supported, f"Unregistered YAML operations: {configured - supported}"
+
+
+def test_table_extraction_behavior_parity_on_rule_samples():
+    from types import SimpleNamespace
+
+    configured = ValueExtractor(table_header_config=CONFIG["value_extraction"]["table_headers"])
+    legacy = ValueExtractor()
+    for tokens in (["风机", "合计", "200"], ["施工工程量", "总长", "80"],
+                   ["平均风速", "5.8"], ["风机型号", "GW200"]):
+        row = [SimpleNamespace(text=token) for token in tokens]
+        assert configured._row_has_summary_label(row) == legacy._row_has_summary_label(row)
+    for value, header in (("C40", "强度"), ("HRB400", "型号"), ("200", "数量"),
+                          ("200", "指标值"), ("200", "备注")):
+        spec = {"value_type": "number"}
+        assert configured._looks_like_non_value_cell(value, header, spec) == legacy._looks_like_non_value_cell(value, header, spec)
+    row = [SimpleNamespace(text="指标"), SimpleNamespace(text="m"), SimpleNamespace(text="120")]
+    for headers in ({0: "指标", 1: "单位", 2: "数值"}, {0: "指标", 1: "unit", 2: "数值"}):
+        assert configured._raw_unit_from_unit_column(row, headers) == legacy._raw_unit_from_unit_column(row, headers)
