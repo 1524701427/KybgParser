@@ -13,10 +13,11 @@ def test_current_runtime_yaml_is_valid():
 def test_runtime_audit_rejects_broken_pattern(tmp_path):
     current = (ROOT / "configs" / "extraction_runtime.yaml").read_text(encoding="utf-8")
     assert "context_value_pattern:" in current
-    invalid = current.replace(
-        "context_value_pattern:",
-        "bad_pattern_original: ignored\n  context_value_pattern: '[(' # malformed regex
-    )
+    invalid = "\n".join(
+        "  context_value_pattern: '[('" if line.strip().startswith("context_value_pattern:")
+        else line
+        for line in current.splitlines()
+    ) + "\n"
     (tmp_path / "extraction_runtime.yaml").write_text(invalid, encoding="utf-8")
     issues = audit_runtime(tmp_path)
     assert any("context_value_pattern" in item.location and item.severity == "error" for item in issues)
