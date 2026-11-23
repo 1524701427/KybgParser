@@ -14,6 +14,7 @@ from word_parser.document.ast.document import DocumentAST
 from word_parser.document.ast.evidence import Extraction, FieldEvidence, ParsedField
 from word_parser.primary.domain_stage import DomainExtractionState, extract_domain_fields
 from word_parser.primary.domain_dispatch import DomainOperatorSchedule
+from word_parser.config.domain_regex import validate_domain_literals
 
 from word_parser.config.loader import ConfigLoader
 
@@ -87,6 +88,8 @@ class ResultBuilder(
         self.deterministic_rules = ConfigLoader(self.config_root).load_yaml("deterministic_rules.yaml")
         self.domain_operator_schedule = domain_operator_schedule or DomainOperatorSchedule.legacy()
         self.strict_domain_literals = bool(self.deterministic_rules.get("strict_domain_literals", False))
+        if self.strict_domain_literals:
+            validate_domain_literals(self.deterministic_rules)
         self._merge_field_meta_from_field_configs()
         self.original_table_resolver = OriginalTableResolver(self)
 
