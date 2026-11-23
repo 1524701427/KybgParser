@@ -19,6 +19,9 @@ _EXPORTS = {
     "OriginalTableResolver": ("word_parser.document.tables.original_table_resolver", "OriginalTableResolver"),
     "StandardTableExtractor": ("word_parser.document.tables.standard_table_extractor", "StandardTableExtractor"),
     "TableValueResolver": ("word_parser.secondary.table_values.resolver", "TableValueResolver"),
+    "CandidateFact": ("word_parser.extraction.candidate_facts", "CandidateFact"),
+    "collect_candidate_facts": ("word_parser.extraction.candidate_facts", "collect_candidate_facts"),
+    "candidate_fact_report": ("word_parser.extraction.candidate_facts", "candidate_fact_report"),
 }
 __all__ = list(_EXPORTS)
 
