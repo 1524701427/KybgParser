@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 from typing import Any
@@ -334,9 +334,9 @@ class ElectricalPrimaryRulesMixin:
                     continue
                 value_row = matrix[value_row_index]
                 column_by_key = {
-                    "accessStationName": self._find_header_index(header, ["接入站名称"]),
-                    "accessibleVoltage": self._find_header_index(header, ["可接入电压"]),
-                    "accessibleCapacity": self._find_header_index(header, ["可接入容量"]),
+                    "accessStationName": self._find_header_index(header, domain_strings(self, "electrical_primary", "list_001", ["接入站名称"])),
+                    "accessibleVoltage": self._find_header_index(header, domain_strings(self, "electrical_primary", "list_002", ["可接入电压"])),
+                    "accessibleCapacity": self._find_header_index(header, domain_strings(self, "electrical_primary", "list_003", ["可接入容量"])),
                 }
                 row = {
                     key: self._normalize_table_cell(value_row[column_index]) if column_index is not None and column_index < len(value_row) else None
@@ -513,9 +513,9 @@ class ElectricalPrimaryRulesMixin:
         for table in self._electrical_primary_equipment_tables(ast):
             matrix = self._table_matrix(table)
             header = next((row for row in matrix[:5] if "名称" in " ".join(row) and "数量" in " ".join(row)), [])
-            name_index = self._find_header_index(header, ["名称", "名  称"]) if header else None
-            quantity_index = self._find_header_index(header, ["数量", "数  量"]) if header else None
-            spec_index = self._find_header_index(header, ["型号、规格及技术数据", "型号规格"]) if header else None
+            name_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_004", ["名称", "名  称"])) if header else None
+            quantity_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_005", ["数量", "数  量"])) if header else None
+            spec_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_006", ["型号、规格及技术数据", "型号规格"])) if header else None
             name_index = 1 if name_index is None else name_index
             quantity_index = 4 if quantity_index is None else quantity_index
             spec_index = 2 if spec_index is None else spec_index
@@ -601,9 +601,9 @@ class ElectricalPrimaryRulesMixin:
                 continue
             header_index = self._station_scale_header_row_index(matrix)
             header = matrix[header_index]
-            name_index = self._find_header_index(header, ["名称", "项目", "项目名称"])
-            current_index = self._find_header_index(header, ["本期规模", "本期"])
-            future_index = self._find_header_index(header, ["远期规模", "远期"])
+            name_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_007", ["名称", "项目", "项目名称"]))
+            current_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_008", ["本期规模", "本期"]))
+            future_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_009", ["远期规模", "远期"]))
             if name_index is None:
                 name_index = 0
             if current_index is None and future_index is None:
@@ -812,8 +812,8 @@ class ElectricalPrimaryRulesMixin:
             if not matrix:
                 continue
             header = matrix[0]
-            name_index = self._find_header_index(header, ["名称", "名 称", "设备名称"])
-            spec_index = self._find_header_index(header, ["型号、规格及技术数据", "型号规格及技术数据", "型号及规格", "型号与规格", "规格"])
+            name_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_010", ["名称", "名 称", "设备名称"]))
+            spec_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_011", ["型号、规格及技术数据", "型号规格及技术数据", "型号及规格", "型号与规格", "规格"]))
             if name_index is None:
                 name_index = 1 if len(header) > 1 else 0
             if spec_index is None:
@@ -822,13 +822,13 @@ class ElectricalPrimaryRulesMixin:
                 continue
             has_header = any(keyword in self._clean_text(" ".join(header)) for keyword in ("型号", "规格", "技术数据", "名称"))
             data_start_index = 1 if has_header else 0
-            unit_index = self._find_header_index(header, ["单位"])
-            quantity_index = self._find_header_index(header, ["数量"])
+            unit_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_012", ["单位"]))
+            quantity_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_013", ["数量"]))
             if unit_index is None and not has_header and len(header) > 3:
                 unit_index = 3
             if quantity_index is None and not has_header and len(header) > 4:
                 quantity_index = 4
-            remark_index = self._find_header_index(header, ["备注"])
+            remark_index = self._find_header_index(header, domain_strings(self, "electrical_primary", "list_014", ["备注"]))
             self._merge_electrical_primary_equipment_table_fields(
                 values,
                 table,
@@ -995,10 +995,10 @@ class ElectricalPrimaryRulesMixin:
                 "10kV站用变容量",
                 self._station_transformer_capacity_10kv_from_ast(ast) or self._first_matching_text(
                     combined,
-                    [
+                    domain_strings(self, "electrical_primary", "list_015", [
                         r"备用电源引自站外\s*10\s*kV\s*线路[^。；;\n]{0,80}?容量为\s*([0-9]+(?:\.[0-9]+)?\s*kVA)",
                         r"选用\s*1\s*台容量为\s*([0-9]+(?:\.[0-9]+)?\s*kVA)\s*的\s*外来变压器",
-                    ],
+                    ]),
                 ),
                 None,
                 ["站用变", "10kV"],
@@ -1007,11 +1007,11 @@ class ElectricalPrimaryRulesMixin:
                 "35kV接地变容量",
                 self._first_matching_text(
                     combined,
-                    [
+                    domain_strings(self, "electrical_primary", "list_016", [
                         r"配置\s*1\s*台容量为\s*([0-9]+(?:\.[0-9]+)?\s*kVA)\s*接地变",
                         r"接地变(?:成套装置)?\s*DKSC-([0-9]+(?:\.[0-9]+)?\s*kVA?)[-/]35\s*kV",
                         r"DKSC-([0-9]+(?:\.[0-9]+)?)(?:\s*kVA)?[-/]35\s*kV",
-                    ],
+                    ]),
                 ),
                 None,
                 ["接地变"],
@@ -1020,11 +1020,11 @@ class ElectricalPrimaryRulesMixin:
                 "35kV接地变兼站用变容量",
                 self._first_matching_text(
                     combined,
-                    [
+                    domain_strings(self, "electrical_primary", "list_017", [
                         r"兼带站用变[^。；;\n]{0,30}?站用变容量为\s*([0-9]+(?:\.[0-9]+)?\s*kVA)",
                         r"DKSC-[0-9]+(?:\.[0-9]+)?\s*kVA-([0-9]+(?:\.[0-9]+)?\s*kVA)[-/]35\s*kV",
                         r"DKSC-[0-9]+(?:\.[0-9]+)?(?:\s*kVA)?-([0-9]+(?:\.[0-9]+)?\s*kVA)",
-                    ],
+                    ]),
                 ),
                 None,
                 ["接地变", "站用变"],
@@ -1039,10 +1039,10 @@ class ElectricalPrimaryRulesMixin:
                 "直流蓄电池配置",
                 self._first_matching_text(
                     combined,
-                    [
+                    domain_strings(self, "electrical_primary", "list_018", [
                         r"选用\s*(一组\s*220\s*V[、,，/]\s*250\s*Ah\s*阀控式\s*密封铅酸蓄电池组)",
                         r"(一组\s*220\s*V[、,，/]\s*250\s*Ah\s*阀控式\s*密封铅酸蓄电池组)",
-                    ],
+                    ]),
                 ),
                 None,
                 ["220V", "蓄电池"],
@@ -1051,10 +1051,10 @@ class ElectricalPrimaryRulesMixin:
                 "UPS电源配置",
                 self._ups_configuration_from_blocks(ast) or self._first_matching_text(
                     combined,
-                    [
+                    domain_strings(self, "electrical_primary", "list_019", [
                         r"设置\s*([0-9]+\s*套\s*[0-9]+(?:\.[0-9]+)?\s*kVA\s*双冗余互为备用[^。；;\n]{0,30}?UPS)",
                         r"([0-9]+\s*套\s*[0-9]+(?:\.[0-9]+)?\s*kVA\s*双冗余互为备用)",
-                    ],
+                    ]),
                 ),
                 None,
                 ["UPS"],
