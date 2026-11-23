@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -68,9 +70,9 @@ class ElectricalPrimaryRulesMixin:
             return details
         # 接入站容量、升压站规划规模和本期规模属于三个不同对象，不能共用装机或主变容量。
         capacity_matches = {
-            "accessibleCapacity": re.search(r"(?:接入站[^，。；;\n]{0,20}?)?可接入容量\s*[：:]?\s*(?:为|约)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:MVA|兆伏安)", text, flags=re.IGNORECASE),
-            "plannedCapacity": re.search(r"(?:升压站|主接线)[^，。；;\n]{0,20}?(?:规划总规模|规划容量|规划规模|远期规划容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:MW|兆瓦)", text, flags=re.IGNORECASE),
-            "currentCapacity": re.search(r"(?:升压站|主接线)[^，。；;\n]{0,20}?(?:本期规模|本期容量|本期建设容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:MW|兆瓦)", text, flags=re.IGNORECASE),
+            "accessibleCapacity": re.search(domain_regex(self, "electrical_primary", "search_001", r"(?:接入站[^，。；;\n]{0,20}?)?可接入容量\s*[：:]?\s*(?:为|约)?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:MVA|兆伏安)"), text, flags=re.IGNORECASE),
+            "plannedCapacity": re.search(domain_regex(self, "electrical_primary", "search_002", r"(?:升压站|主接线)[^，。；;\n]{0,20}?(?:规划总规模|规划容量|规划规模|远期规划容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:MW|兆瓦)"), text, flags=re.IGNORECASE),
+            "currentCapacity": re.search(domain_regex(self, "electrical_primary", "search_003", r"(?:升压站|主接线)[^，。；;\n]{0,20}?(?:本期规模|本期容量|本期建设容量)\s*[：:]?\s*为?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:MW|兆瓦)"), text, flags=re.IGNORECASE),
         }
         capacity_values = {
             key: self._normalize_scalar(match.group(1)) if match else None
@@ -212,7 +214,7 @@ class ElectricalPrimaryRulesMixin:
         return candidates[0][2]
 
     def _looks_like_invalid_access_station_name(self, value: str) -> bool:
-        compact = re.sub(r"\s+", "", value)
+        compact = re.sub(domain_regex(self, "electrical_primary", "sub_004", r"\s+"), "", value)
         patterns = self._configured_patterns(
             self._deterministic_rule_section("electrical_primary"),
             "invalid_access_station_patterns",
@@ -224,15 +226,15 @@ class ElectricalPrimaryRulesMixin:
         return False
 
     def _lightning_rod_counts_from_text(self, text: str) -> tuple[Any, Any] | None:
-        for segment in re.split(r"[\n\u3002\uff1b;]", text):
+        for segment in re.split(domain_regex(self, "electrical_primary", "split_005", r"[\n\u3002\uff1b;]"), text):
             if "\u72ec\u7acb\u907f\u96f7\u9488" not in segment or "\u6784\u67b6\u907f\u96f7\u9488" not in segment:
                 continue
-            independent = re.search(r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*(?:[0-9]+\s*m)?\s*\u72ec\u7acb\u907f\u96f7\u9488", segment)
-            frame = re.search(r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*(?:[0-9]+\s*m)?\s*\u6784\u67b6\u907f\u96f7\u9488", segment)
+            independent = re.search(domain_regex(self, "electrical_primary", "search_006", r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*(?:[0-9]+\s*m)?\s*\u72ec\u7acb\u907f\u96f7\u9488"), segment)
+            frame = re.search(domain_regex(self, "electrical_primary", "search_007", r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*(?:[0-9]+\s*m)?\s*\u6784\u67b6\u907f\u96f7\u9488"), segment)
             if independent is None:
-                independent = re.search(r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*[0-9]+\s*m\s*\u72ec\u7acb\u907f\u96f7\u9488", segment)
+                independent = re.search(domain_regex(self, "electrical_primary", "search_008", r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*[0-9]+\s*m\s*\u72ec\u7acb\u907f\u96f7\u9488"), segment)
             if frame is None:
-                frame = re.search(r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*[0-9]+\s*m\s*\u6784\u67b6\u907f\u96f7\u9488", segment)
+                frame = re.search(domain_regex(self, "electrical_primary", "search_009", r"([0-9]+)\s*(?:\u6839|\u5ea7|\u4e2a)\s*[0-9]+\s*m\s*\u6784\u67b6\u907f\u96f7\u9488"), segment)
             if independent and frame:
                 return self._normalize_scalar(independent.group(1)), self._normalize_scalar(frame.group(1))
         return None
@@ -294,7 +296,7 @@ class ElectricalPrimaryRulesMixin:
             )
             if keyword in clean_text
         )
-        return equipment_hits >= 2 and bool(re.search(r"\b(?:台|套|组|面|根|只|个)\b", clean_text))
+        return equipment_hits >= 2 and bool(re.search(domain_regex(self, "electrical_primary", "search_010", r"\b(?:台|套|组|面|根|只|个)\b"), clean_text))
 
     def _electrical_access_station_combined_row(self, matrix: list[list[str]], table: DocumentTable) -> dict[str, Any]:
         row = {"accessStationName": None, "accessibleVoltage": None, "accessibleCapacity": None}
@@ -410,8 +412,8 @@ class ElectricalPrimaryRulesMixin:
             existing = fields.get(code)
             if existing is not None and existing.value is not None and any(evidence.source_type == "table" for evidence in existing.evidence):
                 if code != "svgReactiveCompensationCapacity" or not re.fullmatch(
-                    r"[±+\-]?\s*\d+(?:\.\d+)?\s*Mvar", self._clean_text(str(value)), re.I
-                ) or re.fullmatch(r"[±+\-]?\s*\d+(?:\.\d+)?\s*Mvar", self._clean_text(str(existing.value)), re.I):
+                    domain_regex(self, "electrical_primary", "fullmatch_011", r"[±+\-]?\s*\d+(?:\.\d+)?\s*Mvar"), self._clean_text(str(value)), re.I
+                ) or re.fullmatch(domain_regex(self, "electrical_primary", "fullmatch_012", r"[±+\-]?\s*\d+(?:\.\d+)?\s*Mvar"), self._clean_text(str(existing.value)), re.I):
                     continue
             source_type = "paragraph" if meta.get("resolver") == "electrical_primary_current_outgoing_text" else "table"
             self._set_field(fields, code, name, value, unit, evidence_text, source_type=source_type, meta=meta)
@@ -434,7 +436,7 @@ class ElectricalPrimaryRulesMixin:
             if "接入系统方案" not in text or "不宜作为" in text:
                 continue
             selected = re.search(
-                r"([0-9]{2,3})\s*kV\s*(?:出线|线路)[^。；;]{0,40}?"
+                domain_regex(self, "electrical_primary", "search_013", r"([0-9]{2,3})\s*kV\s*(?:出线|线路)[^。；;]{0,40}?")
                 r"接入\s*([\u4e00-\u9fffA-Za-z0-9]+?)\s*(?<![0-9])([0-9]{2,3})\s*kV\s*变\s*电站",
                 text, re.I,
             )
@@ -455,11 +457,11 @@ class ElectricalPrimaryRulesMixin:
                 row_text = self._clean_text(" | ".join(row))
                 if "主变压器" not in row_text or "型号" in row_text:
                     continue
-                match = re.search(r"\b(YN\s*[,，]\s*d\s*11|YN\s*[,，]\s*yn\s*0|Dyn\s*11)\b", row_text, re.I)
+                match = re.search(domain_regex(self, "electrical_primary", "search_014", r"\b(YN\s*[,，]\s*d\s*11|YN\s*[,，]\s*yn\s*0|Dyn\s*11)\b"), row_text, re.I)
                 if match and (fields.get("connectionGroupType") is None or fields["connectionGroupType"].value is None):
                     self._set_field(
                         fields, "connectionGroupType", "主变压器接线组别",
-                        re.sub(r"\s+", "", match.group(1)).replace("，", ","), None, row_text,
+                        re.sub(domain_regex(self, "electrical_primary", "sub_015", r"\s+"), "", match.group(1)).replace("，", ","), None, row_text,
                         source_type="table", meta={"resolver": "main_transformer_connection_group", "tableId": table.id},
                     )
                     break
@@ -479,7 +481,7 @@ class ElectricalPrimaryRulesMixin:
                 text = self._clean_text(block.text or "")
                 if "接地变" not in text and not ("中性点" in text and "小电阻" in text):
                     continue
-                match = re.search(r"(?:阻值为|接地电阻(?:值|装置)?\s*(?:为|取|Rn\s*=)?|Rn\s*=)\s*([0-9]+(?:\.[0-9]+)?)\s*[Ω欧]", text, re.I)
+                match = re.search(domain_regex(self, "electrical_primary", "search_016", r"(?:阻值为|接地电阻(?:值|装置)?\s*(?:为|取|Rn\s*=)?|Rn\s*=)\s*([0-9]+(?:\.[0-9]+)?)\s*[Ω欧]"), text, re.I)
                 if match:
                     self._set_field(
                         fields, "groundingTransformerResistance", "接地变接地电阻",
@@ -491,7 +493,7 @@ class ElectricalPrimaryRulesMixin:
     def _current_outgoing_line_from_primary_text(self, ast: DocumentAST) -> tuple[int, Any] | None:
         candidates = []
         pattern = re.compile(
-            r"升压站\s*(\d{2,3})\s*kV\s*侧[^。；;\n]{0,60}?(\d+)\s*回\s*出线[^。；;\n]{0,40}?本期(?:一次)?建成",
+            domain_regex(self, "electrical_primary", "compile_017", r"升压站\s*(\d{2,3})\s*kV\s*侧[^。；;\n]{0,60}?(\d+)\s*回\s*出线[^。；;\n]{0,40}?本期(?:一次)?建成"),
             re.IGNORECASE,
         )
         for block in self._body_blocks(ast):
@@ -523,7 +525,7 @@ class ElectricalPrimaryRulesMixin:
                     continue
                 count = self._normalize_table_cell(row[quantity_index] if quantity_index < len(row) else "")
                 spec = self._electrical_primary_equipment_block_text(matrix, row_index, name_index, spec_index)
-                model = re.search(r"\bSZ[A-Z0-9]*[-－]\s*(\d+(?:\.\d+)?)\s*/\s*\d{2,3}\b", spec, re.I)
+                model = re.search(domain_regex(self, "electrical_primary", "search_018", r"\bSZ[A-Z0-9]*[-－]\s*(\d+(?:\.\d+)?)\s*/\s*\d{2,3}\b"), spec, re.I)
                 if isinstance(count, (int, float)) and not isinstance(count, bool) and model:
                     main = (int(count), float(model.group(1)), table, self._clean_text(" | ".join(row)))
                     break
@@ -536,18 +538,18 @@ class ElectricalPrimaryRulesMixin:
         current_count = main[0] if main else None
         for block in blocks:
             text = self._clean_text(block.text or "")
-            if "远期" not in text or "主变" not in text or (re.search(r"方案[一二三四\d]", text) and not re.search(r"选定|推荐|最终采用", text)):
+            if "远期" not in text or "主变" not in text or (re.search(domain_regex(self, "electrical_primary", "search_019", r"方案[一二三四\d]"), text) and not re.search(domain_regex(self, "electrical_primary", "search_020", r"选定|推荐|最终采用"), text)):
                 continue
-            for segment in re.split(r"[。；;\n]", text):
+            for segment in re.split(domain_regex(self, "electrical_primary", "split_021", r"[。；;\n]"), text):
                 if "远期" not in segment or "主变" not in segment:
                     continue
-                increase = re.search(r"远期[^。；;]{0,35}?(?:新增|增加|扩建)\s*([1-9]\d?)\s*台[^。；;]{0,20}?主变", segment)
+                increase = re.search(domain_regex(self, "electrical_primary", "search_022", r"远期[^。；;]{0,35}?(?:新增|增加|扩建)\s*([1-9]\d?)\s*台[^。；;]{0,20}?主变"), segment)
                 if increase and current_count is not None:
                     count = current_count + int(increase.group(1))
                 else:
-                    match = re.search(r"远期[^。；;]{0,40}?([1-9]\d?)\s*台[^。；;]{0,20}?主变", segment) or re.search(
-                        r"主变[^。；;]{0,25}?远期[^。；;]{0,30}?([1-9]\d?)\s*台", segment
-                    ) or re.search(r"远期[^。；;]{0,35}?([1-9]\d?)\s*[×xX]\s*\d+(?:\.\d+)?\s*MVA[^。；;]{0,15}?主变", segment, re.I)
+                    match = re.search(domain_regex(self, "electrical_primary", "search_023", r"远期[^。；;]{0,40}?([1-9]\d?)\s*台[^。；;]{0,20}?主变"), segment) or re.search(
+                        domain_regex(self, "electrical_primary", "search_024", r"主变[^。；;]{0,25}?远期[^。；;]{0,30}?([1-9]\d?)\s*台"), segment
+                    ) or re.search(domain_regex(self, "electrical_primary", "search_025", r"远期[^。；;]{0,35}?([1-9]\d?)\s*[×xX]\s*\d+(?:\.\d+)?\s*MVA[^。；;]{0,15}?主变"), segment, re.I)
                     if match is None:
                         continue
                     count = int(match.group(1))
@@ -564,7 +566,7 @@ class ElectricalPrimaryRulesMixin:
         for block in blocks:
             text = self._clean_text(block.text or "")
             for match in re.finditer(
-                r"(?:本项目|本工程|项目|工程)[^。；;]{0,35}?(?:规划)?(?:总装机容量|总容量|建设规模)\s*(?:为|约为|达)?\s*(\d+(?:\.\d+)?)\s*(MW|万千瓦)",
+                domain_regex(self, "electrical_primary", "finditer_026", r"(?:本项目|本工程|项目|工程)[^。；;]{0,35}?(?:规划)?(?:总装机容量|总容量|建设规模)\s*(?:为|约为|达)?\s*(\d+(?:\.\d+)?)\s*(MW|万千瓦)"),
                 text, re.I,
             ):
                 capacity_mw = float(match.group(1)) * (10 if match.group(2) == "万千瓦" else 1)
@@ -595,7 +597,7 @@ class ElectricalPrimaryRulesMixin:
             section_caption = self._clean_text(" ".join(table.section_path or []))
             table_text = self._table_text(table)
             target_text = f"{caption}\n{section_caption}\n{table_text[:600]}"
-            if not re.search(r"110\s*kV\s*升压站", target_text, flags=re.IGNORECASE):
+            if not re.search(domain_regex(self, "electrical_primary", "search_027", r"110\s*kV\s*升压站"), target_text, flags=re.IGNORECASE):
                 continue
             header_index = self._station_scale_header_row_index(matrix)
             header = matrix[header_index]
@@ -643,18 +645,18 @@ class ElectricalPrimaryRulesMixin:
         return 0
 
     def _looks_like_station_outgoing_line_row(self, text: str) -> bool:
-        compact = re.sub(r"\s+", "", self._clean_text(text)).lower()
-        return bool(re.search(r"110kv(?:出线|回路数|出线回数)", compact))
+        compact = re.sub(domain_regex(self, "electrical_primary", "sub_028", r"\s+"), "", self._clean_text(text)).lower()
+        return bool(re.search(domain_regex(self, "electrical_primary", "search_029", r"110kv(?:出线|回路数|出线回数)"), compact))
 
     def _station_outgoing_line_count_value(self, value: Any) -> Any:
         text = self._clean_text(str(value or ""))
         if not text:
             return None
-        match = re.search(r"([0-9]+(?:\.\d+)?)\s*回", text)
+        match = re.search(domain_regex(self, "electrical_primary", "search_030", r"([0-9]+(?:\.\d+)?)\s*回"), text)
         if match:
             return self._normalize_scalar(match.group(1))
         chinese_map = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9, "十": 10}
-        match = re.search(r"([一二两三四五六七八九十])\s*回", text)
+        match = re.search(domain_regex(self, "electrical_primary", "search_031", r"([一二两三四五六七八九十])\s*回"), text)
         if match:
             return chinese_map.get(match.group(1))
         return None
@@ -913,7 +915,7 @@ class ElectricalPrimaryRulesMixin:
     def _normalize_equipment_label(self, value: Any) -> str:
         text = self._clean_text(str(value or "")).lower()
         text = text.replace("（", "(").replace("）", ")").replace("×", "x")
-        return re.sub(r"[^0-9a-zA-Z\u4e00-\u9fa5]+", "", text)
+        return re.sub(domain_regex(self, "electrical_primary", "sub_032", r"[^0-9a-zA-Z\u4e00-\u9fa5]+"), "", text)
 
     def _electrical_primary_value_from_equipment_matrix(
         self,
@@ -967,19 +969,19 @@ class ElectricalPrimaryRulesMixin:
 
     def _normalize_electrical_capacity_text(self, value: str) -> str:
         text = self._normalize_text_value(value)
-        text = re.sub(r"\s+", "", text)
+        text = re.sub(domain_regex(self, "electrical_primary", "sub_033", r"\s+"), "", text)
         text = text.replace("＋", "+")
         if text.startswith("+") or text.startswith("-"):
             text = "±" + text[1:]
-        if re.fullmatch(r"\d+(?:\.\d+)?", text):
+        if re.fullmatch(domain_regex(self, "electrical_primary", "fullmatch_034", r"\d+(?:\.\d+)?"), text):
             return text
-        if re.fullmatch(r"\d+(?:\.\d+)?(?:kVA|Mvar)", text, flags=re.IGNORECASE):
-            return re.sub(r"kva$", "kVA", text, flags=re.IGNORECASE).replace("mvar", "Mvar")
+        if re.fullmatch(domain_regex(self, "electrical_primary", "fullmatch_035", r"\d+(?:\.\d+)?(?:kVA|Mvar)"), text, flags=re.IGNORECASE):
+            return re.sub(domain_regex(self, "electrical_primary", "sub_036", r"kva$"), "kVA", text, flags=re.IGNORECASE).replace("mvar", "Mvar")
         return text
 
     def _normalize_electrical_spec_text(self, value: str) -> str:
         text = self._normalize_text_value(value)
-        text = re.sub(r"(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])", "", text)
+        text = re.sub(domain_regex(self, "electrical_primary", "sub_037", r"(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])"), "", text)
         return text.replace("＋", "+")
 
     def _electrical_text_scalar_values(self, ast: DocumentAST, skip_codes: set[str] | None = None) -> dict[str, tuple[str, Any, str | None, str, str, dict[str, Any]]]:
@@ -1168,12 +1170,12 @@ class ElectricalPrimaryRulesMixin:
     def _electrical_box_transformer_labelled_specs(self, text: str) -> list[dict[str, Any]]:
         """补充抽取带标签且重复出现的箱变型号参数。"""
         model_pattern = re.compile(
-            r"(?:变压器)?型号\s*(?:为|是|[:：])?\s*"
+            domain_regex(self, "electrical_primary", "compile_038", r"(?:变压器)?型号\s*(?:为|是|[:：])?\s*")
             r"(?P<model>[A-Z][A-Z0-9.-]{1,30}/[0-9]+(?:\.[0-9]+)?)",
             re.I,
         )
-        box_pattern = re.compile(r"箱式变电站|箱式变压器|箱变|机组变压器")
-        other_pattern = re.compile(r"主变压器|接地变(?:压器)?|站用变(?:压器)?")
+        box_pattern = re.compile(domain_regex(self, "electrical_primary", "compile_039", r"箱式变电站|箱式变压器|箱变|机组变压器"))
+        other_pattern = re.compile(domain_regex(self, "electrical_primary", "compile_040", r"主变压器|接地变(?:压器)?|站用变(?:压器)?"))
         matches = list(model_pattern.finditer(text))
         result: list[dict[str, Any]] = []
         seen: set[str] = set()
@@ -1191,10 +1193,10 @@ class ElectricalPrimaryRulesMixin:
             seen.add(model)
             end = min(match.end() + 220, matches[index + 1].start() if index + 1 < len(matches) else len(text))
             segment = text[match.end():end]
-            segment = re.split(r"[（(]\s*\d+\s*[）)]\s*(?=[\u4e00-\u9fa5])", segment, maxsplit=1)[0]
+            segment = re.split(domain_regex(self, "electrical_primary", "split_041", r"[（(]\s*\d+\s*[）)]\s*(?=[\u4e00-\u9fa5])"), segment, maxsplit=1)[0]
             end = match.end() + len(segment)
-            capacity_match = re.search(r"额定容量\s*[:：为是]?\s*([0-9]+(?:\.[0-9]+)?)\s*(MVA|kVA|千伏安)", segment, re.I)
-            voltage_match = re.search(r"额定电压\s*[:：为是]?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:kV|千伏)", segment, re.I)
+            capacity_match = re.search(domain_regex(self, "electrical_primary", "search_042", r"额定容量\s*[:：为是]?\s*([0-9]+(?:\.[0-9]+)?)\s*(MVA|kVA|千伏安)"), segment, re.I)
+            voltage_match = re.search(domain_regex(self, "electrical_primary", "search_043", r"额定电压\s*[:：为是]?\s*([0-9]+(?:\.[0-9]+)?)\s*(?:kV|千伏)"), segment, re.I)
             inferred_capacity, inferred_voltage = self._electrical_box_transformer_capacity_voltage(model)
             capacity = inferred_capacity
             if capacity_match:
@@ -1223,7 +1225,7 @@ class ElectricalPrimaryRulesMixin:
             for table in ast.tables if "电气一次" in self._clean_text(table.caption or "")
             for row in self._table_matrix(table)
             if "避雷针" in self._clean_text(row[1] if len(row) > 1 else "")
-            for match in re.finditer(r"\bH\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*m\b", " ".join(row), re.I)
+            for match in re.finditer(domain_regex(self, "electrical_primary", "finditer_044", r"\bH\s*=\s*([0-9]+(?:\.[0-9]+)?)\s*m\b"), " ".join(row), re.I)
         }
         return self._clean_number(next(iter(heights))) if len(heights) == 1 else None
 
@@ -1262,7 +1264,7 @@ class ElectricalPrimaryRulesMixin:
     def _electrical_box_transformer_capacity_voltage(self, model: str | None) -> tuple[Any, Any]:
         if not model:
             return None, None
-        match = re.search(r"-([0-9]+(?:\.[0-9]+)?)/([0-9]+(?:\.[0-9]+)?)", model)
+        match = re.search(domain_regex(self, "electrical_primary", "search_045", r"-([0-9]+(?:\.[0-9]+)?)/([0-9]+(?:\.[0-9]+)?)"), model)
         if not match:
             return None, None
         return self._normalize_scalar(match.group(1)), self._normalize_scalar(match.group(2))
@@ -1290,7 +1292,7 @@ class ElectricalPrimaryRulesMixin:
         return "\n".join(parts)
 
     def _connection_distance_from_text(self, text: str) -> Any:
-        match = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*km", text, flags=re.IGNORECASE)
+        match = re.search(domain_regex(self, "electrical_primary", "search_046", r"([0-9]+(?:\.[0-9]+)?)\s*km"), text, flags=re.IGNORECASE)
         return self._normalize_scalar(match.group(1)) if match else None
 
     def _connection_line_type_from_text(self, text: str) -> str | None:
@@ -1303,7 +1305,7 @@ class ElectricalPrimaryRulesMixin:
         if "新建" in text and "升压站" in text:
             return "新建"
         if ("扩建" in text or "共用一座" in text) and "升压站" in text:
-            match = re.search(r"([0-9]{2,3}\s*kV[^，。；;\n]{0,20}?升压站|[\u4e00-\u9fa5A-Za-z0-9]+升压站)", text)
+            match = re.search(domain_regex(self, "electrical_primary", "search_047", r"([0-9]{2,3}\s*kV[^，。；;\n]{0,20}?升压站|[\u4e00-\u9fa5A-Za-z0-9]+升压站)"), text)
             station = self._clean_text(match.group(1)).replace(" ", "") if match else ""
             return f"扩建-{station}" if station else "扩建"
         return None
@@ -1312,7 +1314,7 @@ class ElectricalPrimaryRulesMixin:
         """从同一局部语句中提取扩建或共用升压站名称。"""
         for block in self._electrical_primary_text_blocks(ast):
             text = self._clean_text(block.text or "")
-            for clause in re.split(r"[。；;\n]", text):
+            for clause in re.split(domain_regex(self, "electrical_primary", "split_048", r"[。；;\n]"), text):
                 if "升压站" not in clause or not any(keyword in clause for keyword in ("扩建", "共用一座")):
                     continue
                 station = self._expanded_substation_from_clause(clause)
@@ -1321,7 +1323,7 @@ class ElectricalPrimaryRulesMixin:
         return None
 
     def _expanded_substation_from_clause(self, clause: str) -> str | None:
-        trigger_matches = list(re.finditer(r"扩建|共用一座", clause))
+        trigger_matches = list(re.finditer(domain_regex(self, "electrical_primary", "finditer_049", r"扩建|共用一座"), clause))
         for trigger in trigger_matches:
             after = clause[trigger.end() :]
             station_end = after.find("升压站")
@@ -1347,24 +1349,24 @@ class ElectricalPrimaryRulesMixin:
 
         # 优先采用带电压等级的站名，因为其文本边界更可靠。
         voltage_matches = list(
-            re.finditer(r"[0-9]{2,3}\s*kV[^，,。；;\n]{0,24}?升压站", value, flags=re.IGNORECASE)
+            re.finditer(domain_regex(self, "electrical_primary", "finditer_050", r"[0-9]{2,3}\s*kV[^，,。；;\n]{0,24}?升压站"), value, flags=re.IGNORECASE)
         )
         if voltage_matches:
             match = voltage_matches[-1] if prefer_tail else voltage_matches[0]
-            return re.sub(r"\s+", "", match.group(0))
+            return re.sub(domain_regex(self, "electrical_primary", "sub_051", r"\s+"), "", match.group(0))
 
         value = re.sub(
-            r"^(?:本期|本工程|本项目|工程|项目|拟|计划|将|对|与|同|和|现有|既有|原有|已建成?的?|建设|进行|实施|一座|[0-9]+座)+",
+            domain_regex(self, "electrical_primary", "sub_052", r"^(?:本期|本工程|本项目|工程|项目|拟|计划|将|对|与|同|和|现有|既有|原有|已建成?的?|建设|进行|实施|一座|[0-9]+座)+"),
             "",
             value,
         )
         if prefer_tail:
-            match = re.search(r"([\u4e00-\u9fa5A-Za-z0-9·#（）()_-]{1,30}升压站)$", value)
+            match = re.search(domain_regex(self, "electrical_primary", "search_053", r"([\u4e00-\u9fa5A-Za-z0-9·#（）()_-]{1,30}升压站)$"), value)
         else:
-            match = re.match(r"([\u4e00-\u9fa5A-Za-z0-9·#（）()_-]{1,30}?升压站)", value)
+            match = re.match(domain_regex(self, "electrical_primary", "match_054", r"([\u4e00-\u9fa5A-Za-z0-9·#（）()_-]{1,30}?升压站)"), value)
         if not match:
             return None
-        return re.sub(r"\s+", "", match.group(1))
+        return re.sub(domain_regex(self, "electrical_primary", "sub_055", r"\s+"), "", match.group(1))
 
     def _substation_voltage_level_from_ast(self, ast: DocumentAST) -> Any:
         text = "\n".join(self._clean_text(block.text or "") for block in self._electrical_primary_text_blocks(ast))
@@ -1381,10 +1383,10 @@ class ElectricalPrimaryRulesMixin:
     def _normalize_electrical_text_value(self, value: str) -> str:
         value = self._normalize_text_value(value)
         if "UPS" in value and "\u53cc\u5197\u4f59\u4e92\u4e3a\u5907\u7528" in value:
-            value = re.split(r"\u7684\u4ea4\u6d41|\uff08UPS|\(UPS", value, maxsplit=1)[0]
-        value = re.sub(r"\s+", "", value)
-        value = re.sub(r"^([0-9]+(?:\.[0-9]+)?)kVA?$", r"\1kVA", value, flags=re.IGNORECASE)
-        value = re.sub(r"^([±+\-]?[0-9]+(?:\.[0-9]+)?)Mvar$", r"\1Mvar", value, flags=re.IGNORECASE)
+            value = re.split(domain_regex(self, "electrical_primary", "split_056", r"\u7684\u4ea4\u6d41|\uff08UPS|\(UPS"), value, maxsplit=1)[0]
+        value = re.sub(domain_regex(self, "electrical_primary", "sub_057", r"\s+"), "", value)
+        value = re.sub(domain_regex(self, "electrical_primary", "sub_058", r"^([0-9]+(?:\.[0-9]+)?)kVA?$"), r"\1kVA", value, flags=re.IGNORECASE)
+        value = re.sub(domain_regex(self, "electrical_primary", "sub_059", r"^([±+\-]?[0-9]+(?:\.[0-9]+)?)Mvar$"), r"\1Mvar", value, flags=re.IGNORECASE)
         return value
 
     def _station_transformer_capacity_10kv_from_ast(self, ast: DocumentAST) -> str | None:
@@ -1404,7 +1406,7 @@ class ElectricalPrimaryRulesMixin:
                 for match in re.finditer(pattern, text, flags=re.IGNORECASE):
                     value = match.group(1).strip()
                     nearby = text[max(0, match.start() - 80): match.end() + 80]
-                    score = 5 if re.search(r"10\s*kV\s*站用变", nearby, flags=re.IGNORECASE) else 1
+                    score = 5 if re.search(domain_regex(self, "electrical_primary", "search_060", r"10\s*kV\s*站用变"), nearby, flags=re.IGNORECASE) else 1
                     if "备用电源引自站外" in nearby:
                         score += 5
                     if "SC" in nearby and not value.lower().endswith("kva"):
@@ -1424,7 +1426,7 @@ class ElectricalPrimaryRulesMixin:
                 continue
             if "线变组接线" in text and "单母线接线" in text:
                 return "110kV变电站采用线变组接线方式；35kV侧采用单母线接线方式"
-            match = re.search(r"((?:线变组|单母线(?:分段)?)接线(?:型式|方式)?)", text)
+            match = re.search(domain_regex(self, "electrical_primary", "search_061", r"((?:线变组|单母线(?:分段)?)接线(?:型式|方式)?)"), text)
             if match:
                 return match.group(1)
         return None
