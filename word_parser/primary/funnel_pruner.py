@@ -25,7 +25,7 @@ class FunnelPruner:
         "regex_multi",
     }
 
-    def __init__(self, enabled: bool = True, stages: dict[str, int] | None = None, field_configs: dict[str, dict] | None = None):
+    def __init__(self, enabled: bool = True, stages: dict[str, int] | None = None, field_configs: dict[str, dict] | None = None, strong_extraction_methods: list[str] | None = None):
         """初始化剪枝器。
 
         参数：
@@ -36,6 +36,11 @@ class FunnelPruner:
         self.enabled = enabled
         self.stages = stages or {}
         self.field_configs = field_configs or {}
+        # Preserve legacy default when a caller does not provide YAML policy.
+        self.STRONG_EXTRACTION_METHODS = set(
+            self.STRONG_EXTRACTION_METHODS
+            if strong_extraction_methods is None else strong_extraction_methods
+        )
 
     def prune_matches(self, matches: list[FieldMatch], stage: str) -> list[FieldMatch]:
         """按字段剪枝匹配候选。"""
