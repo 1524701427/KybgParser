@@ -498,7 +498,7 @@ class IndicatorDiscovery:
         """读取语句中紧跟数值的已配置标签。"""
         found: list[tuple[str, str, str | None]] = []
         for clause in re.split(r"[。；;，,\n]", text):
-            if not clause or len(clause) > self.paragraph_clause_max_length:
+            if not clause or len(clause) > self.value_parser.paragraph_clause_max_length:
                 continue
             key = self.lexicon._key(clause)
             if self.lexicon.automaton is not None:
