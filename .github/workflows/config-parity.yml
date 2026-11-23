@@ -22,6 +22,7 @@ on:
       - "tests/test_domain_operator_schedule.py"
       - "tests/test_mapping_yaml_transforms.py"
       - "tests/test_memory_only_export.py"
+      - "tests/test_factory_yaml_enforcement.py"
       - "tests/test_four_stage_pipeline.py"
       - "tests/test_mapping_stage_contract.py"
       - "tests/test_domain_yaml_parity.py"
@@ -62,7 +63,7 @@ jobs:
       - name: Audit configuration rules
         run: python tools/scripts/audit_extraction_config.py --config-root configs
       - name: Check YAML parity and extraction contract
-        run: python -m pytest tests/test_memory_only_export.py tests/test_domain_operator_schedule.py tests/test_mapping_yaml_transforms.py tests/test_four_stage_pipeline.py tests/test_mapping_stage_contract.py tests/test_domain_literal_regex_parity.py tests/test_domain_migration_audit.py tests/test_resultbuilder_missing_helper.py tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
+        run: python -m pytest tests/test_factory_yaml_enforcement.py tests/test_memory_only_export.py tests/test_domain_operator_schedule.py tests/test_mapping_yaml_transforms.py tests/test_four_stage_pipeline.py tests/test_mapping_stage_contract.py tests/test_domain_literal_regex_parity.py tests/test_domain_migration_audit.py tests/test_resultbuilder_missing_helper.py tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
 
       - name: Inventory remaining domain extraction rules
         run: |
