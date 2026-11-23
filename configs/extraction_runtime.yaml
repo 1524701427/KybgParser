@@ -44,8 +44,22 @@ discovery:
   label_max_length: 30
   paragraph_clause_max_length: 180
   string_value_max_length: 60
+  number_cell_pattern: '[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?\s*[^\d\s]*'
+  column_header_unit_pattern: '(.+?)[（(]([^()（）]{1,16})[）)]'
+  paragraph_clause_pattern: '[。；;，\n]|,(?!\d{3}(?:\D|$))'
+  contextual_clause_pattern: '[。；;，,\n]'
+  two_cell_text_max_length: 60
+  two_cell_value_exclusions: [单位, 备注, 说明]
+  contextual_label_min_length: 4
+  contextual_prefix_guard_chars: 10
 
 value_extraction:
+  number_near_alias_window: 80
+  table_group_header_max_cells: 2
+  heading_exclusion_patterns:
+    - '\d+(?:\.\d+){1,4}\s+[^|:]{1,40}'
+    - '\s*\d+(?:[-.]\d+)+(?:\s+[^|:]{0,40})?'
+  heading_value_markers: [":", "：", "|"]
   table_headers:
     value: [数值, 指标值, 推荐值, 取值, 金额, 投资, 容量, 规模, 长度, 数量, 台数]
     unit: [单位, 计量单位]
