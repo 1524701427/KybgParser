@@ -148,3 +148,19 @@ def test_run_full_parse_reuses_factory_config_for_secondary_and_mapping(monkeypa
         "root": custom,
         "table": custom / "table_field_extractors.yaml",
     }
+
+
+def test_public_full_parse_api_does_not_reset_custom_table_rules(monkeypatch, tmp_path):
+    import word_parser.application.api as api
+    observations = {}
+    service = object()
+    monkeypatch.setattr(api, "create_parser", lambda config_root: service)
+    def fake_run(parser, source, config_root=None, table_value_config=None):
+        observations.update(parser=parser, source=source, root=config_root, table=table_value_config)
+        return {"ok": True}
+    monkeypatch.setattr(api, "run_full_parse", fake_run)
+    root = tmp_path / "project_rules"
+    assert api.parse_document_with_table_values("report.docx", config_root=root) == {"ok": True}
+    assert observations == {
+        "parser": service, "source": "report.docx", "root": root, "table": None
+    }
