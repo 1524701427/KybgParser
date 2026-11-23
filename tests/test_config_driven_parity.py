@@ -40,6 +40,11 @@ def test_indicator_discovery_defaults_match_prior_behavior():
     assert configured.CONTEXT_VALUE.pattern == legacy.CONTEXT_VALUE.pattern
     assert configured.value_parser.NON_INDICATOR_LABELS == legacy.value_parser.NON_INDICATOR_LABELS
     assert configured.value_parser.column_header_exclusions == legacy.value_parser.column_header_exclusions
+    assert configured.value_parser.paragraph_separators == legacy.value_parser.paragraph_separators
+    assert configured.value_parser.label_min_length == legacy.value_parser.label_min_length
+    assert configured.value_parser.label_max_length == legacy.value_parser.label_max_length
+    assert configured.value_parser.paragraph_clause_max_length == legacy.value_parser.paragraph_clause_max_length
+    assert configured.value_parser.string_value_max_length == legacy.value_parser.string_value_max_length
     assert configured.safe_fallback_min_label_length == 8
     assert configured.lexicon.matching_config["acceptance_score"] == 92
     assert configured.lexicon.matching_config["minimum_competing_gap"] == 8
