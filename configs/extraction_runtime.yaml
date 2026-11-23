@@ -1,0 +1,41 @@
+# Configuration-driven extraction runtime.
+# The values below mirror the previous Python defaults exactly.
+# Changing a value alters extraction behavior; run compatibility tests first.
+version: 1
+
+field_matching:
+  alias_bonus: 1.0
+
+discovery:
+  rapidfuzz:
+    acceptance_score: 92
+    minimum_competing_gap: 8
+    safe_fallback_min_label_length: 8
+  non_indicator_labels: [序号, 编号, 备注, 说明, 单位, 类别, 阶段, 项目, 指标, 名称]
+  column_header_exclusions: [数量, 数值, 指标值, 金额, 总价, 单价, 单位, 备注]
+  scope_terms:
+    - [单机, 单台, 双机, 合计, 总计, 总]
+    - [规划, 实际, 设计, 运行]
+    - [接入, 送出, 集电]
+    - [一期, 二期, 本期, 远期]
+    - [平均, 最大, 最小]
+    - [年, 月, 日]
+  context_value_pattern: '^\\s*(?:为|约为|达到|达|是|取|：|:)\\s*(.+)$'
+
+value_extraction:
+  table_headers:
+    value: [数值, 指标值, 推荐值, 取值, 金额, 投资, 容量, 规模, 长度, 数量, 台数]
+    unit: [单位, 计量单位]
+    noise: [序号, 编号, 备注, 说明, 类别, 阶段]
+
+candidate_resolution:
+  method_weights:
+    table_lookup: 1.2
+    table_rule: 0.55
+    table_aggregate: 1.0
+    table_list: 0.9
+    regex: 0.15
+    regex_multi: 0.05
+    regex_derived: 0.25
+    regex_fallback: -1.2
+  strong_rule_methods: [table_lookup, table_aggregate, table_list, regex, regex_derived, regex_multi]
