@@ -1,4 +1,6 @@
 version: 1
+# Production parser treats these YAML values as authoritative; missing keys fail loudly.
+strict_domain_literals: true
 
 resource:
   preferred_tower_patterns:
