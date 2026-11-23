@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.config.domain_regex import domain_regex
+
 import re
 from typing import Any
 
@@ -107,7 +109,7 @@ class SubstationCivilRulesMixin:
     def _half_length(self, value: Any) -> Any:
         if value is None:
             return None
-        match = re.search(r"[0-9]+(?:\.[0-9]+)?", str(value).replace(",", ""))
+        match = re.search(domain_regex(self, "civil_substation", "search_001", r"[0-9]+(?:\.[0-9]+)?"), str(value).replace(",", ""))
         if not match:
             return None
         number = float(match.group(0))
