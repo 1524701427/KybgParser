@@ -42,3 +42,12 @@ NOTE: Static parity tests are not evidence that every report still extracts corr
 - one-at-a-time domain matching-rule migration, with conservative legacy fallback
 - convergence of primary and secondary candidate decisions, only after full business parity
 - do not turn calculations or complex tabular algorithms into arbitrary YAML expressions; retain Python as tested operators
+
+## Existing duplicate field definitions found by audit
+
+The read-only audit found **212 effective field codes**, **0 errors**, and **2 duplicate-code warnings** on the current configuration:
+
+- `newRoadLength`: defined in `configs/fields/civil_construction.yaml` and `configs/fields/report_required_data.yaml`
+- `rebuiltRoadLength`: defined in the same two files
+
+These are not identical definitions: `report_required_data.yaml` adds more aliases and scalar extraction rules. The current ConfigLoader deliberately retains the sorted-file, last-definition-wins behavior. Neither definition is removed or merged in this PR. Any reconciliation needs mapped-JSON and real-report parity before deployment.
