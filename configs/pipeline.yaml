@@ -36,6 +36,8 @@
       extraction_matches: 30
       semantic_candidates: 15
   validator:
-    enabled: false
+    # Legacy Python pipeline always ran Validator despite this former false flag.
+    # Set true to preserve proven report outputs while making this switch effective.
+    enabled: true
     mode: active
 
