@@ -23,6 +23,24 @@ class ValueExtractor:
         r"\s*\d+(?:[-.]\d+)+(?:\s+[^|:]{0,40})?",
     )
     HEADING_VALUE_MARKERS = (":", "：", "|")
+    # Preserve the original order and table-lookup short-circuit semantics.
+    DEFAULT_TABLE_OPERATORS = ("table_aggregate", "table_list", "table_lookup")
+    TABLE_OPERATOR_METHODS = {
+        "table_aggregate": "_extract_by_table_aggregate",
+        "table_list": "_extract_by_table_list",
+        "table_lookup": "_extract_by_table_lookup",
+    }
+    DEFAULT_SCORE_BONUSES = {
+        "table_rule_header": 0.95,
+        "table_rule_row": 0.6,
+        "table_aggregate": 1.35,
+        "table_lookup": 0.75,
+        "table_list": 1.1,
+        "regex": 0.4,
+        "regex_derived": 0.45,
+        "regex_fallback": 0.1,
+        "regex_multi": 0.35,
+    }
 
     def __init__(
         self,
@@ -49,6 +67,16 @@ class ValueExtractor:
         self.SUMMARY_ROW_KEYWORDS = tuple(headers.get("summary", self.SUMMARY_ROW_KEYWORDS))
         self.MATERIAL_GRADE_PATTERN = str(headers.get("material_grade_pattern", self.MATERIAL_GRADE_PATTERN))
         policy = value_config or {}
+        self.table_operator_order = tuple(policy.get("table_operator_order", self.DEFAULT_TABLE_OPERATORS))
+        # This compatibility phase does not permit reordering: lookup suppresses
+        # the coarse table rule, so changing order can alter business results.
+        if self.table_operator_order != self.DEFAULT_TABLE_OPERATORS:
+            raise ValueError(
+                "table_operator_order must preserve the legacy table extraction order: "
+                + ", ".join(self.DEFAULT_TABLE_OPERATORS)
+            )
+        bonuses = policy.get("score_bonuses") or {}
+        self.score_bonuses = {**self.DEFAULT_SCORE_BONUSES, **bonuses}
         self.number_near_alias_window = int(policy.get("number_near_alias_window", 80))
         self.table_group_header_max_cells = int(policy.get("table_group_header_max_cells", 2))
         self.heading_exclusion_patterns = tuple(
@@ -111,12 +139,12 @@ class ValueExtractor:
             return []
         aliases = match.candidate.field_config.get("aliases") or []
         results: list[Extraction] = []
-        results.extend(self._extract_by_table_aggregate(match, table))
-        results.extend(self._extract_by_table_list(match, table))
-        lookup_results = self._extract_by_table_lookup(match, table)
-        if lookup_results:
-            results.extend(lookup_results)
-            return results
+        for operator in self.table_operator_order:
+            handler = getattr(self, self.TABLE_OPERATOR_METHODS[operator])
+            found = handler(match, table)
+            results.extend(found)
+            if operator == "table_lookup" and found:
+                return results
         if match.candidate.field_config.get("coarse_table_rule_enabled") is False:
             return results
         for row_index, row in enumerate(table.rows):
@@ -129,7 +157,7 @@ class ValueExtractor:
             if not alias_hit and not header_items:
                 continue
             extracted_items = header_items
-            score_bonus = 0.95 if extracted_items else 0.6
+            score_bonus = self.score_bonuses["table_rule_header" if extracted_items else "table_rule_row"]
             if not extracted_items:
                 extracted_items = [
                     item
@@ -239,7 +267,7 @@ class ValueExtractor:
                 raw_value=value_text,
                 value=value_text,
                 unit=aggregate.get("unit") or config.get("standard_unit"),
-                score=match.score + 1.35,
+                score=match.score + self.score_bonuses["table_aggregate"],
                 method="table_aggregate",
                 evidence=self._build_evidence(match, evidence_text, "table_aggregate"),
                 debug={
@@ -295,7 +323,7 @@ class ValueExtractor:
                         raw_value=value_text,
                         value=value_text,
                         unit=unit or self._unit_from_text(header_text, match.candidate.field_config),
-                        score=match.score + 0.75,
+                        score=match.score + self.score_bonuses["table_lookup"],
                         method="table_lookup",
                         evidence=self._build_evidence(match, evidence_text, "table_lookup"),
                         debug={"row_index": row_index, "column_index": column_index, "table_lookup": lookup},
@@ -355,7 +383,7 @@ class ValueExtractor:
                 raw_value=value_text,
                 value=value_text,
                 unit=None,
-                score=match.score + 1.1,
+                score=match.score + self.score_bonuses["table_list"],
                 method="table_list",
                 evidence=self._build_evidence(match, evidence_text, "table_list"),
                 debug={"table_list_count": len(values), "column_index": column_index},
@@ -748,7 +776,7 @@ class ValueExtractor:
                         raw_value=raw_value,
                         value=raw_value,
                         unit=unit,
-                        score=match.score + 0.4,
+                        score=match.score + self.score_bonuses["regex"],
                         method="regex",
                         evidence=evidence,
                         debug={"pattern": pattern},
@@ -803,7 +831,7 @@ class ValueExtractor:
                         raw_value=raw_value,
                         value=raw_value,
                         unit=unit or derived.get("unit"),
-                        score=match.score + 0.45,
+                        score=match.score + self.score_bonuses["regex_derived"],
                         method="regex_derived",
                         evidence=evidence,
                         debug={"pattern": pattern, "multiplier": derived.get("multiplier", 1.0)},
@@ -834,7 +862,7 @@ class ValueExtractor:
                 raw_value=value_text,
                 value=value_text,
                 unit=unit,
-                score=match.score + 0.1,
+                score=match.score + self.score_bonuses["regex_fallback"],
                 method="regex_fallback",
                 evidence=self._build_evidence(match, match.candidate.text, "regex_fallback"),
                 debug={},
@@ -884,7 +912,7 @@ class ValueExtractor:
                         raw_value=raw_value,
                         value=raw_value,
                         unit=unit or match.candidate.field_config.get('standard_unit'),
-                        score=match.score + 0.35,
+                        score=match.score + self.score_bonuses["regex_multi"],
                         method='regex_multi',
                         evidence=self._build_evidence(match, found.group(0), 'regex_multi'),
                         debug={'pattern': pattern},
