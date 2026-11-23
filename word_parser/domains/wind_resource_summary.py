@@ -181,9 +181,9 @@ class WindResourceSummaryRulesMixin:
             }
         overview = "\n".join(str(item.get("text") or "") for item in pages if "测风塔资料一览表" in str(item.get("text") or "") or "测风时间段" in str(item.get("text") or ""))
         tower_pattern = re.compile(
-            domain_regex(self, "wind_resource_summary", "compile_001", r"(?m)^\s*(?P<code>\d{4}#)\s*\n\s*(?P<lat>\d{1,2}°[^\n]{3,25})\s*\n")
+            domain_regex(self, "wind_resource_summary", "compile_001", r"(?m)^\s*(?P<code>\d{4}#)\s*\n\s*(?P<lat>\d{1,2}°[^\n]{3,25})\s*\n"
             r"\s*(?P<lon>\d{2,3}°[^\n]{3,25})\s*\n\s*\d{3,4}\s*\n"
-            r"\s*(?P<period>\d{4}\.\d{1,2}\.\d{1,2}\s*[~～-]\s*\d{4}\.\d{1,2}\.\d{1,2})"
+            r"\s*(?P<period>\d{4}\.\d{1,2}\.\d{1,2}\s*[~～-]\s*\d{4}\.\d{1,2}\.\d{1,2})")
         )
         for match in tower_pattern.finditer(overview):
             row = by_code.get(match.group("code"))
@@ -227,10 +227,10 @@ class WindResourceSummaryRulesMixin:
 
         # PDF 中常以一句话列出测风塔推算高度、风速和风功率，表格抽取器不会生成这一行。
         speed_power_pattern = re.compile(
-            domain_regex(self, "wind_resource_summary", "compile_004", r"(?P<code>\d{3,5}#)\s*测风塔\s*(?P<height>\d{2,3})\s*m")
+            domain_regex(self, "wind_resource_summary", "compile_004", r"(?P<code>\d{3,5}#)\s*测风塔\s*(?P<height>\d{2,3})\s*m"
             r"[^。；;\n]{0,45}?高度平均风速和风功率密度分别为\s*"
             r"(?P<speed>\d+(?:\.\d+)?)\s*m/s\s*和\s*"
-            r"(?P<power>\d+(?:\.\d+)?)\s*W/m[²2]"
+            r"(?P<power>\d+(?:\.\d+)?)\s*W/m[²2]")
         )
         for item in pages:
             text = str(item.get("text") or "")
@@ -249,8 +249,8 @@ class WindResourceSummaryRulesMixin:
 
         # 轮毂高度密度只归给报告明确作为推算基准的测风塔。
         density_pattern = re.compile(
-            domain_regex(self, "wind_resource_summary", "compile_005", r"以\s*(?P<code>\d{3,5}#)\s*测风塔为基准[^。；;]{0,100}?")
-            r"轮毂高度处的空气密度\s*为\s*(?P<density>\d+(?:\.\d+)?)\s*kg/m[³3]"
+            domain_regex(self, "wind_resource_summary", "compile_005", r"以\s*(?P<code>\d{3,5}#)\s*测风塔为基准[^。；;]{0,100}?"
+            r"轮毂高度处的空气密度\s*为\s*(?P<density>\d+(?:\.\d+)?)\s*kg/m[³3]")
         )
         for item in pages:
             for match in density_pattern.finditer(str(item.get("text") or "")):
@@ -270,9 +270,9 @@ class WindResourceSummaryRulesMixin:
 
         # 测风时长不足的塔仅被提及，随后出现的全场密度不能复制为逐塔轮毂密度。
         insufficient_pattern = re.compile(
-            domain_regex(self, "wind_resource_summary", "compile_006", r"(?P<codes>(?:\d{3,5}#[、，,]?\s*)+)测风塔测风时长不足")
+            domain_regex(self, "wind_resource_summary", "compile_006", r"(?P<codes>(?:\d{3,5}#[、，,]?\s*)+)测风塔测风时长不足"
             r"[^。]{0,80}?使用\s*(?P<reference>\d{3,5}#)\s*测风塔"
-            r"[^。]{0,150}?该风电\s*场的空气密度为\s*(?P<density>\d+(?:\.\d+)?)"
+            r"[^。]{0,150}?该风电\s*场的空气密度为\s*(?P<density>\d+(?:\.\d+)?)")
         )
         for item in pages:
             for match in insufficient_pattern.finditer(str(item.get("text") or "")):
@@ -386,8 +386,8 @@ class WindResourceSummaryRulesMixin:
         result: dict[str, dict[str, Any]] = {}
         known = set(tower_codes)
         pattern = re.compile(
-            domain_regex(self, "wind_resource_summary", "compile_010", r"年平均风速分别为(?P<speeds>[^。；;\n]{0,220}?)")
-            r"(?:相对应|对应)?风功率密度分别为(?P<powers>[^。；;\n]{0,220})"
+            domain_regex(self, "wind_resource_summary", "compile_010", r"年平均风速分别为(?P<speeds>[^。；;\n]{0,220}?)"
+            r"(?:相对应|对应)?风功率密度分别为(?P<powers>[^。；;\n]{0,220})")
         )
         for block in self._body_blocks(ast):
             text = self._clean_text(block.text or "")
