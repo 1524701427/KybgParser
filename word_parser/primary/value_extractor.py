@@ -20,6 +20,7 @@ class ValueExtractor:
         self,
         table_rule_enabled: bool = True,
         regex_enabled: bool = True,
+        table_header_config: dict | None = None,
     ):
         """初始化抽取器。
 
@@ -29,6 +30,12 @@ class ValueExtractor:
         """
         self.table_rule_enabled = table_rule_enabled
         self.regex_enabled = regex_enabled
+        # Keep legacy defaults for direct callers, but read all active table labels
+        # from configs/extraction_runtime.yaml in the application factory.
+        headers = table_header_config or {}
+        self.VALUE_HEADER_KEYWORDS = tuple(headers.get("value", self.VALUE_HEADER_KEYWORDS))
+        self.UNIT_HEADER_KEYWORDS = tuple(headers.get("unit", self.UNIT_HEADER_KEYWORDS))
+        self.NOISE_HEADER_KEYWORDS = tuple(headers.get("noise", self.NOISE_HEADER_KEYWORDS))
 
     def extract(self, matches: list[FieldMatch]) -> list[Extraction]:
         """从匹配候选中抽取字段值。
