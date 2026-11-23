@@ -130,7 +130,7 @@ class WindDirectionRulesMixin:
         for label in ("风向", "风能"):
             height_columns = []
             for index, heading in enumerate(header):
-                match = re.search(r"(\d+(?:\.\d+)?)\s*m\s*" + label, str(heading), re.I)
+                match = re.search(domain_regex(self, "wind_resource_direction", "direction_dynamic_prefix", r"(\d+(?:\.\d+)?)\s*m\s*") + label, str(heading), re.I)
                 if match:
                     height_columns.append((float(match.group(1)), index))
             if not height_columns:
