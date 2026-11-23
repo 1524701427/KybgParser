@@ -8,6 +8,7 @@ from word_parser.application.pipeline import ParserPipeline
 from word_parser.application.service import ParserService
 from word_parser.output.json_exporter import JsonExporter
 from word_parser.output.result_builder import ResultBuilder
+from word_parser.primary.domain_dispatch import load_domain_schedule
 from word_parser.primary.candidate_resolver import CandidateResolver
 from word_parser.primary.candidate_retriever import CandidateRetriever
 from word_parser.primary.field_matcher import FieldMatcher
@@ -37,6 +38,13 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
     pipeline_config = config_loader.load_yaml("pipeline.yaml")
     output_schema = config_loader.load_yaml("output_schema.yaml")
     extraction_runtime = config_loader.load_yaml("extraction_runtime.yaml")
+    domain_rules_file = Path(config_root) / "deterministic_rules.yaml"
+    if not domain_rules_file.is_file():
+        raise FileNotFoundError(f"Required extraction rule file is missing: {domain_rules_file}")
+    domain_rules = config_loader.load_yaml("deterministic_rules.yaml")
+    if domain_rules.get("strict_domain_literals") is not True:
+        raise ValueError("Production parser requires strict_domain_literals: true in deterministic_rules.yaml")
+    domain_schedule = load_domain_schedule(config_root)
 
     table_rule_config = pipeline_config.get("modules", {}).get("table_rule_extractor", {})
     regex_config = pipeline_config.get("modules", {}).get("regex_extractor", {})
@@ -73,7 +81,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
         ),
         resolver=CandidateResolver(field_configs, scoring_config=extraction_runtime.get("candidate_resolution")),
         validator=Validator(field_configs),
-        exporter=JsonExporter(result_builder=ResultBuilder(output_schema=output_schema, field_configs=field_configs, config_root=config_root)),
+        exporter=JsonExporter(result_builder=ResultBuilder(output_schema=output_schema, field_configs=field_configs, config_root=config_root, domain_operator_schedule=domain_schedule)),
         indicator_discovery=(IndicatorDiscovery(field_configs, mode=indicator_config.get("mode", "active"), settings=extraction_runtime.get("discovery"), lexicon=shared_lexicon)
                              if indicator_config.get("enabled", True) else None),
     )
