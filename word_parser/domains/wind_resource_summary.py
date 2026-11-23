@@ -200,7 +200,7 @@ class WindResourceSummaryRulesMixin:
             if "各测风塔各高度风速及风功率" not in text and "测风塔订正后各高度风速及风功率" not in text:
                 continue
             codes = re.findall(domain_regex(self, "wind_resource_summary", "findall_002", r"\b\d{4}#"), text[:250])
-            match = re.search(r"(?m)^\s*105\s*\n" + r"\s*(\d+(?:\.\d+)?)\s*\n" * (2 * len(codes)), text) if codes else None
+            match = re.search(domain_regex(self, "wind_resource_summary", "tower_dynamic_prefix", r"(?m)^\s*105\s*\n") + domain_regex(self, "wind_resource_summary", "tower_dynamic_value", r"\s*(\d+(?:\.\d+)?)\s*\n") * (2 * len(codes)), text) if codes else None
             if not match:
                 continue
             for index, code in enumerate(codes):
@@ -968,17 +968,17 @@ class WindResourceSummaryRulesMixin:
     def _resource_tower_codes_from_text(self, ast: DocumentAST) -> list[str]:
         text = "\n".join(self._clean_text(block.text or "") for block in ast.blocks if block.text)
         codes: list[str] = []
-        for segment in re.split("[\n\u3002\uff1b;]", text):
+        for segment in re.split(domain_regex(self, "wind_resource_summary", "unicode_split_001", "[\n\u3002\uff1b;]"), text):
             if any(keyword in segment for keyword in ("编号", "测风塔", "雷达测风")) and ("#" in segment or "＃" in segment):
                 for code in self._tower_codes_in_text(segment):
                     if code and code not in codes:
                         codes.append(code)
-        for match in re.finditer("(?:\u6d4b\u98ce\u5854\u7f16\u53f7|\u96f7\u8fbe\u6d4b\u98ce\u7f16\u53f7|\u6d4b\u98ce\u7f16\u53f7)[^\n\u3002\uff1b;]{0,80}", text):
+        for match in re.finditer(domain_regex(self, "wind_resource_summary", "unicode_finditer_002", "(?:\u6d4b\u98ce\u5854\u7f16\u53f7|\u96f7\u8fbe\u6d4b\u98ce\u7f16\u53f7|\u6d4b\u98ce\u7f16\u53f7)[^\n\u3002\uff1b;]{0,80}"), text):
             for code in re.findall(domain_regex(self, "wind_resource_summary", "findall_024", r"[A-Za-z0-9]{2,8}#"), match.group(0)):
                 code = self._normalize_tower_code(code)
                 if code and code not in codes:
                     codes.append(code)
-        for match in re.finditer("([A-Za-z0-9#\u3001,\uff0c\\s]+)#?\\s*\u6d4b\u98ce\u5854", text):
+        for match in re.finditer(domain_regex(self, "wind_resource_summary", "unicode_finditer_003", "([A-Za-z0-9#\u3001,\uff0c\\s]+)#?\\s*\u6d4b\u98ce\u5854"), text):
             for code in re.findall(domain_regex(self, "wind_resource_summary", "findall_025", r"[A-Za-z0-9]{2,8}#"), match.group(1) + "#"):
                 code = self._normalize_tower_code(code)
                 if code and code not in codes:
