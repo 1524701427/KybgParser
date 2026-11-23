@@ -14,10 +14,12 @@ import json
 from pathlib import Path
 import sys
 
+import yaml
+
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from word_parser.extraction.candidate_facts import candidate_fact_report
+from word_parser.extraction.candidate_diagnostics import candidate_quality_report
 
 
 def _read_json_object(path: Path) -> dict:
@@ -33,12 +35,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--secondary-detail", type=Path, help="Optional standalone secondary detail JSON")
     parser.add_argument("--output", type=Path, help="Optional separate audit output file")
     parser.add_argument("--exclude-nil", action="store_true", help="Omit secondary NIL attempts from audit report")
+    parser.add_argument("--policy", type=Path, default=Path(__file__).resolve().parents[2] / "configs" / "candidate_audit.yaml", help="Read-only YAML candidate quality check policy")
     args = parser.parse_args(argv)
 
     try:
         primary = _read_json_object(args.primary_detail)
         secondary = _read_json_object(args.secondary_detail) if args.secondary_detail else None
-        report = candidate_fact_report(primary, secondary, include_nil=not args.exclude_nil)
+        policy = yaml.safe_load(args.policy.read_text(encoding="utf-8-sig"))
+        report = candidate_quality_report(primary, secondary, policy=policy, include_nil=not args.exclude_nil)
         if args.output is not None:
             destination = args.output.resolve()
             protected = {args.primary_detail.resolve()}
@@ -62,10 +66,12 @@ def main(argv: list[str] | None = None) -> int:
         f"secondary_tables={counts['secondary_table']} "
         f"nil={summary['nilCount']} missing_codes={summary['missingCodeCount']} "
         f"value_variation_groups={summary['valueVariationGroupCount']}"
+        f" quality_issues={report['qualityChecks']['issueCount']}"
+        f" cross_stage_variations={report['qualityChecks']['crossStageVariationCount']}"
     )
     if args.output:
         print(f"Read-only audit report: {args.output}")
-    if summary["valueVariationGroupCount"]:
+    if summary["valueVariationGroupCount"] or report["qualityChecks"]["crossStageVariationCount"]:
         print("Value variations are observations only, not automatic error verdicts or selected final values.")
     return 0
 
