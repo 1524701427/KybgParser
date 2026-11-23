@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Callable
@@ -28,6 +29,7 @@ from word_parser.mapping.wind import (
 )
 from word_parser.secondary.table_values.primitives import json_safe
 from word_parser.secondary.table_values.results import final_result_with_table_values, table_value_details
+from word_parser.secondary.table_values.resolver import write_table_value_details
 
 
 LEGACY_OPERATOR_ORDER = (
@@ -127,7 +129,13 @@ def execute_final_mapping(
             key: Path(directory) / f"{key}.json"
             for key in ("detail", "result", "mapped")
         }
-        _write_json(working["detail"], table_value_details(enhanced))
+        # Preserve primary fieldIndex/tableIndex/source evidence exactly as the
+        # legacy write_table_value_details() merge did. Replacing it with only
+        # secondary sections silently destroys primary field mapping values.
+        if not destinations["detail"].is_file():
+            raise RuntimeError(f"一次抽取详情文件不存在：{destinations['detail']}")
+        shutil.copy2(destinations["detail"], working["detail"])
+        write_table_value_details(working["detail"], table_value_details(enhanced))
         _write_json(working["result"], final_result_with_table_values(enhanced))
         parse_result["outputFiles"] = {**original_files, **{key: str(path) for key, path in working.items()}}
         try:
