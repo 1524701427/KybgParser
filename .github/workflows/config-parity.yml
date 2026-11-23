@@ -26,6 +26,8 @@ on:
       - "tools/scripts/compare_mapped.py"
       - "tools/scripts/audit_candidate_facts.py"
       - "tools/scripts/run_real_report_parity.py"
+      - "tools/scripts/run_candidate_report_smoke.py"
+      - "tests/test_resultbuilder_missing_helper.py"
       - "tools/scripts/audit_extraction_config.py"
       - ".github/workflows/config-parity.yml"
 
@@ -44,11 +46,11 @@ jobs:
           python -m compileall -q word_parser/application/factory.py word_parser/discovery/indicators.py word_parser/primary
           python -m compileall -q tools/scripts/compare_mapped.py tools/scripts/audit_extraction_config.py
           python -m compileall -q word_parser/extraction/candidate_facts.py word_parser/extraction/candidate_diagnostics.py tools/scripts/audit_candidate_facts.py
-          python -m compileall -q word_parser/secondary/table_values/resolver.py tools/scripts/run_real_report_parity.py
+          python -m compileall -q word_parser/secondary/table_values/resolver.py tools/scripts/run_real_report_parity.py tools/scripts/run_candidate_report_smoke.py
       - name: Audit configuration rules
         run: python tools/scripts/audit_extraction_config.py --config-root configs
       - name: Check YAML parity and extraction contract
-        run: python -m pytest tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
+        run: python -m pytest tests/test_resultbuilder_missing_helper.py tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
 
   real-docx-parity:
     runs-on: ubuntu-latest
@@ -74,8 +76,6 @@ jobs:
             --baseline-root baseline \
             --candidate-root candidate \
             --report 'candidate/samples/reports/项目建议书解析（陕西华电延安吴起庙沟50MW风电项目）.docx' \
-            --report 'candidate/samples/parsed/可研报告解析（陕西华电靖边韩家沟200MW项目）.docx' \
-            --report 'candidate/samples/parsed/可研报告解析（陕西华电白水15万千瓦项目）.docx' \
             --out-dir parity-output \
             --timeout-seconds 900
       - name: Upload regression summary on failure
@@ -84,4 +84,32 @@ jobs:
         with:
           name: docx-regression-summary
           path: parity-output/regression_summary.json
+          if-no-files-found: ignore
+
+  real-docx-candidate-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install fallback extraction dependencies
+        run: python -m pip install pyyaml rapidfuzz pyahocorasick loguru pandas httpx regex pillow openpyxl
+      - name: Re-run two reports that crash on current main
+        run: |
+          python candidate/tools/scripts/run_candidate_report_smoke.py \
+            --candidate-root candidate \
+            --report 'candidate/samples/parsed/可研报告解析（陕西华电靖边韩家沟200MW项目）.docx' \
+            --report 'candidate/samples/parsed/可研报告解析（陕西华电白水15万千瓦项目）.docx' \
+            --out-dir candidate-smoke-output \
+            --timeout-seconds 900
+      - name: Upload smoke failure summary
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docx-candidate-smoke-summary
+          path: candidate-smoke-output/smoke_summary.json
           if-no-files-found: ignore
