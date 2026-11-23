@@ -42,6 +42,8 @@ def main(argv: list[str] | None = None) -> int:
         primary = _read_json_object(args.primary_detail)
         secondary = _read_json_object(args.secondary_detail) if args.secondary_detail else None
         policy = yaml.safe_load(args.policy.read_text(encoding="utf-8-sig"))
+        if not isinstance(policy, dict):
+            raise ValueError("Candidate audit YAML must contain a mapping; empty or invalid policy is not allowed")
         report = candidate_quality_report(primary, secondary, policy=policy, include_nil=not args.exclude_nil)
         if args.output is not None:
             destination = args.output.resolve()
@@ -55,7 +57,7 @@ def main(argv: list[str] | None = None) -> int:
                 json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False),
                 encoding="utf-8",
             )
-    except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, TypeError, json.JSONDecodeError, yaml.YAMLError) as exc:
         print(f"Candidate audit error: {exc}", file=sys.stderr)
         return 2
     summary = report["summary"]
