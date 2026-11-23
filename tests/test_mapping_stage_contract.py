@@ -44,16 +44,20 @@ def _fixture(tmp_path, monkeypatch, *, fail_at=None):
     outputs = {key: str(destination / f"case_{key}.json")
                for key in ("detail", "result", "mapped")}
     for key in ("detail", "result", "mapped"):
-        Path(outputs[key]).write_text('{"sentinel":"old"}', encoding="utf-8")
+        initial = ({"sentinel": "old", "fieldIndex": {"hubHeight": {"value": 120}}}
+                   if key == "detail" else {"sentinel": "old"})
+        Path(outputs[key]).write_text(json.dumps(initial, ensure_ascii=False), encoding="utf-8")
     original_contents = {key: Path(path).read_bytes() for key, path in outputs.items()}
     parse_result = {"result": {"sections": []}, "mapped": {},
                     "outputFiles": dict(outputs)}
     enhanced = {"sections": []}
 
-    monkeypatch.setattr(mapping_stage, "table_value_details", lambda data: {"fieldIndex": {"hubHeight": {"value": 120}}})
+    monkeypatch.setattr(mapping_stage, "table_value_details", lambda data: {"filePath": "case.docx", "sections": []})
     monkeypatch.setattr(mapping_stage, "final_result_with_table_values", lambda data: {"sections": [{"name": "工程概况", "fields": [], "tables": []}]})
     def initial_projection(path, config_root=None):
-        assert json.loads(Path(path).read_text(encoding="utf-8"))["fieldIndex"]["hubHeight"]["value"] == 120
+        detail = json.loads(Path(path).read_text(encoding="utf-8"))
+        assert detail["fieldIndex"]["hubHeight"]["value"] == 120
+        assert detail["tableValueExtraction"]["filePath"] == "case.docx"
         return {"${hubHeight}": 120}
     monkeypatch.setattr(mapping_stage, "mapping_from_details", initial_projection)
     events = []
