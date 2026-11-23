@@ -59,3 +59,33 @@ The primary `CandidateRetriever` now accepts `configs/extraction_runtime.yaml:re
 `IndicatorDiscovery` and `FieldMatcher` are now injected with **one shared `IndicatorLexicon`** created by `create_default_parser`. The new `FieldMatcher.inspect_label()` provides a diagnostic call to the same exact/RapidFuzz matching rules used by the discovery stage. **`FieldMatcher.match()` remains unchanged and does not automatically accept fuzzy suggestions**, to protect existing extraction results. Cross-field ambiguous matches still return no code.
 
 New tests: `tests/test_retrieval_yaml_parity.py` and `tests/test_shared_field_registry.py`. These compare the configured and legacy candidate recall, TOC behavior and exact-match scoring, plus verify shared lexicon object identity.
+
+
+## Continued migration: pre-extraction grammar and numeric fallback
+
+The latest YAML policy now controls generic extraction behavior previously fixed in Python:
+
+- `discovery.number_cell_pattern`: complete numeric value cell matching
+- `discovery.column_header_unit_pattern`: table header name/unit grammar
+- `discovery.paragraph_clause_pattern` and `discovery.contextual_clause_pattern`: safe clause splitting
+- `discovery.two_cell_text_max_length` and `discovery.two_cell_value_exclusions`: noise rules for two-column tables
+- `discovery.contextual_label_min_length` and `discovery.contextual_prefix_guard_chars`: contextual label detection
+- `value_extraction.number_near_alias_window`: how far after an alias to search for a number
+- `value_extraction.heading_exclusion_patterns` and `value_extraction.heading_value_markers`: reject chapter numbers and headings
+- `value_extraction.table_group_header_max_cells`: recognize header-only rows
+
+All checked-in values reproduce the previous defaults. The new tests compare actual pre-extracted facts and parsed values between legacy and configured instances. No new field is automatically accepted and no previous mapping priority is changed.
+
+### Final mapped schema contract
+
+`main` has 212 effective YAML field codes but **284 configured final mapped JSON entries**. Some final fields are produced through downstream table/field composition.
+
+`tests/contracts/output_field_codes_baseline.json` freezes 284 original code-to-output-key relationships from `main`. `tests/test_output_field_contract.py` fails if a pre-existing mapping disappears or changes; adding new mappings remains allowed.
+
+**This guards schema, not per-report values.** Full end-to-end guarantee requires comparing identical real PDFs/Word reports on both versions with the same Aspose/OCR runtime.
+
+### Commands
+
+- `python tools/scripts/audit_extraction_config.py --config-root configs`
+- `python -m pytest tests/test_extraction_grammar_yaml_parity.py tests/test_output_field_contract.py tests/test_config_driven_parity.py -q`
+- `python tools/scripts/compare_mapped.py old_mapped.json new_mapped.json --report mapping_diff.json`
