@@ -1,0 +1,895 @@
+{
+  "${project_name}": "瓮安县建中枫香坪风电场工程",
+  "${design_unit_name}": "北京计鹏信息咨询有限公司",
+  "${design_qualification_level}": null,
+  "${construct_project_name}": "贵州盾安风电有限公司",
+  "${project_city_name}": "黔南布依族苗族自治州",
+  "${district_site_belongs}": "瓮安县",
+  "${project_township_name}": "建中镇、平定营镇、中坪镇",
+  "${project_construction_site}": "贵州省黔南布依族苗族自治州瓮安县西部建中镇、平定营镇、中坪镇一带",
+  "${project_landform_type}": "构造侵蚀、溶蚀低中山地貌",
+  "${project_horst_type}": null,
+  "${project_field_elevation_range}": "1200~1450",
+  "${wind_tower_number}": [
+    "0047#",
+    "0048#",
+    "1006#"
+  ],
+  "${wind_resource_combined_table}": {
+    "name": "测风塔风资源指标汇总表",
+    "columns": [
+      "测风塔编号",
+      "测风塔经度",
+      "测风塔纬度",
+      "测风周期",
+      "该风电场的空气密度",
+      "高度对应的空气密度",
+      "10m高度空气密度",
+      "160m高度空气密度",
+      "各测风塔各高度空气密度",
+      "轮毂高度平均风速",
+      "轮毂高度平均风功率密度",
+      "各测风塔轮毂高度平均风速",
+      "各测风塔轮毂高度平均风功率密度",
+      "轮毂高度处的主风向",
+      "轮毂高度处的次风向",
+      "轮毂高度处的主风能方向",
+      "轮毂高度处的次风能方向",
+      "最大高度处代表性湍流强度",
+      "各测风塔各高度湍流强度",
+      "综合风切变",
+      "发电量计算是否使用"
+    ],
+    "columnKeys": [
+      "测风塔编号",
+      "测风塔经度",
+      "测风塔纬度",
+      "测风周期",
+      "该风电场的空气密度",
+      "高度对应的空气密度",
+      "10m高度空气密度",
+      "160m高度空气密度",
+      "各测风塔各高度空气密度",
+      "轮毂高度平均风速",
+      "轮毂高度平均风功率密度",
+      "各测风塔轮毂高度平均风速",
+      "各测风塔轮毂高度平均风功率密度",
+      "轮毂高度处的主风向",
+      "轮毂高度处的次风向",
+      "轮毂高度处的主风能方向",
+      "轮毂高度处的次风能方向",
+      "最大高度处代表性湍流强度",
+      "各测风塔各高度湍流强度",
+      "综合风切变",
+      "发电量计算是否使用"
+    ],
+    "data": [
+      [
+        "0047#",
+        "107°20′39.72″",
+        "27°6′2.88″",
+        "2017.4.6~2018.7.11",
+        null,
+        1.04,
+        null,
+        null,
+        [
+          {
+            "tower_code": "0047#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 1.04,
+            "unit": "kg/m³"
+          }
+        ],
+        5.6,
+        163.0,
+        [
+          {
+            "tower_code": "0047#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 5.6,
+            "unit": "m/s"
+          }
+        ],
+        [
+          {
+            "tower_code": "0047#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 163.0,
+            "unit": "W/m²"
+          }
+        ],
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "0048#",
+        "107°24′36.96″",
+        "27°2′18.0″",
+        "2017.4.6~2017.8.24",
+        null,
+        1.04,
+        null,
+        null,
+        [
+          {
+            "tower_code": "0048#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 1.04,
+            "unit": "kg/m³"
+          }
+        ],
+        5.33,
+        138.0,
+        [
+          {
+            "tower_code": "0048#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 5.33,
+            "unit": "m/s"
+          }
+        ],
+        [
+          {
+            "tower_code": "0048#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 138.0,
+            "unit": "W/m²"
+          }
+        ],
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      [
+        "1006#",
+        "107°16′55.8″",
+        "27°3′10.98″",
+        "2016.9.13~2017.8.5",
+        null,
+        1.05,
+        null,
+        null,
+        [
+          {
+            "tower_code": "1006#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 1.05,
+            "unit": "kg/m³"
+          }
+        ],
+        5.38,
+        135.0,
+        [
+          {
+            "tower_code": "1006#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 5.38,
+            "unit": "m/s"
+          }
+        ],
+        [
+          {
+            "tower_code": "1006#",
+            "height": 105,
+            "height_unit": "m",
+            "value": 135.0,
+            "unit": "W/m²"
+          }
+        ],
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        0.1617,
+        null
+      ]
+    ]
+  },
+  "${wind_tower_longitude}": [
+    "107°20′39.72″",
+    "107°24′36.96″",
+    "107°16′55.8″"
+  ],
+  "${wind_tower_latitude}": [
+    "27°6′2.88″",
+    "27°2′18.0″",
+    "27°3′10.98″"
+  ],
+  "${wind_measurement_period}": [
+    "2017.4.6~2018.7.11",
+    "2017.4.6~2017.8.24",
+    "2016.9.13~2017.8.5"
+  ],
+  "${hubHeightRevisedAvgWindSpeedDesc}": [
+    [
+      {
+        "tower_code": "0047#",
+        "height": 105,
+        "height_unit": "m",
+        "value": 5.6,
+        "unit": "m/s"
+      }
+    ],
+    [
+      {
+        "tower_code": "0048#",
+        "height": 105,
+        "height_unit": "m",
+        "value": 5.33,
+        "unit": "m/s"
+      }
+    ],
+    [
+      {
+        "tower_code": "1006#",
+        "height": 105,
+        "height_unit": "m",
+        "value": 5.38,
+        "unit": "m/s"
+      }
+    ]
+  ],
+  "${hubHeightRevisedAvgWindPowerDesc}": [
+    [
+      {
+        "tower_code": "0047#",
+        "height": 105,
+        "height_unit": "m",
+        "value": 163.0,
+        "unit": "W/m²"
+      }
+    ],
+    [
+      {
+        "tower_code": "0048#",
+        "height": 105,
+        "height_unit": "m",
+        "value": 138.0,
+        "unit": "W/m²"
+      }
+    ],
+    [
+      {
+        "tower_code": "1006#",
+        "height": 105,
+        "height_unit": "m",
+        "value": 135.0,
+        "unit": "W/m²"
+      }
+    ]
+  ],
+  "${air_density}": [
+    1.04,
+    1.04,
+    1.05
+  ],
+  "${eachTierHeightTurbulenceTableList}": null,
+  "${windPowerLevel}": "D-2",
+  "${50_year_maximum_wind_speed}": 26.52,
+  "${wind_farm_type}": null,
+  "${combinedWindShear}": [
+    null,
+    null,
+    0.1617
+  ],
+  "${prevailing_wind_direction}": [
+    null,
+    null,
+    null
+  ],
+  "${primary_wind_energy_direction}": [
+    null,
+    null,
+    null
+  ],
+  "${secondary_wind_direction}": [
+    null,
+    null,
+    null
+  ],
+  "${secondary_wind_energy_direction}": [
+    null,
+    null,
+    null
+  ],
+  "${projectSelectedDeviceInstallCapacity}": 100,
+  "${rated_power}": 4000,
+  "${total_turbine_count}": 25,
+  "${hub_height}": 105,
+  "${projectSelectedWakeReductionCoefficient}": null,
+  "${projectSelectedDeviceYearPower}": 22110,
+  "${projectSelectedDeviceFullLoadHours}": 2211,
+  "${parameter_data_label}": null,
+  "${single_turbine_generation_table}": {
+    "name": "generationSingleTurbineAligned",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${x_coordinate_value}": null,
+  "${y_coordinate_value}": null,
+  "${z_coordinate_value}": null,
+  "${h_coordinate_value}": null,
+  "${theoretical_power_generation}": null,
+  "${average_wind_speed}": null,
+  "${wake_effect_coefficient}": null,
+  "${wake_adjusted_power_generation}": null,
+  "${final_on_grid_energy}": null,
+  "${equivalent_full_hours}": null,
+  "${average_wake_reduction_rate}": null,
+  "${booster_station_construction_type}": "新建",
+  "${expanded_booster_station}": null,
+  "${booster_station_voltage_level}": 110,
+  "${wire_type}": "变压器—线路组接线方式",
+  "${grid_station_name}": "青坑110kV变电站",
+  "${station_voltage_level}": null,
+  "${station_capacity_margin}": null,
+  "${grid_connection_distance}": 7,
+  "${transmission_line_type}": "架空",
+  "${current_outgoing_line_circuits}": 1,
+  "${substation_future_outgoing_circuits}": null,
+  "${planned_main_connection_capacity}": null,
+  "${current_main_connection_capacity}": null,
+  "${standalone_lightning_rod_count}": null,
+  "${standalone_lightning_rod_height}": null,
+  "${structure_lightning_rod_count}": null,
+  "${structure_lightning_rod_height}": null,
+  "${box_transformer_type}": null,
+  "${35kv_booster_model}": "S11-4400/35",
+  "${box_transformer_voltage}": 35,
+  "${box_transformer_capacity}": 4400,
+  "${high_voltage_side_configuration}": "本项目箱式升压站高压侧电压等级选择35kV，即风电机组与箱变的组合方式采用一机一变的单元接线，箱变容量为4400kVA，电压比为37±2×2.5%/0.69kV，布置在风力发电机塔筒附近",
+  "${low_voltage_side_configuration}": "（1）风电区智能监控系统功能a）信号监视箱变高、低压侧断路器，箱变高、低压侧门等电气设备的运行状态信号",
+  "${gis_type}": "GIS组合电器",
+  "${gis_model_information}": null,
+  "${gis_quantity}": 1,
+  "${gis_unit}": "套",
+  "${gis_remarks}": null,
+  "${circuit_breaker_model}": null,
+  "${disconnector_switch_model}": null,
+  "${current_transformer_model}": null,
+  "${voltage_transformer_signal}": null,
+  "${main_transformer_type}": "三相双绕组油浸式有载调压节能型变压器",
+  "${main_transformer_model}": "SZ11-100000/110",
+  "${main_transformer_rated_capacity}": 100,
+  "${main_transformer_num}": 1,
+  "${future_main_transformer_count}": null,
+  "${main_transformer_voltage_ratio}": null,
+  "${connection_group_type}": null,
+  "${grounding_station_transformer_model}": null,
+  "${grounding_station_transformer_voltage}": null,
+  "${grounding_station_transformer_capacity}": null,
+  "${grounding_station_transformer_quantity}": null,
+  "${grounding_station_transformer_unit}": null,
+  "${grounding_station_transformer_resistance}": null,
+  "${grounding_transformer_model}": "DKSC-1200/37",
+  "${grounding_transformer_voltage}": null,
+  "${grounding_transformer_capacity}": null,
+  "${grounding_transformer_quantity}": 1,
+  "${grounding_transformer_unit}": "台",
+  "${grounding_transformer_resistance}": null,
+  "${station_service_transformer}": "315kVA",
+  "${svg_reactive_compensation_device}": null,
+  "${configuration_groups_transformer_booster_station}": "220V/300Ah，104 节",
+  "${dc_battery_unit_type}": "组",
+  "${dc_battery_quantity_value}": 1,
+  "${ups_power_model_specification}": "7.5kVA",
+  "${ups_power_unit_type}": "面",
+  "${ups_power_quantity_value}": 1,
+  "${communication_power_model_specification}": null,
+  "${communication_power_unit_type}": null,
+  "${communication_power_quantity_value}": null,
+  "${communication_power_supply_settings}": null,
+  "${collector_line_voltage}": 35,
+  "${circuits_collector_box_loops_desc}": 4,
+  "${method_laying_collector_lines}": "架空+电缆直埋",
+  "${total_line_route_length}": null,
+  "${single_circuit_line_length}": null,
+  "${double_circuit_line_length}": null,
+  "${new_overhead_line_length}": null,
+  "${double_circuit_overhead_line_length}": null,
+  "${single_circuit_overhead_line_length}": null,
+  "${buried_cable_length}": null,
+  "${cable_conductor_material}": null,
+  "${total_land_area_booster_station_site}": 4960,
+  "${area_occupied_within_enclosure_booster_station}": 4680,
+  "${wind_turbine_foundation_type}": "一机一变接线方式，集电线 路采用电缆敷设，土建工程主要有风机基础",
+  "${turbine_foundation_excavation_volume}": 326650,
+  "${turbine_foundation_backfill_volume}": 207845,
+  "${turbine_foundation_c15_concrete}": null,
+  "${turbine_foundation_c20_concrete}": null,
+  "${turbine_foundation_c40_concrete}": null,
+  "${turbine_foundation_c45_concrete}": null,
+  "${pedestal_column_height}": 1.2,
+  "${burial_depth_fan_foundation}": 3.5,
+  "${upper_pedestal_column_radius}": 3.6,
+  "${flange_height_value}": 1,
+  "${bottom_diameter_fan_foundation}": 20,
+  "${length_entrance_road_booster_station}": null,
+  "${entrance_road_subgrade_width}": 6.5,
+  "${entrance_road_surface_width}": 6,
+  "${new_road_length}": 0.3,
+  "${width_of_subgrade}": 5,
+  "${pavement_width}": 4.5,
+  "${access_road_length}": null,
+  "${road_reconstruction_length}": 26.5,
+  "${maintenance_road_length}": null,
+  "${maintenance_road_surface_width}": null,
+  "${external_transportation_conditions}": null,
+  "${statistics_earthwork_volume_site_table}": {
+    "name": "土石方平衡表",
+    "columns": [
+      "项目",
+      "土方开挖m³",
+      "土方回填m³"
+    ],
+    "columnKeys": [
+      "item",
+      "excavation",
+      "backfill"
+    ],
+    "data": [
+      [
+        "道路",
+        264925,
+        172753
+      ],
+      [
+        "风机平台",
+        326650,
+        207845
+      ],
+      [
+        "风机基础",
+        326650,
+        207845
+      ],
+      [
+        "箱变基础",
+        375300,
+        240020
+      ],
+      [
+        "升压站",
+        326650,
+        207845
+      ],
+      [
+        "合计",
+        1620175,
+        1036308
+      ]
+    ]
+  },
+  "${total_excavation}": 1620175,
+  "${total_backfill}": 1036308,
+  "${waste_disposal_sites_num}": 4,
+  "${waste_disposal_site_total_land_area}": 70000,
+  "${wind_farm_engineering_land_area_table}": {
+    "name": "9.4.1.工程总征地",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${permanent_land_wind_farms}": 3560,
+  "${wind_turbine_foundation_land_area}": 6,
+  "${box_transformer_foundation_land_area}": 3,
+  "${booster_station_land_area}": 1,
+  "${entrance_road_land_area}": null,
+  "${long_term_leasing_wind_farms}": 3560,
+  "${maintenance_road_total_land_area}": null,
+  "${entrance_road_total_land_area}": 0.3,
+  "${tower_foundation_total_land_area}": null,
+  "${temporary_lease_wind_farm_land}": 3560,
+  "${construction_lifting_platform_total_land_area}": 100,
+  "${construction_road_total_land_area}": null,
+  "${buried_cable_total_land_area}": null,
+  "${temporary_construction_area}": null,
+  "${investment_amount_environmental_protection}": 650,
+  "${investment_amount_soil_water_protection}": null,
+  "${engineering_estimate_table}": {
+    "name": "15.2.1工程总概算表",
+    "columns": [
+      "installationCost",
+      "constructionCost",
+      "unitKwStaticInvestment",
+      "dynamicInvestment"
+    ],
+    "columnKeys": [
+      "installationCost",
+      "constructionCost",
+      "unitKwStaticInvestment",
+      "dynamicInvestment"
+    ],
+    "data": [
+      [
+        5,
+        5,
+        6215.85,
+        6329.7
+      ]
+    ]
+  },
+  "${construction_auxiliary_table}": {
+    "name": "15.2.2 施工辅助工程概算表",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${installation_engineering_budgets_table}": null,
+  "${engineering_build_estimate_table}": {
+    "name": "15.2.4建筑工程概算表",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${other_cost_estimates_table}": {
+    "name": "15.2.5其他费用概算表",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${cost_standard}": "《陆上风电场工程设计概算编制规定及费用标准》",
+  "${quota_system}": "《陆上风电场工程概算定额》(NB/T31010-2019)",
+  "${price_level}": null,
+  "${investment_static_part_total}": null,
+  "${investment_total_part_total}": null,
+  "${investment_wind_farm_deductible_vat}": null,
+  "${investment_supporting_cost_static}": null,
+  "${investment_supporting_cost_interest}": null,
+  "${investment_supporting_cost_total}": null,
+  "${investment_management_building_static}": null,
+  "${investment_management_building_interest}": null,
+  "${investment_management_building_total}": null,
+  "${investment_smart_wind_farm_static}": null,
+  "${investment_smart_wind_farm_interest}": null,
+  "${investment_smart_wind_farm_total}": null,
+  "${investment_static_partial}": null,
+  "${investment_interest_total}": null,
+  "${investment_dynamic_partial}": null,
+  "${investment_project_total}": null,
+  "${investment_per_kw_static_partial}": null,
+  "${investment_per_kw_dynamic_partial}": null,
+  "${investment_per_kw_static_total}": null,
+  "${investment_per_kw_dynamic_total}": null,
+  "${investment_smart_management_platform_total}": null,
+  "${investment_outgoing_line_legacy_total}": null,
+  "${investment_opposite_bay_expansion_total}": null,
+  "${investment_outgoing_line_share_legacy_total}": null,
+  "${investment_product_supporting_cost_total}": null,
+  "${investment_new_energy_perception_equipment_total}": null,
+  "${investment_technology_special_total}": null,
+  "${investment_static_total}": null,
+  "${investment_construction_interest_total}": null,
+  "${investment_dynamic_total}": null,
+  "${investment_outgoing_line_groups}": null,
+  "${investment_access_station_share_groups}": null,
+  "${delivery_project}": null,
+  "${expansion_project}": null,
+  "${outgoing_shared_cost}": null,
+  "${supporting_cost}": null,
+  "${area_management_building}": null,
+  "${smart_wind_farm}": null,
+  "${new_energy_sensing_equipment}": null,
+  "${research_development_cost}": null,
+  "${technology_cost}": null,
+  "${centralized_control_platform_cost}": null,
+  "${static_investment}": null,
+  "${dynamic_investment}": null,
+  "${static_investment_per_kw}": null,
+  "${dynamic_investment_per_kw}": null,
+  "${project_static_investment}": null,
+  "${project_dynamic_investment}": null,
+  "${unit_kw_static_investment}": null,
+  "${unit_kw_dynamic_investment}": null,
+  "${sensitivity_analysis_table}": {
+    "name": "表 13-1：敏感性分析表",
+    "columns": [
+      "方案类型",
+      "变化幅度（%）",
+      "投资回收期 (所得税 后)(年)",
+      "项目投资财务 内部收益率 (所得税 前)(%)",
+      "项目投资财务 内部收益率 (所得税 后)(%)",
+      "资本金财 务内部收 益率 （%）"
+    ],
+    "columnKeys": [
+      "col_0",
+      "col_1",
+      "col_2",
+      "col_3",
+      "col_4",
+      "col_5"
+    ],
+    "data": [
+      [
+        "投资变化分析",
+        -10,
+        10.73,
+        8.79,
+        7.59,
+        13.69
+      ],
+      [
+        -5,
+        11.34,
+        7.98,
+        6.86,
+        11.34,
+        ""
+      ],
+      [
+        0,
+        11.96,
+        7.23,
+        6.2,
+        9.31,
+        ""
+      ],
+      [
+        5,
+        12.59,
+        6.53,
+        5.58,
+        7.52,
+        ""
+      ],
+      [
+        10,
+        13.21,
+        5.88,
+        5.01,
+        5.92,
+        ""
+      ],
+      [
+        "产量变化分析",
+        -10,
+        13.57,
+        5.53,
+        4.71,
+        5.1
+      ],
+      [
+        -5,
+        12.72,
+        6.39,
+        5.46,
+        7.17,
+        ""
+      ],
+      [
+        0,
+        11.96,
+        7.23,
+        6.2,
+        9.31,
+        ""
+      ],
+      [
+        5,
+        11.29,
+        8.04,
+        6.92,
+        11.51,
+        ""
+      ],
+      [
+        10,
+        10.7,
+        8.83,
+        7.63,
+        13.8,
+        ""
+      ],
+      [
+        "电价变化分析",
+        -20,
+        15.66,
+        3.72,
+        3.15,
+        0.83
+      ],
+      [
+        -15,
+        14.54,
+        4.64,
+        3.94,
+        3.1,
+        ""
+      ],
+      [
+        -10,
+        13.57,
+        5.53,
+        4.71,
+        5.1,
+        ""
+      ],
+      [
+        -5,
+        12.72,
+        6.39,
+        5.46,
+        7.17,
+        ""
+      ],
+      [
+        0,
+        11.96,
+        7.23,
+        6.2,
+        9.31,
+        ""
+      ],
+      [
+        "利率变化分析",
+        -10,
+        11.96,
+        7.23,
+        6.2,
+        10.24
+      ],
+      [
+        -5,
+        11.96,
+        7.23,
+        6.2,
+        9.77,
+        ""
+      ],
+      [
+        0,
+        11.96,
+        7.23,
+        6.2,
+        9.31,
+        ""
+      ],
+      [
+        5,
+        11.96,
+        7.23,
+        6.2,
+        8.87,
+        ""
+      ],
+      [
+        10,
+        11.96,
+        7.23,
+        6.2,
+        8.44,
+        ""
+      ]
+    ]
+  },
+  "${financial_indicators_table}": {
+    "name": "附表16.1  财务指标汇总表",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${fund_raise_plan_table}": {
+    "name": "附表16.2：项目总投资使用计划与资金筹措表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${total_cost_estimation_table}": {
+    "name": "附表16.3：总成本费用估算表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${fixed_asset_depreciation_amortization}": {
+    "name": "附表16.4：资产折旧摊销估算表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${profit_profit_distribution_table}": {
+    "name": "附表16.5：利润与利润分配表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${loan_repayment_plan_table}": {
+    "name": "附表16.6：借款还本付息计划表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${financial_cash_flow_statement_table}": {
+    "name": "附表16.7：财务计划现金流量表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${project_investment_cash_flow_statement_table}": {
+    "name": "附表16.8：项目投资现金流量表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${project_capital_cash_flow_statement_table}": {
+    "name": "附表16.9：项目资本金现金流量表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${investor_one_cashflow_statement}": {
+    "name": "附表16.10：投资各方现金流量表（投资方1）（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${balance_sheet_table}": {
+    "name": "附表16.11：资产负债表（人民币单位：万元）",
+    "columns": [],
+    "columnKeys": [],
+    "data": []
+  },
+  "${period_depreciation}": 20,
+  "${depreciation_residual}": null,
+  "${insurance_premium_rate}": null,
+  "${land_use_tax}": null,
+  "${other_fee}": 5,
+  "${construction_phase}": 12,
+  "${working_capital_per_kw}": null,
+  "${working_capital_loan_ratio}": null,
+  "${working_capital_equity_ratio}": null,
+  "${project_funding_ratio}": null,
+  "${construction_loan_ratio}": null,
+  "${repayment_method}": null,
+  "${repayment_period}": null,
+  "${fix_num_person}": 10,
+  "${labor_wages}": 7,
+  "${employee_welfare_ratio}": 60,
+  "${grid_feed_in_tariff}": 0.3111,
+  "${long_term_loan_rate}": null,
+  "${short_term_loan_rate}": null,
+  "${equity_internal_return_rate}": null,
+  "${equity_after_tax_internal_rate}": null,
+  "${curtailment_rate_single}": null,
+  "${curtailment_rate_segmented}": null,
+  "${annual_grid_energy_curtailment}": null,
+  "${curtailment_equivalent_full_load_hours}": null,
+  "${working_capital}": null,
+  "${working_capital_unit}": null,
+  "${installed_capacity}": null,
+  "${installed_capacity_unit}": null,
+  "${annual_grid_energy}": null,
+  "${annual_grid_energy_unit}": null,
+  "${labor_wages_benefits}": null,
+  "${material_cost}": null,
+  "${repair_cost}": null,
+  "${insurance_cost}": null,
+  "${other_expenses}": null,
+  "${land_tax}": null,
+  "${fixed_asset_original_value}": null,
+  "${net_electricity_price_excluding_value_added_tax}": null,
+  "${net_electricity_price_including_value_added_tax}": null,
+  "${income_tax}": null
+}

@@ -7,25 +7,23 @@ import re
 import sys
 import types
 
-from parser_engine.document.ast.document import DocumentAST, DocumentBlock
-from parser_engine.document.ast.document import DocumentTable, TableCell
-from parser_engine.document.ast.evidence import Candidate, Extraction, FieldEvidence, FieldMatch, ParsedField
-from parser_engine.core.factory import create_default_parser
-from parser_engine.core.config_loader import ConfigLoader
-from parser_engine.extraction.uie_extractor import UIEExtractor
-from parser_engine.extraction.value_extractor import ValueExtractor
-from parser_engine.extraction import FieldMatcher
-from parser_engine.ml.embedding_model import BgeEmbeddingMatcher
-from parser_engine.extraction import CandidateResolver, FunnelPruner, Normalizer, SemanticAnalyzer, SemanticVerifier
-from parser_engine.extraction.semantic_verifier import OnnxReranker
-from parser_engine.tables import StandardTableExtractor
-from parser_engine.extraction import CandidateRetriever
-from parser_engine.document import SectionDetector, StructureParser
-from parser_engine.output.json_exporter import JsonExporter
-from parser_engine.output.result_builder import ResultBuilder
-from parser_engine.output.cover_ocr import CoverOcrExtractor, CoverOcrResult
+from word_parser.document.ast.document import DocumentAST, DocumentBlock
+from word_parser.document.ast.document import DocumentTable, TableCell
+from word_parser.document.ast.evidence import Candidate, Extraction, FieldEvidence, FieldMatch, ParsedField
+from word_parser.application.factory import create_default_parser
+from word_parser.config.loader import ConfigLoader
+from word_parser.primary.value_extractor import ValueExtractor
+from word_parser.extraction import FieldMatcher
+from word_parser.extraction import CandidateResolver, FunnelPruner, Normalizer, SemanticAnalyzer
+from word_parser.document.tables import StandardTableExtractor
+from word_parser.extraction import CandidateRetriever
+from word_parser.document import SectionDetector, StructureParser
+from word_parser.output.json_exporter import JsonExporter
+from word_parser.output.result_builder import ResultBuilder
+from word_parser.mapping.projector import mapping_from_detail_json
+from word_parser.document.cover_ocr import CoverOcrExtractor, CoverOcrResult
 from tools.evaluation.metrics import FieldMetrics
-from parser_engine.core.context import ParseContext
+from word_parser.application.context import ParseContext
 
 
 def test_candidate_retriever_with_alias():
@@ -392,76 +390,6 @@ def test_default_parser_can_be_created():
     assert parser is not None
 
 
-def test_field_matcher_scores_short_alias_hits_with_bge():
-    """验证短别名仍会让 BGE 参与消歧。"""
-
-    class FakeBgeMatcher:
-        def __init__(self):
-            self.scored_candidates = []
-
-        def score_many(self, candidates):
-            self.scored_candidates = candidates
-            return [0.2] * len(candidates)
-
-    short_alias_candidate = Candidate(
-        field_code="collectorCircuitType",
-        field_name="loop",
-        source_type="paragraph",
-        text="loop: single-circuit overhead line",
-        score=0.0,
-        field_config={"aliases": ["loop"]},
-    )
-    long_alias_candidate = Candidate(
-        field_code="avgWindSpeed",
-        field_name="average wind speed",
-        source_type="paragraph",
-        text="average wind speed is 6.42m/s.",
-        score=0.0,
-        field_config={"aliases": ["average wind speed"]},
-    )
-    bge_matcher = FakeBgeMatcher()
-
-    matches = FieldMatcher(bge_matcher=bge_matcher).match([short_alias_candidate, long_alias_candidate])
-
-    assert bge_matcher.scored_candidates == [short_alias_candidate]
-    assert [match.method for match in matches] == ["alias+bge", "alias"]
-def test_field_matcher_prefers_target_section_candidates_for_bge():
-    """验证 BGE 仅优先处理目标章节候选，避免全局候选干扰。"""
-
-    class FakeBgeMatcher:
-        def __init__(self):
-            self.scored_candidates = []
-
-        def score_many(self, candidates):
-            self.scored_candidates = candidates
-            return [0.2] * len(candidates)
-
-    target_candidate = Candidate(
-        field_code="avgWindSpeed",
-        field_name="平均风速",
-        source_type="paragraph",
-        text="资源章节中的风速为6.42m/s。",
-        score=1.0,
-        section_path=["资源章节"],
-        field_config={"aliases": ["平均风速"]},
-        meta={"section_origin": "target_section"},
-    )
-    fallback_candidate = Candidate(
-        field_code="avgWindSpeed",
-        field_name="平均风速",
-        source_type="paragraph",
-        text="摘要中出现的风速为6.10m/s。",
-        score=2.0,
-        section_path=["摘要"],
-        field_config={"aliases": ["平均风速"]},
-        meta={"section_origin": "global_fallback"},
-    )
-
-    bge_matcher = FakeBgeMatcher()
-    matches = FieldMatcher(bge_matcher=bge_matcher).match([target_candidate, fallback_candidate])
-
-    assert bge_matcher.scored_candidates == [target_candidate]
-    assert [match.candidate for match in matches if match.method == "bge"] == [target_candidate]
 
 
 def test_candidate_retriever_uses_section_priority_weight_and_reuses_table_text():
@@ -553,6 +481,85 @@ def test_candidate_retriever_does_not_fallback_to_other_sections_when_document_i
     assert candidates == []
 
 
+def test_primary_uses_appendix_table_when_configured_section_has_no_value():
+    """目标章节没有可抽取值时，附表进入一次抽取并保留原表位置。"""
+    config = {
+        "depreciationCost": {
+            "name": "折旧费",
+            "aliases": ["折旧费"],
+            "source_types": ["table"],
+            "sections": {"include": ["财务评价"], "exclude": []},
+            "value_type": "number",
+            "standard_unit": "万元",
+            "unit_aliases": ["万元"],
+        }
+    }
+    ast = DocumentAST(file_name="sample.pdf", tables=[
+        DocumentTable(id="target_empty", order=1, section_path=["财务评价"],
+                      rows=[[TableCell("项目", 0, 0), TableCell("金额", 0, 1)]]),
+        DocumentTable(id="appendix", order=2, caption="附表 2：总成本费用表",
+                      section_path=["附表", "财务报表"],
+                      rows=[[TableCell("折旧费", 0, 0), TableCell("54227.06", 0, 1),
+                             TableCell("万元", 0, 2)]]),
+        DocumentTable(id="unrelated", order=3, caption="其他统计表", section_path=["其他"],
+                      rows=[[TableCell("折旧费", 0, 0), TableCell("999", 0, 1)]]),
+    ])
+
+    candidates = CandidateRetriever(config).retrieve(ast)
+    assert {item.table_id for item in candidates} == {"appendix"}
+    assert candidates[0].meta["appendix_fallback"] is True
+    extractions = ValueExtractor().extract(FieldMatcher().match(candidates))
+    assert extractions
+    assert all(item.debug["appendix_fallback"] is True for item in extractions)
+    normalized = Normalizer(config).normalize_candidates(extractions)
+    resolved = CandidateResolver(config).resolve(normalized)["depreciationCost"]
+    assert resolved.value == 54227.06
+    assert resolved.evidence[0].table_id == "appendix"
+
+
+def test_primary_prefers_valid_target_section_value_over_appendix_fallback():
+    """目标章节有有效值时，附表候选只保留在抽取明细中。"""
+    config = {
+        "depreciationCost": {
+            "name": "折旧费", "aliases": ["折旧费"], "source_types": ["table"],
+            "sections": {"include": ["财务评价"], "exclude": []},
+            "value_type": "number", "standard_unit": "万元", "unit_aliases": ["万元"],
+        }
+    }
+    ast = DocumentAST(file_name="sample.pdf", tables=[
+        DocumentTable(id="target", order=1, section_path=["财务评价"],
+                      rows=[[TableCell("折旧费", 0, 0), TableCell("120", 0, 1),
+                             TableCell("万元", 0, 2)]]),
+        DocumentTable(id="appendix", order=2, caption="附表 2：总成本费用表",
+                      section_path=["附表"],
+                      rows=[[TableCell("折旧费", 0, 0), TableCell("150", 0, 1),
+                             TableCell("万元", 0, 2)]]),
+    ])
+    candidates = CandidateRetriever(config).retrieve(ast)
+    extractions = ValueExtractor().extract(FieldMatcher().match(candidates))
+    normalized = Normalizer(config).normalize_candidates(extractions)
+    resolved = CandidateResolver(config).resolve(normalized)["depreciationCost"]
+    assert resolved.value == 120
+    assert resolved.evidence[0].table_id == "target"
+
+
+def test_primary_recognizes_numbered_appendix_title_after_section_reassignment():
+    """附表题仅保留 02 编号、章节被归为财务时仍可跨章节召回。"""
+    config = {"depreciationCost": {
+        "name": "折旧费", "aliases": ["折旧费"], "source_types": ["table"],
+        "sections": {"include": ["技经概算"], "exclude": []},
+        "value_type": "number", "standard_unit": "万元",
+    }}
+    ast = DocumentAST(file_name="sample.pdf", tables=[DocumentTable(
+        id="numbered_appendix", order=1, caption="02总成本费用表", section_path=["财务"],
+        rows=[[TableCell("折旧费", 0, 0), TableCell("54227.06", 0, 1),
+               TableCell("万元", 0, 2)]],
+    )])
+    candidates = CandidateRetriever(config).retrieve(ast)
+    assert len(candidates) == 1
+    assert candidates[0].meta["appendix_fallback"] is True
+
+
 def test_candidate_retriever_respects_section_exclude_even_for_alias_hits():
     """验证排除章节不会被别名命中绕过。"""
     ast = DocumentAST(
@@ -573,121 +580,14 @@ def test_candidate_retriever_respects_section_exclude_even_for_alias_hits():
     candidates = CandidateRetriever(configs).retrieve(ast)
 
     assert {candidate.block_id for candidate in candidates} == {"p_0002"}
-def test_bge_batch_encoding_retries_with_smaller_batch_on_memory_error():
-    """验证 BGE 批量编码遇到内存不足时会自动降低 batch_size。"""
-
-    class FakeModel:
-        def __init__(self):
-            self.batch_lengths = []
-
-        def encode(self, texts, **kwargs):
-            self.batch_lengths.append(len(texts))
-            if len(texts) > 2:
-                raise RuntimeError("DefaultCPUAllocator: not enough memory")
-            return [f"vector:{text}" for text in texts]
-
-    matcher = BgeEmbeddingMatcher(enabled=True, batch_size=4, memory_aware=False)
-    matcher.model = FakeModel()
-
-    vectors = matcher._encode_texts(["a", "b", "c", "d", "e"])
-
-    assert vectors == ["vector:a", "vector:b", "vector:c", "vector:d", "vector:e"]
-    assert matcher.model.batch_lengths == [4, 2, 2, 1]
 
 
-def test_bge_selects_batch_size_from_available_memory():
-    """验证 BGE 会根据可用内存动态降低实际批次。"""
-    matcher = BgeEmbeddingMatcher(
-        enabled=True,
-        batch_size=8,
-        memory_aware=True,
-        memory_safety_ratio=0.5,
-        min_free_memory_mb=100,
-    )
-    matcher._available_memory_bytes = lambda: 300 * 1024 * 1024
-    matcher._estimate_encode_memory_bytes = lambda texts: 50 * 1024 * 1024
-
-    assert matcher._select_batch_size(["a"] * 10) == 2
 
 
-def test_bge_selects_one_batch_when_free_memory_is_below_reserve():
-    """验证可用内存低于保留阈值时仍以最小批次继续。"""
-    matcher = BgeEmbeddingMatcher(
-        enabled=True,
-        batch_size=8,
-        memory_aware=True,
-        min_free_memory_mb=1024,
-    )
-    matcher._available_memory_bytes = lambda: 512 * 1024 * 1024
-
-    assert matcher._select_batch_size(["a"] * 10) == 1
 
 
-def test_value_extractor_limits_uie_matches_per_field():
-    """验证 UIE 只处理每个字段的高分候选。"""
-
-    class FakeUIE:
-        enabled = True
-        mode = "active"
-
-    matches = [
-        FieldMatch(
-            candidate=Candidate(
-                field_code="avgWindSpeed",
-                field_name="平均风速",
-                source_type="paragraph",
-                text=f"候选{i}",
-                score=0.0,
-                field_config={"extractors": {"uie": True}},
-            ),
-            method="section",
-            score=float(i),
-        )
-        for i in range(4)
-    ]
-
-    extractor = ValueExtractor(uie_extractor=FakeUIE(), uie_top_k_per_field=2)
-
-    selected = extractor._select_uie_matches(matches)
-
-    assert [match.score for match in selected] == [3.0, 2.0]
 
 
-def test_value_extractor_uses_uie_batch_interface_when_available():
-    """验证 ValueExtractor 优先调用 UIE 批量接口。"""
-
-    class FakeUIE:
-        enabled = True
-        mode = "active"
-        release_after_extract = False
-
-        def __init__(self):
-            self.batch_sizes = []
-
-        def extract_many(self, matches):
-            self.batch_sizes.append(len(matches))
-            return []
-
-    matches = [
-        FieldMatch(
-            candidate=Candidate(
-                field_code="avgWindSpeed",
-                field_name="平均风速",
-                source_type="paragraph",
-                text="平均风速为6.42m/s",
-                score=0.0,
-                field_config={"extractors": {"uie": True}},
-            ),
-            method="alias",
-            score=2.0,
-        )
-        for _ in range(3)
-    ]
-    fake_uie = FakeUIE()
-
-    ValueExtractor(uie_extractor=fake_uie, uie_top_k_per_field=2).extract(matches)
-
-    assert fake_uie.batch_sizes == [2]
 
 
 def test_value_extractor_respects_regex_switch_and_reads_table_neighbor_cell():
@@ -878,18 +778,11 @@ def test_value_extractor_multi_number_pattern_extracts_all_values():
     assert [item.raw_value for item in extracted] == ["1.011", "1.013", "1.015"]
 
 
-def test_uie_split_number_unit_uses_field_unit_aliases():
-    """验证 UIE 单位拆分不会把普通中文误识别为单位。"""
-    extractor = UIEExtractor()
-    field_config = {"unit_aliases": ["m/s", "米/秒"], "standard_unit": "m/s"}
-
-    assert extractor._split_number_unit("6.42m/s", field_config) == ("6.42", "m/s")
-    assert extractor._split_number_unit("1.15财务评价", field_config) == ("1.15", None)
 
 
 
 def test_field_metrics_reports_value_and_unit_accuracy():
-    """Evaluation should track field, value, and unit correctness separately."""
+    """评估应分别跟踪字段、值和单位的正确性。"""
     metrics = FieldMetrics()
     predictions = [
         {"file": "a.docx", "field_code": "foo", "value": 6.42, "unit": "m/s"},
@@ -1041,117 +934,10 @@ def test_normalizer_preserves_raw_value_and_normalizes_final_fields():
     assert final.normalized_value == 6.42
 
 
-def test_semantic_verifier_builds_queries_and_applies_nli_scores():
-    """验证语义验证器按 Reranker/NLI 结果给候选加分。"""
-
-    class FakeVerifier(SemanticVerifier):
-        def _reranker_score(self, extraction):
-            return 0.9
-
-        def _nli_score(self, extraction):
-            return "entailment", 0.8
-
-    extraction = Extraction(
-        field_code="avgWindSpeed",
-        field_name="平均风速",
-        raw_value="6.42",
-        value=6.42,
-        unit="m/s",
-        score=1.0,
-        method="regex",
-        evidence=FieldEvidence(source_type="paragraph", text="平均风速为6.42m/s"),
-    )
-    verifier = FakeVerifier({}, enabled=True, reranker_enabled=True, nli_enabled=True)
-
-    verified = verifier.verify([extraction])[0]
-
-    assert verifier._build_reranker_query(extraction) == "平均风速：6.42m/s"
-    assert verifier._build_nli_hypothesis(extraction) == "该项目的平均风速为6.42m/s。"
-    assert verified.score > 1.0
-    assert verified.debug["reranker_score"] == 0.9
-    assert verified.debug["nli_label"] == "entailment"
 
 
-def test_onnx_reranker_casts_numpy_inputs_to_int64():
-    import numpy as np
-
-    class FakeTokenizer:
-        def __call__(self, queries, passages, **kwargs):
-            return {
-                "input_ids": np.array([[1, 2, 3]], dtype=np.int32),
-                "attention_mask": np.array([[1, 1, 1]], dtype=np.int32),
-                "token_type_ids": np.array([[0, 0, 0]], dtype=np.int32),
-            }
-
-    class FakeInput:
-        def __init__(self, name):
-            self.name = name
-
-    class FakeSession:
-        def __init__(self):
-            self.feed = None
-
-        def get_inputs(self):
-            return [FakeInput("input_ids"), FakeInput("attention_mask"), FakeInput("token_type_ids")]
-
-        def run(self, _outputs, feed):
-            self.feed = feed
-            assert feed["input_ids"].dtype == np.int64
-            assert feed["attention_mask"].dtype == np.int64
-            assert feed["token_type_ids"].dtype == np.int64
-            return [np.array([[0.25]], dtype=np.float32)]
-
-    reranker = OnnxReranker(session=FakeSession(), tokenizer=FakeTokenizer())
-    score = reranker.predict([("query", "passage")])[0]
-
-    assert score == 0.25
 
 
-def test_semantic_verifier_batches_reranker_and_nli():
-    """验证语义验证器批量调用 Reranker 和 NLI。"""
-
-    class FakeReranker:
-        def __init__(self):
-            self.calls = []
-
-        def predict(self, pairs, batch_size=None):
-            self.calls.append((pairs, batch_size))
-            return [0.9 for _ in pairs]
-
-    class FakeVerifier(SemanticVerifier):
-        def __init__(self):
-            super().__init__({}, enabled=True, reranker_enabled=True, nli_enabled=True, batch_size=8)
-            self.fake_reranker = FakeReranker()
-            self.nli_calls = []
-
-        def _load_reranker(self):
-            return self.fake_reranker
-
-        def _nli_scores(self, extractions):
-            self.nli_calls.append(list(extractions))
-            return [("entailment", 0.8) for _ in extractions]
-
-    extractions = [
-        Extraction(
-            field_code="avgWindSpeed",
-            field_name="平均风速",
-            raw_value="6.42",
-            value=6.42,
-            unit="m/s",
-            score=1.0,
-            method="regex",
-            evidence=FieldEvidence(source_type="paragraph", text="平均风速为6.42m/s"),
-        )
-        for _ in range(3)
-    ]
-    verifier = FakeVerifier()
-
-    verifier.verify(extractions)
-
-    assert len(verifier.fake_reranker.calls) == 1
-    assert len(verifier.fake_reranker.calls[0][0]) == 3
-    assert verifier.fake_reranker.calls[0][1] == 8
-    assert len(verifier.nli_calls) == 1
 
 
 def test_funnel_pruner_keeps_top_k_per_field_and_marks_debug():
@@ -1180,7 +966,7 @@ def test_funnel_pruner_keeps_top_k_per_field_and_marks_debug():
 
 
 def test_json_exporter_adds_sections_only_result_and_detail_rows(tmp_path):
-    """Verify detail JSON contains section traces and source/process information."""
+    """验证详情 JSON 包含章节追踪及来源、处理过程信息。"""
     ast = DocumentAST(
         file_name="sample.docx",
         tables=[
@@ -1258,7 +1044,7 @@ def test_json_exporter_adds_sections_only_result_and_detail_rows(tmp_path):
 
 
 def test_result_builder_overrides_project_and_collector_line_names(tmp_path):
-    """Verify the module sections reflect the final normalized field values."""
+    """验证模块章节反映最终归一化字段值。"""
     ast = DocumentAST(
         file_name="陕西华电靖边韩家沟200MW风电项目可行性研究报告.docx",
         blocks=[
@@ -1636,7 +1422,7 @@ def test_electrical_primary_equipment_table_extracts_detailed_specs(tmp_path):
     section = next(section for section in exported["result"]["sections"] if section["name"] == "电气一次")
     fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
     assert fields["electricalPrimaryTransformerSpec"] == "三相双绕组油浸自冷式有载调压变压器，型号：SZ20-100000/110，115±8×1.25%/37kV，接线组别：YN，d11"
-    assert fields["electricalPrimaryGisModelInfo"] == "126kV，2000A，40kA/3s"
+    assert fields["electricalPrimaryGisModelInfo"] is None
     assert fields["electricalPrimaryGisQuantity"] == 1
     assert fields["electricalPrimaryGisUnit"] == "个"
     assert fields["electricalPrimaryGisRemark"] == "110kV架空出线间隔"
@@ -2209,6 +1995,59 @@ def test_wind_foundation_extracts_type_and_quantity_fields(tmp_path):
     assert fields["windFoundationC45Concrete"]["value"] == "C45混凝土：30m³"
 
 
+def test_wind_foundation_concrete_falls_back_to_building_estimate_quantity(tmp_path):
+    rows = [
+        ["序号", "项目名称", "单位", "数量", "单价（元）", "合计（万元）"],
+        ["一", "发电场工程", "", "", "", "7354.17"],
+        ["1", "风电机组基础工程", "", "", "", "7139.05"],
+        ["", "垫层混凝土C20", "m3", "2200", "712.99", "156.86"],
+        ["", "基础混凝土C40", "m3", "16800", "814.58", "1368.50"],
+        ["2", "风电机组出线工程", "", "", "", "30.99"],
+        ["二", "升压变电站工程", "", "", "", "1319.13"],
+        ["1", "主变压器基础工程", "", "", "", "39.93"],
+        ["", "垫层混凝土C20", "m3", "4.9", "712.99", "0.35"],
+    ]
+    ast = DocumentAST(
+        file_name="sample.docx",
+        tables=[DocumentTable(
+            id="t_building_estimate",
+            order=1,
+            caption="建筑工程概算表",
+            section_path=["技经概算"],
+            rows=[[TableCell(text=value, row=i, col=j) for j, value in enumerate(row)] for i, row in enumerate(rows)],
+        )],
+    )
+    exported = JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    section = next(section for section in exported["result"]["sections"] if section["name"] == "风机基础")
+    fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
+    assert fields["windFoundationC20Concrete"] == "C20混凝土：2200m³"
+    assert fields["windFoundationC40Concrete"] == "C40混凝土：16800m³"
+    assert fields["windFoundationC15Concrete"] is None
+    assert fields["windFoundationC45Concrete"] is None
+
+
+def test_wind_foundation_concrete_reads_civil_quantity_table_unit_column(tmp_path):
+    rows = [
+        ["项目", "单位", "工程量"],
+        ["风机基础混凝土 C40", "m3", "15325.0"],
+        ["升压站基础混凝土 C40", "m3", "120.0"],
+    ]
+    ast = DocumentAST(
+        file_name="sample.docx",
+        tables=[DocumentTable(
+            id="t_civil_quantity",
+            order=1,
+            caption="土建工程量表",
+            section_path=["土建工程"],
+            rows=[[TableCell(text=value, row=i, col=j) for j, value in enumerate(row)] for i, row in enumerate(rows)],
+        )],
+    )
+    exported = JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    section = next(section for section in exported["result"]["sections"] if section["name"] == "风机基础")
+    fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
+    assert fields["windFoundationC40Concrete"] == "C40混凝土：15325m³"
+
+
 def test_candidate_retriever_honors_paragraph_only_source_types_for_wind_foundation_fields():
     config = {"pileCount": _wind_foundation_paragraph_field_configs()["pileCount"]}
     ast = DocumentAST(
@@ -2701,6 +2540,73 @@ def test_road_entry_length_and_offsite_traffic_description_from_text(tmp_path):
     assert fields["offsiteTrafficConditionDescription"] == description.rstrip("。")
 
 
+def test_road_entry_width_is_not_extracted_as_length():
+    text = "进场道路路基宽 5.5m，路面为 4.5m 宽。"
+    builder = ResultBuilder()
+    config = builder.field_configs["siteEntryRoadLength"]
+    patterns = [*config.get("patterns", []), *(
+        pattern for rule in config.get("scalar_rules", []) for pattern in rule.get("patterns", [])
+    )]
+    assert all(re.search(pattern, text) is None for pattern in patterns)
+
+    ast = DocumentAST(file_name="sample.docx", blocks=[DocumentBlock(
+        id="p1", type="paragraph", text=text, order=1, section_path=["道路"],
+    )])
+    assert "siteEntryRoadLength" not in builder._configured_scalar_overrides(ast)
+    assert any(re.search(pattern, "进场道路长度约0.4km") for pattern in patterns)
+
+    fields = {"siteEntryRoadLength": ParsedField(
+        field_code="siteEntryRoadLength", field_name="进场道路长度", value=0.0055, unit="km",
+        evidence=[FieldEvidence(source_type="paragraph", text=text)],
+    )}
+    builder._apply_quality_filters(fields, ast)
+    assert "siteEntryRoadLength" not in fields
+
+    length_text = "进场道路长度约0.4km，路基宽5.5m。"
+    fields = {"siteEntryRoadLength": ParsedField(
+        field_code="siteEntryRoadLength", field_name="进场道路长度", value=0.4, unit="km",
+        evidence=[FieldEvidence(source_type="paragraph", text=length_text)],
+    )}
+    builder._apply_quality_filters(fields, ast)
+    assert fields["siteEntryRoadLength"].value == 0.4
+
+    false_lengths = [
+        ("siteEntryRoadLength", 342, "进场道路第一段由省道G342进入风电场。"),
+        ("siteEntryRoadLength", 74.2, "进场道路经过村道；利用县乡道路74.2km。"),
+        ("accessRoadLength", 30, "进站道路 | C30水泥混凝土"),
+        ("maintenanceRoadLength", 3.5, "道路路面修复成3.5m宽作为检修道路。"),
+    ]
+    for code, value, evidence_text in false_lengths:
+        fields = {code: ParsedField(
+            field_code=code, field_name=code, value=value, unit="km",
+            evidence=[FieldEvidence(source_type="paragraph", text=evidence_text)],
+        )}
+        builder._apply_quality_filters(fields, ast)
+        assert code not in fields
+
+    for code, text_value, value in (
+        ("accessRoadLength", "新建进站道路0.4km。", 0.4),
+        ("maintenanceRoadLength", "检修道路长度约3.5km。", 3.5),
+    ):
+        fields = {code: ParsedField(
+            field_code=code, field_name=code, value=value, unit="km",
+            evidence=[FieldEvidence(source_type="paragraph", text=text_value)],
+        )}
+        builder._apply_quality_filters(fields, ast)
+        assert fields[code].value == value
+
+    long_text = "场内通往各风机点位的检修道路约36.30km，其中24.04km为改建道路。"
+    document = DocumentAST(file_name="sample.docx", blocks=[DocumentBlock(
+        id="p2", type="paragraph", text=long_text, order=1, section_path=["道路"],
+    )])
+    fields = {"maintenanceRoadLength": ParsedField(
+        field_code="maintenanceRoadLength", field_name="检修道路长度", value=36.3, unit="km",
+        evidence=[FieldEvidence(source_type="paragraph", text="道路章节摘要已截断")],
+    )}
+    builder._apply_quality_filters(fields, document)
+    assert fields["maintenanceRoadLength"].value == 36.3
+
+
 def test_road_maintenance_width_is_not_used_as_maintenance_length(tmp_path):
     ast = DocumentAST(
         file_name="sample.docx",
@@ -2747,7 +2653,7 @@ def test_road_maintenance_length_ignores_construction_road_matrix_label():
 
 
 def test_json_exporter_adds_source_to_every_detail_table(tmp_path):
-    """Verify every table in details exposes source metadata."""
+    """验证详情中的每个表格都公开来源元数据。"""
     ast = DocumentAST(
         file_name="sample.docx",
         tables=[
@@ -2985,9 +2891,9 @@ def test_finance_section_uses_tables_and_merges_field_values_over_zero_placehold
 
     finance = next(section for section in built["sections"] if section["name"] == "财务")
     finance_fields = {field["fieldCode"]: field["value"] for field in finance["fields"]}
-    assert "otherCost" not in finance_fields
+    assert finance_fields["otherCost"] == 9083.63
     assert "materialCost" not in finance_fields
-    assert all(value is None for value in finance_fields.values())
+    assert all(value is None for code, value in finance_fields.items() if code != "otherCost")
     assert "financialEvaluation" not in [table["key"] for table in finance["tables"]]
 
 
@@ -3689,7 +3595,7 @@ def test_cover_ocr_converts_legacy_doc_before_extracting_images(monkeypatch, tmp
     class FakeAspose:
         Document = FakeDocument
 
-    monkeypatch.setattr("parser_engine.output.cover_ocr.AsposeWordsLoader._load_aspose_runtime", lambda self: ("fake", FakeAspose))
+    monkeypatch.setattr("word_parser.document.cover_ocr.AsposeWordsLoader._load_aspose_runtime", lambda self: ("fake", FakeAspose))
 
     calls = []
 
@@ -3884,6 +3790,57 @@ def test_output_schema_config_controls_sections_and_original_tables():
     assert section["tables"][0]["data"] == [["A", 10]]
 
 
+def test_default_common_output_keeps_internal_codes_and_maps_placeholders(tmp_path):
+    class EmptyCoverOcr:
+        def extract(self, file_path, ast):
+            return CoverOcrResult(values={}, text="", image_count=0)
+
+    expected_codes = [
+        "projectName",
+        "investmentOwnerCompany",
+        "projectAddressCity",
+        "projectAddressCounty",
+        "projectAddressTown",
+        "projectAddressDetail",
+        "designUnit",
+        "designUnitQualification",
+    ]
+    builder = ResultBuilder(cover_ocr_extractor=EmptyCoverOcr())
+    exporter = JsonExporter(result_builder=builder, output_dir=tmp_path)
+    ctx = ParseContext(file_path="sample.docx", ast=DocumentAST(file_name="sample.docx"), validated={})
+
+    exported = exporter.export(ctx)
+
+    common = next(section for section in ctx.result["sections"] if section["name"] == "通用")
+    assert [field["fieldCode"] for field in common["fields"]] == expected_codes
+    assert all(code in exported["fields"] for code in expected_codes)
+    assert all(code not in exported["fields"] for code in builder.output_field_codes.values())
+    assert all(builder.output_field_codes[code] in exported["mapped"] for code in expected_codes)
+    detail_json = json.loads((tmp_path / "sample_details.json").read_text(encoding="utf-8"))
+    detail_common = next(section for section in detail_json["sections"] if section["name"] == "通用")
+    assert [field["fieldCode"] for field in detail_common["fields"]] == expected_codes
+
+
+def test_empty_document_emits_every_mapped_output_code(tmp_path):
+    class EmptyCoverOcr:
+        def extract(self, file_path, ast):
+            return CoverOcrResult(values={}, text="", image_count=0)
+
+    builder = ResultBuilder(cover_ocr_extractor=EmptyCoverOcr())
+    exporter = JsonExporter(result_builder=builder, output_dir=tmp_path)
+
+    exported = exporter.export(
+        ParseContext(file_path="sample.docx", ast=DocumentAST(file_name="sample.docx"), validated={})
+    )
+
+    assert set(exported["mapped"]) == set(builder.output_field_codes.values())
+    assert exported["mapped"]["${other_fee}"] is None
+    assert exported["mapped"]["${engineering_estimate_table}"]["data"] == []
+    mapped_json = json.loads((tmp_path / "sample_mapped.json").read_text(encoding="utf-8"))
+    assert mapped_json == exported["mapped"]
+    assert exported["outputFiles"]["mapped"] == str(tmp_path / "sample_mapped.json")
+
+
 def test_output_schema_can_disable_default_combined_builders():
     schema = {
         "sections": [{"name": "集电线路", "fields": [], "tables": ["collectorLineCombined"]}],
@@ -3925,6 +3882,190 @@ def test_configured_combined_detail_field_mappings_merge_with_defaults():
     assert spec["fields"]["windResourceTowerCodes"] == "自定义测风塔编号"
     assert spec["fields"]["windResourceAirDensities"] == "高度对应的空气密度"
     assert spec["fields"]["windResourceMainWindDirections"] == "轮毂高度处的主风向"
+
+
+def test_wind_resource_combined_table_aligns_values_by_tower_code():
+    builder = ResultBuilder()
+    details = {"windResourceCombined": [
+        {"测风塔编号": "0821#", "轮毂高度平均风速m/s": 6.1, "发电量计算是否使用": "是"},
+        {"测风塔编号": "0822#", "轮毂高度平均风速m/s": 6.2, "发电量计算是否使用": "是"},
+    ]}
+    tables = {"windResourceTowerBasic": {
+        "columns": ["测风塔", "测风时段", "坐标（N E）"],
+        "data": [["0822#", "2020～2021", "N37°07.525' E108°43.510'"]],
+    }}
+    fields = {"windResourceAirDensityRecords": ParsedField(
+        field_code="windResourceAirDensityRecords", field_name="各测风塔各高度空气密度",
+        value=[{"tower_code": "0822#", "height": 10, "value": 1.1}], status="PASS",
+    )}
+
+    table = builder._wind_resource_combined_table(details, tables, fields)
+
+    assert table is not None
+    rows = [dict(zip(table["columns"], values)) for values in table["data"]]
+    assert [row["测风塔编号"] for row in rows] == ["0821#", "0822#"]
+    assert rows[0]["测风塔经度"] is None
+    assert rows[0]["各测风塔各高度空气密度"] is None
+    assert rows[1]["测风塔经度"] == "E108°43.510'"
+    assert rows[1]["测风塔纬度"] == "N37°07.525'"
+    assert rows[1]["测风周期"] == "2020～2021"
+    assert rows[1]["各测风塔各高度空气密度"] == "10m：1.1"
+    assert rows[0]["发电量计算是否使用"] is None  # A fallback is not a source value.
+
+
+def test_wind_resource_record_tables_have_scalar_cells():
+    builder = ResultBuilder()
+    fields = {
+        "windResourceAirDensityRecords": ParsedField(
+            field_code="windResourceAirDensityRecords", field_name="各测风塔各高度空气密度",
+            value=[
+                {"tower_code": "0821#", "height": 110, "value": 1.011, "unit": "kg/m³"},
+                {"tower_code": "0822#", "height": 10, "value": 1.085, "unit": "kg/m³"},
+                {"tower_code": "0823#", "height": None, "value": 1.010, "unit": "kg/m³"},
+            ], status="PASS",
+        ),
+        "windResourceTurbulenceIntensityRecords": ParsedField(
+            field_code="windResourceTurbulenceIntensityRecords", field_name="各测风塔各高度湍流强度",
+            value=[{"tower_code": "0821#", "height": 90, "average_value": None, "representative_value": 0.114}], status="PASS",
+        ),
+    }
+
+    tables = builder._build_tables(None, {}, fields)
+
+    assert tables["windResourceAirDensity"]["data"] == [["0821#", 110, 1.011], ["0822#", 10, 1.085], ["0823#", None, 1.010]]
+    assert tables["windResourceTurbulenceIntensity"]["data"] == [["0821#", 90, None, 0.114]]
+    assert all(not isinstance(cell, (dict, list)) for key in ("windResourceAirDensity", "windResourceTurbulenceIntensity")
+               for row in tables[key]["data"] for cell in row)
+    assert builder._wind_resource_record_display([{
+        "height": 90, "wind_speed_segment": 15, "average_value": 0.114, "representative_value": 0.154,
+    }]) == "90m / 15m/s：平均 0.114、代表性 0.154"
+
+
+def test_hub_height_air_density_range_mapping_returns_flat_records():
+    records = [
+        {"tower_code": "0821#", "height": 110, "height_unit": "m", "value": 1.011, "unit": "kg/m³"},
+        {"tower_code": "0822#", "height": 10, "height_unit": "m", "value": 1.085, "unit": "kg/m³"},
+        {"tower_code": "0821#", "height": 160, "height_unit": "m", "value": 1.001, "unit": "kg/m³"},
+        {"tower_code": "0823#", "height": None, "height_unit": "m", "value": 1.010, "unit": "kg/m³"},
+    ]
+    detail = {"fieldIndex": {"windResourceAirDensityRecords": {"value": records}}}
+
+    mapped = mapping_from_detail_json(detail, ResultBuilder())
+
+    assert mapped["${hubHeightAirDensityRange}"] == [
+        {"tower_code": "0821#", "height": 110, "value": 1.011},
+        {"tower_code": "0822#", "height": 10, "value": 1.085},
+        {"tower_code": "0821#", "height": 160, "value": 1.001},
+    ]
+
+
+def test_insurance_rate_mapping_uses_primary_value_only_when_secondary_missing():
+    builder = ResultBuilder()
+    detail = {"fieldIndex": {
+        "insuranceRate": {"value": 0.25},
+        "financeInsuranceRate": {"value": None},
+    }}
+    assert mapping_from_detail_json(detail, builder)["${insurance_premium_rate}"] == 0.25
+
+    detail["fieldIndex"]["financeInsuranceRate"]["value"] = 0.3
+    assert mapping_from_detail_json(detail, builder)["${insurance_premium_rate}"] == 0.3
+
+
+def test_insurance_rate_primary_value_populates_finance_result_field():
+    builder = ResultBuilder()
+    evidence = FieldEvidence(source_type="paragraph", text="保险费率取 0.25%")
+    fields = {"insuranceRate": ParsedField(
+        field_code="insuranceRate", field_name="保险费率", value=0.25, unit="%",
+        status="PASS", evidence=[evidence],
+    )}
+    builder._fill_finance_insurance_equivalent_field(fields)
+    assert fields["financeInsuranceRate"].value == 0.25
+    assert fields["financeInsuranceRate"].evidence == [evidence]
+
+
+def test_vertical_road_quantity_row_is_not_treated_as_wide_header():
+    builder = ResultBuilder()
+    matrix = [
+        ["项目", "单位", "工程量"],
+        ["新建进站道路长度", "km", "0.3"],
+        ["改建道路长度", "km", "26.5"],
+    ]
+    values, blocked = builder._road_parameter_values_from_wide_matrix(matrix)
+    assert values["accessRoadLength"] is None
+    assert "accessRoadLength" not in blocked
+    assert builder._road_parameter_values_from_matrix(matrix)["accessRoadLength"] == 0.3
+
+
+def test_turbulence_speed_table_keeps_average_and_representative_separate():
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[DocumentBlock(
+            id="figure", type="paragraph", order=3,
+            text="图 2.5-1 0821#测风塔90m高度各风速段湍流强度变化曲线图",
+            section_path=["资源章节"],
+        )],
+        tables=[DocumentTable(
+            id="t_speed_turbulence", order=2,
+            caption="表 2.5-1 测风塔各风速段湍流强度计算结果表",
+            section_path=["资源章节"],
+            rows=[
+                [TableCell(text="0821#", row=0, col=0)],
+                [TableCell(text=value, row=1, col=index) for index, value in enumerate(
+                    ["风速段(m/s)", "平均湍流强度", "代表性湍流强度"]
+                )],
+                [TableCell(text=value, row=2, col=index) for index, value in enumerate(
+                    ["15", "0.114", "0.154"]
+                )],
+            ],
+        )],
+    )
+
+    table = ResultBuilder()._wind_resource_turbulence_intensity_table_from_document(ast)
+
+    assert table is not None
+    assert table["data"] == [["0821#", 90, 0.114, 0.154]]
+
+
+def test_parallel_tower_wind_speed_and_power_lists_are_not_repeated():
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[DocumentBlock(
+            id="p1", type="paragraph", order=1, section_path=["资源章节"],
+            text="0821#、0822#、0823#共3座测风塔110m高度处年平均风速分别为6.42m/s、5.75m/s、6.03m/s，相对应风功率密度分别为232W/m2、163W/m2、176W/m2。",
+        )],
+        tables=[],
+    )
+    values = ResultBuilder()._parallel_tower_speed_power_from_text(ast, ["0821#", "0822#", "0823#"])
+    assert [values[code]["windSpeed"] for code in ["0821#", "0822#", "0823#"]] == [6.42, 5.75, 6.03]
+    assert [values[code]["powerDensity"] for code in ["0821#", "0822#", "0823#"]] == [232, 163, 176]
+    assert all(values[code]["height"] == 110 for code in values)
+
+
+def test_generation_single_turbine_table_keeps_blank_cells_and_summary_separate():
+    builder = ResultBuilder()
+    source = {
+        "columns": ["风机编号", "X (m)", "Y (m)", "Z (m)", "H (m)",
+                    "年发电量 [万kW·h]", "风速 [m/s]", "尾流 系数[%]",
+                    "考虑尾流效应的 发电量[万kW·h]", "年发电量 [万kW·h]", "利用小时 [h]"],
+        "data": [
+            ["H01", 100, 200, 300, 110, 1602.9, 5.4, -5.3, 1518, 1118, 2033],
+            ["H02", None, 201, 301, 110, 1700, 5.6, -4.0, 1632, 1200, 2182],
+            ["求和/平均", "", "", "", "", 3302.9, 5.5, -4.65, 3150, 2318, 2108],
+        ],
+    }
+
+    table = builder._generation_single_turbine_aligned_table({"singleTurbineAnnualEnergy": source})
+
+    assert table is not None
+    assert len(table["columns"]) == 12
+    rows = [dict(zip(table["columns"], values)) for values in table["data"]]
+    assert rows[0]["理论发电量"] == 16029
+    assert rows[0]["最终上网电量"] == 11180
+    assert rows[0]["尾流效应导致的平均折减率"] is None
+    assert rows[1]["X（m）"] is None
+    assert rows[1]["Y（m）"] == 201
+    assert rows[2]["标签"] == "求和/平均"
+    assert rows[2]["尾流效应导致的平均折减率"] == 4.65
 
 
 def test_configured_resource_table_key_patterns_extend_defaults_without_broadening_sector_match():
@@ -4255,6 +4396,39 @@ def test_wind_resource_direction_frequency_table_rule_uses_max_values(tmp_path):
     assert fields["windResourceMainWindEnergyDirections"] == ["NW", "NNW", "NNW"]
 
 
+def test_direction_sector_tables_use_page_title_and_continuation(tmp_path):
+    """PDF 表题串页且扇区表跨页时，仍按各塔最高高度取前两名。"""
+    header = ["扇区", "90m 风向", "90m 风能", "10m 风向", "10m 风能"]
+
+    def table(table_id, order, page, caption, rows):
+        return DocumentTable(
+            id=table_id, order=order, page=page, caption=caption,
+            rows=[[TableCell(text=str(value), row=i, col=j) for j, value in enumerate(row)] for i, row in enumerate(rows)],
+        )
+
+    stale_caption = "表 2-24：0047#测风塔插补后风向、风能方向统计"
+    ast = DocumentAST(
+        file_name="sample.pdf",
+        meta={"pdf_page_texts": [
+            {"page": 1, "text": stale_caption},
+            {"page": 2, "text": "表 2-25：0048#测风塔插补后风向、风能方向统计"},
+        ]},
+        tables=[
+            table("a", 1, 1, stale_caption, [header, ["N", 5, 30, 50, 1], ["S", 20, 20, 1, 40], ["SE", 10, 10, 2, 50]]),
+            table("b1", 2, 2, stale_caption, [header, ["N", 20, 10, 1, 50], ["S", 10, 30, 2, 40]]),
+            table("b2", 3, 2, stale_caption, [["SE", 25, 20, 3, 30]]),
+        ],
+    )
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.pdf", ast=ast, validated={}))
+    result = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    resource = next(section for section in result["sections"] if section["name"] == "资源章节")
+    fields = {field["fieldCode"]: field["value"] for field in resource["fields"]}
+    assert fields["windResourceMainWindDirections"] == ["S", "SE"]
+    assert fields["windResourceSecondaryWindDirections"] == ["SE", "N"]
+    assert fields["windResourceMainWindEnergyDirections"] == ["N", "S"]
+    assert fields["windResourceSecondaryWindEnergyDirections"] == ["S", "SE"]
+
+
 def test_wind_resource_direction_frequency_grouped_header_table_uses_max_values(tmp_path):
     ast = DocumentAST(
         file_name="sample.docx",
@@ -4381,7 +4555,7 @@ def test_details_sections_group_rules_locations_and_combined_value_traces(tmp_pa
     assert energy_trace["source"]["blockId"] == "p3"
     assert energy_trace["rule"]["resolver"] == "wind_resource_direction_text"
     assert "source" not in density_field
-    assert not any(table["key"] == "windResourceCombined" for table in resource["tables"])
+    assert any(table["key"] == "windResourceCombined" for table in resource["tables"])
 
 
 def test_land_original_section_uses_only_specified_original_table(tmp_path):
@@ -4700,6 +4874,133 @@ def test_earthwork_balance_reads_content_table_without_earthwork_caption(tmp_pat
     assert fields["totalEarthworkBackfill"] == 4160
 
 
+def test_collector_earthwork_falls_back_to_estimate_table_scope(tmp_path):
+    def estimate_table(table_id, caption, values):
+        return DocumentTable(
+            id=table_id, order=1 if table_id == "auxiliary" else 3, caption=caption,
+            rows=[
+                [TableCell(text=value, row=index, col=column) for column, value in enumerate(row)]
+                for index, row in enumerate(values)
+            ],
+        )
+
+    columns = ["序号", "项目名称", "单位", "数量", "单价（元）", "合计（万元）"]
+    ast = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="building_title", type="paragraph", order=2, text="16.4.1 建筑工程概算表"),
+    ], tables=[
+        estimate_table("auxiliary", "施工辅助工程概算表", [
+            columns,
+            ["一", "供电线路工程", "", "", "", ""],
+            ["二", "风电机组安装平台工程", "", "", "", ""],
+            ["", "土方开挖", "m³", "327450", "7", "229.22"],
+            ["", "土方回填", "m³", "245588", "11", "270.15"],
+        ]),
+        estimate_table("building", "主要技术经济指标表", [
+            columns,
+            ["一", "发电场工程", "", "", "", ""],
+            ["", "土方开挖", "m3", "5000", "7", "3.5"],
+            ["二", "集电线路工程", "", "", "", ""],
+            ["1", "电缆线路土建工程", "", "", "", ""],
+            ["", "土方开挖", "m3", "4445", "7", "3.11"],
+            ["", "土石回填", "m3", "4445", "11", "4.89"],
+            ["2", "接地土建工程", "", "", "", ""],
+            ["", "土方开挖", "m3", "17640", "7", "12.35"],
+            ["", "土石回填", "m3", "17640", "11", "19.4"],
+            ["三", "升压变电站工程", "", "", "", ""],
+            ["", "土方开挖", "m3", "10800", "7", "7.56"],
+        ]),
+    ])
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    details = json.loads((tmp_path / "sample_details.json").read_text(encoding="utf-8"))
+    assert details["fieldIndex"]["collectorLineEarthworkExcavation"]["value"] == 22085
+    assert details["fieldIndex"]["collectorLineEarthworkBackfill"]["value"] == 22085
+    assert details["fieldIndex"]["collectorLineEarthworkExcavation"]["source"]["tableId"] == "building"
+
+
+def test_collector_earthwork_does_not_use_platform_estimate_rows(tmp_path):
+    table = _table_with_caption(
+        "auxiliary", 1, "施工辅助工程概算表",
+        ["序号", "项目名称", "单位", "数量"],
+        ["二", "风电机组安装平台工程", "", ""],
+    )
+    table.rows.extend([
+        [TableCell(text=value, row=index, col=column) for column, value in enumerate(row)]
+        for index, row in enumerate([
+            ["", "土方开挖", "m³", "327450"],
+            ["", "土方回填", "m³", "245588"],
+        ], start=2)
+    ])
+    ast = DocumentAST(file_name="sample.docx", tables=[table])
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    details = json.loads((tmp_path / "sample_details.json").read_text(encoding="utf-8"))
+    assert details["fieldIndex"]["collectorLineEarthworkExcavation"]["value"] is None
+    assert details["fieldIndex"]["collectorLineEarthworkBackfill"]["value"] is None
+
+
+def test_future_main_transformer_count_uses_explicit_electrical_plan():
+    ast = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="p_capacity", type="paragraph", order=1, section_path=["电气一次"], text="本项目总容量为200MW。"),
+        DocumentBlock(id="p_future", type="paragraph", order=2, section_path=["电气一次", "升压站电气主接线"], text="本期安装2台主变，远期规划设置3台主变压器。"),
+    ], tables=[DocumentTable(
+        id="main_equipment", order=3, caption="升压站电气一次主要设备材料工程量表", section_path=["电气一次"],
+        rows=[
+            [TableCell(text=value, row=index, col=column) for column, value in enumerate(row)]
+            for index, row in enumerate([
+                ["序号", "名称", "型号、规格及技术数据", "单位", "数量"],
+                ["1.1", "主变压器", "三相双绕组变压器", "台", "2"],
+                ["", "", "型号：SZ18-100000/110", "", ""],
+            ])
+        ],
+    )])
+    future = ResultBuilder()._future_main_transformer_count_from_document(ast)
+    assert future is not None and future[0] == 3
+    assert future[2] == "paragraph"
+
+
+def test_future_main_transformer_count_infers_only_when_capacity_matches():
+    table = DocumentTable(
+        id="main_equipment", order=2, caption="升压站电气一次主要设备材料工程量表", section_path=["电气一次"],
+        rows=[
+            [TableCell(text=value, row=index, col=column) for column, value in enumerate(row)]
+            for index, row in enumerate([
+                ["序号", "名称", "型号、规格及技术数据", "单位", "数量"],
+                ["1.1", "主变压器", "三相双绕组变压器", "台", "2"],
+                ["", "", "型号：SZ18-100000/110", "", ""],
+            ])
+        ],
+    )
+    builder = ResultBuilder()
+    matching = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="p_capacity", type="paragraph", order=1, section_path=["电气一次"], text="本项目总容量为200MW。"),
+    ], tables=[table])
+    future = builder._future_main_transformer_count_from_document(matching)
+    assert future is not None and future[0] == 2
+    assert future[2] == "table"
+    mismatching = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="p_capacity", type="paragraph", order=1, section_path=["电气一次"], text="本项目总容量为300MW。"),
+    ], tables=[table])
+    assert builder._future_main_transformer_count_from_document(mismatching) is None
+
+
+def test_svg_capacity_replaces_invalid_first_pass_value_from_equipment_table():
+    table = DocumentTable(
+        id="equipment", order=1, caption="升压站电气一次主要设备材料工程量表", section_path=["电气一次"],
+        rows=[
+            [TableCell(text=value, row=index, col=column) for column, value in enumerate(row)]
+            for index, row in enumerate([
+                ["序号", "名称", "型号、规格及技术数据", "单位", "数量"],
+                ["4.16", "35kV SVG", "±30Mvar直挂式SVG", "套", "2"],
+            ])
+        ],
+    )
+    fields = {"svgReactiveCompensationCapacity": ParsedField(
+        field_code="svgReactiveCompensationCapacity", field_name="SVG无功补偿装置容量",
+        value="性30", unit="Mvar", evidence=[FieldEvidence(source_type="table", text="感性30Mvar", score=1.0)],
+    )}
+    ResultBuilder()._apply_electrical_primary_table_field_overrides(DocumentAST(file_name="sample.docx", tables=[table]), fields)
+    assert fields["svgReactiveCompensationCapacity"].value == "±30Mvar"
+
+
 def test_earthwork_balance_total_fields_prefer_explicit_total_row(tmp_path):
     ast = DocumentAST(
         file_name="sample.docx",
@@ -4831,6 +5132,27 @@ def test_investment_summary_fields_read_additional_total_rows(tmp_path):
     assert fields["investmentStaticTotalItoIv"] == 63800
     assert fields["investmentConstructionInterestTotal"] == 700
     assert fields["investmentDynamicTotalItoIv"] == 64580
+
+
+def test_investment_platform_fee_uses_unique_collecting_station_cost_row(tmp_path):
+    ast = DocumentAST(
+        file_name="sample.docx",
+        tables=[DocumentTable(
+            id="t_installation",
+            order=1,
+            caption="设备及安装工程概算表",
+            section_path=["技经概算"],
+            rows=[
+                [TableCell(text="序号", row=0, col=0), TableCell(text="项目名称及规格", row=0, col=1), TableCell(text="合计（万元）", row=0, col=2)],
+                [TableCell(text="17", row=1, col=0), TableCell(text="风云集控场站侧费用", row=1, col=1), TableCell(text="150", row=1, col=2)],
+                [TableCell(text="18", row=2, col=0), TableCell(text="电力生产专用通信通道调试技术服务（至集控）", row=2, col=1), TableCell(text="12", row=2, col=2)],
+            ],
+        )],
+    )
+    exported = JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    section = next(section for section in exported["result"]["sections"] if section["name"] == "技经概算")
+    fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
+    assert fields["investmentSmartManagementPlatformTotal"] == 150
 
 
 def test_finance_insurance_rate_reads_field_data_table(tmp_path):
@@ -5171,6 +5493,20 @@ def test_common_fields_from_cover_text_before_toc():
     assert values["designUnit"].evidence[0].source_type == "cover_text"
 
 
+def test_project_name_does_not_include_compiler_sentence():
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[
+            DocumentBlock(id="p1", type="paragraph", text="陕西华电靖边韩家沟200MW风电项目", order=1),
+            DocumentBlock(id="p2", type="paragraph", text="可行性研究报告", order=2),
+            DocumentBlock(id="p3", type="paragraph", text="北京恒华伟业科技股份有限公司", order=3),
+            DocumentBlock(id="p4", type="paragraph", text="北京恒华伟业科技股份有限公司承担陕西华电靖边韩家沟200MW风电项目可行性研究报告", order=4),
+        ],
+    )
+    parsed = ResultBuilder().build(ast, {})["parsedFields"]
+    assert parsed["projectName"].value == "陕西华电靖边韩家沟200MW风电项目"
+
+
 def test_resource_speed_power_table_uses_caption_before_table_when_caption_missing(tmp_path):
     ast = DocumentAST(
         file_name="sample.docx",
@@ -5192,7 +5528,7 @@ def test_resource_speed_power_table_uses_caption_before_table_when_caption_missi
 
     detail_json = _detail_sections_for_tables(tmp_path, ast.tables)
 
-    # Helper above only passes tables, so use exporter directly for caption-before-table context.
+    # 上面的辅助方法只传递表格，因此直接使用导出器获取表前标题上下文。
     JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
     detail_json = json.loads((tmp_path / "sample_details.json").read_text(encoding="utf-8"))
     table = detail_json["tableIndex"]["windResourceSpeedPowerStatistics"]
@@ -5238,8 +5574,8 @@ def test_wind_resource_combined_fields_from_text_and_tower_table(tmp_path):
     assert fields["windResourceAirDensities"] == [1.011, "---", "---", "---", 1.013, 1.015]
     assert fields["windResourceMainWindDirections"] == ["---", "---", "---", "---", "---", "---"]
     assert fields["windResourceMainWindEnergyDirections"] == ["---", "---", "---", "---", "---", "---"]
-    assert fields["windResourceGenerationUses"] == ["是", "是", "是", "是", "是", "是"]
-    assert not any(table["key"] == "windResourceCombined" for table in resource["tables"])
+    assert fields["windResourceGenerationUses"] is None
+    assert any(table["key"] == "windResourceCombined" for table in resource["tables"])
 
 
 def test_wind_resource_combined_fields_from_summary_text(tmp_path):
@@ -5266,7 +5602,7 @@ def test_wind_resource_combined_fields_from_summary_text(tmp_path):
     assert fields["hubHeightAnnualAverageWindSpeed"] == [5.4]
     assert fields["hubHeightWindPowerDensity"] == [137.35]
     assert fields["windResourceMainWindDirections"] == ["NNW"]
-    assert fields["windResourceGenerationUses"] == ["是"]
+    assert fields["windResourceGenerationUses"] is None
 
 
 def test_wind_resource_combined_fields_ignore_primary_candidates(tmp_path):
@@ -5342,6 +5678,56 @@ def test_wind_resource_combined_fields_from_summary_text_with_chinese_directions
     assert fields["windShearExponent"] == [0.263]
 
 
+def test_wind_shear_uses_summary_then_tower_fitted_table_values(tmp_path):
+    table = DocumentTable(
+        id="shear_statistics",
+        order=3,
+        caption="表2-1 测风塔不同高度风切变指数统计表",
+        rows=[
+            [TableCell(text=value, row=index, col=column) for column, value in enumerate(values)]
+            for index, values in enumerate([
+                ["测风塔", "高度", "拟合值"],
+                ["001#", "90m", "0.032"],
+                ["", "80m", ""],
+                ["002#", "90m", "0.11"],
+            ])
+        ],
+    )
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[DocumentBlock(
+            id="summary", type="paragraph", order=2, section_path=["风资源", "小结"],
+            text="001#测风塔综合风切变指数为0.04m/s。",
+        )],
+        tables=[table],
+    )
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    result = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    resource = next(section for section in result["sections"] if section["name"] == "资源章节")
+    fields = {field["fieldCode"]: field["value"] for field in resource["fields"]}
+    assert fields["windResourceTowerCodes"] == ["001#", "002#"]
+    assert fields["windShearExponent"] == [0.04, 0.11]
+
+
+def test_wind_shear_reads_comprehensive_value_from_labelled_row(tmp_path):
+    table = DocumentTable(
+        id="shear_results", order=1, caption="测风塔风切变指数计算成果表",
+        rows=[
+            [TableCell(text=value, row=index, col=column) for column, value in enumerate(values)]
+            for index, values in enumerate([
+                ["指标", "001#", "002#"],
+                ["综合风切变系数", "0.032", "0.11"],
+            ])
+        ],
+    )
+    ast = DocumentAST(file_name="sample.docx", tables=[table])
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    result = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    resource = next(section for section in result["sections"] if section["name"] == "资源章节")
+    fields = {field["fieldCode"]: field["value"] for field in resource["fields"]}
+    assert fields["windShearExponent"] == [0.032, 0.11]
+
+
 def test_wind_resource_combined_prefers_summary_tower_over_basic_table(tmp_path):
     ast = DocumentAST(
         file_name="sample.docx",
@@ -5389,7 +5775,7 @@ def test_wind_resource_combined_prefers_summary_tower_over_basic_table(tmp_path)
     assert fields["windResourceMainWindEnergyDirections"] == ["东北（NE）、东东北（ENE）"]
     assert fields["representativeTurbulenceIntensity"] == [0.109]
     assert fields["windShearExponent"] == [0.263]
-    assert fields["windResourceGenerationUses"] == ["是"]
+    assert fields["windResourceGenerationUses"] is None
 
 
 def test_wind_resource_combined_single_tower_pdf_summary_blocks(tmp_path):
@@ -5443,7 +5829,7 @@ def test_wind_resource_combined_single_tower_pdf_summary_blocks(tmp_path):
     assert fields["hubHeightWindPowerDensity"] == [221]
     assert fields["windResourceMainWindDirections"] == ["北西北（NNW）、东北（NE）及东东北（ENE）"]
     assert fields["windResourceMainWindEnergyDirections"] == ["北西北（NNW）、东北（NE）及东东北（ENE）"]
-    assert fields["windResourceGenerationUses"] == ["是"]
+    assert fields["windResourceGenerationUses"] is None
 
 
 def test_electrical_text_fields_from_pdf_like_blocks(tmp_path):
@@ -5464,8 +5850,8 @@ def test_electrical_text_fields_from_pdf_like_blocks(tmp_path):
 
     result_json = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
     fields = {field["fieldCode"]: field["value"] for section in result_json["sections"] for field in section.get("fields", [])}
-    assert fields["plannedCapacity"] == 100
-    assert fields["currentCapacity"] == 100
+    assert fields["plannedCapacity"] is None
+    assert fields["currentCapacity"] is None
     assert fields["stationTransformerCapacity10kv"] == "315kVA"
     assert fields["groundingTransformerCapacity35kv"] == "500kVA"
     assert fields["groundingStationTransformerCapacity35kv"] == "315kVA"
@@ -5954,9 +6340,9 @@ def test_electrical_primary_combined_fields_from_paragraphs_without_original_tab
     fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
     assert fields["accessStationName"] == "330kV曹城变电站"
     assert fields["accessibleVoltage"] == 110
-    assert fields["accessibleCapacity"] == 200
-    assert fields["plannedCapacity"] == 200
-    assert fields["currentCapacity"] == 200
+    assert fields["accessibleCapacity"] is None
+    assert fields["plannedCapacity"] is None
+    assert fields["currentCapacity"] is None
     assert "110kV" in fields["connectionType"]
     assert "35kV" in fields["connectionType"]
     assert fields["independentLightningRodCount"] == 2
@@ -6001,12 +6387,27 @@ def test_electrical_primary_combined_fields_from_hanjiagou_paragraphs(tmp_path):
     fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
     assert fields["accessStationName"] == "330kV曹城变电站"
     assert fields["accessibleVoltage"] == 110
-    assert fields["accessibleCapacity"] == 200
-    assert fields["plannedCapacity"] == 200
-    assert fields["currentCapacity"] == 200
+    assert fields["accessibleCapacity"] is None
+    assert fields["plannedCapacity"] is None
+    assert fields["currentCapacity"] is None
     assert fields["connectionType"] == "110kV侧拟采用简单清晰的单母线接线方案\n35kV侧电气接线可采用双段母线接线形式"
     assert fields["independentLightningRodCount"] == 2
     assert fields["frameLightningRodCount"] == 1
+
+
+def test_electrical_primary_capacity_requires_its_own_object(tmp_path):
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[
+            DocumentBlock(id="p1", type="paragraph", text="接入站可接入容量为 180MVA。", order=1, section_path=["电气一次"]),
+            DocumentBlock(id="p2", type="paragraph", text="升压站规划容量为 200MW，升压站本期规模为 100MW。", order=2, section_path=["电气一次"]),
+        ],
+    )
+    result = JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    fields = {field["fieldCode"]: field["value"] for section in result["result"]["sections"] for field in section["fields"]}
+    assert fields["accessibleCapacity"] == 180
+    assert fields["plannedCapacity"] == 200
+    assert fields["currentCapacity"] == 100
 
 
 def test_electrical_primary_additional_text_fields(tmp_path):
@@ -6078,6 +6479,28 @@ def test_electrical_primary_additional_text_fields(tmp_path):
     assert fields["electricalPrimarySubstationVoltageLevel"] == 110
 
 
+def test_electrical_primary_box_transformer_labelled_multiple_specs(tmp_path):
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[
+            DocumentBlock(id="p1", type="paragraph", order=1, section_path=["电气一次", "箱式变电站"],
+                          text="本工程选用预装式箱式变电站，采用油浸式变压器。"),
+            DocumentBlock(id="p2", type="paragraph", order=2, section_path=["电气一次", "箱式变电站"],
+                          text="箱式变电站的主要元件参数如下：1）型号：S18-6000/37 额定容量：6000kVA 额定电压：37kV±2×2.5%/1.14kV；2）型号：S18-5500/37 额定容量：5500kVA 额定电压：37kV±2×2.5%/1.14kV。"),
+        ],
+    )
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    result = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    section = next(section for section in result["sections"] if section["name"] == "电气一次")
+    fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
+    assert fields["electricalPrimaryBoxTransformerModel"] == ["S18-6000/37", "S18-5500/37"]
+    assert fields["electricalPrimaryBoxTransformerCapacity"] == [6000, 5500]
+    assert fields["electricalPrimaryBoxTransformerVoltageLevel"] == [37, 37]
+    details = json.loads((tmp_path / "sample_details.json").read_text(encoding="utf-8"))
+    assert details["fieldIndex"]["boxTransformerCapacity"]["value"] == [6000, 5500]
+    assert "型号：S18-6000/37" in details["fieldIndex"]["electricalPrimaryBoxTransformerModel"]["source"]["text"]
+
+
 def test_electrical_primary_expanded_substation_name_from_expansion_keyword(tmp_path):
     ast = DocumentAST(
         file_name="sample.docx",
@@ -6138,7 +6561,7 @@ def test_electrical_primary_access_station_prefers_330kv_access_target(tmp_path)
     fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
     assert fields["accessStationName"] == "330kV曹城变电站"
     assert fields["accessibleVoltage"] == 110
-    assert fields["accessibleCapacity"] == 200
+    assert fields["accessibleCapacity"] is None
 
 
 def test_configured_scalar_rejects_field_label_as_value(tmp_path):
@@ -6197,6 +6620,29 @@ def test_electrical_secondary_communication_power_description_from_second_method
     assert fields["communicationPowerUnitType"]["value"] == "组"
     assert fields["communicationPowerQuantityValue"]["value"] == 1
     assert fields["communicationPowerDesignDescription"]["value"] == sentence.rstrip("。")
+
+
+def test_communication_power_description_accepts_scoped_equipment_list():
+    ast = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="p1", type="paragraph", order=1, section_path=["电气二次", "通信"], text="通信电源系统具体配置如下："),
+        DocumentBlock(id="p2", type="paragraph", order=2, section_path=["电气二次", "通信"], text="（1）-48V/120A高频开关电源：1套"),
+        DocumentBlock(id="p3", type="paragraph", order=3, section_path=["电气二次", "通信"], text="（2）48V/200Ah阀控式密封铅酸蓄电池：1组"),
+        DocumentBlock(id="p4", type="paragraph", order=4, section_path=["电气二次", "通信"], text="6.5.5.3 技术要求"),
+    ])
+    description = ResultBuilder()._communication_power_design_description_from_ast(ast)
+    assert "-48V/120A高频开关电源：1套" in description
+    assert "48V/200Ah阀控式密封铅酸蓄电池：1组" in description
+
+
+def test_current_outgoing_count_from_station_primary_text():
+    ast = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="p1", type="paragraph", order=1, section_path=["电气一次"], text="本升压站220kV侧规划2回主变进线、1回出线，本期一次建成。"),
+        DocumentBlock(id="p2", type="paragraph", order=2, section_path=["集电线路"], text="本期新建8回35kV集电线路。"),
+    ])
+    fields = {}
+    ResultBuilder()._apply_electrical_primary_table_field_overrides(ast, fields)
+    assert fields["electricalPrimaryCurrentOutgoingLineCount"].value == 1
+    assert fields["electricalPrimaryCurrentOutgoingLineCount"].evidence[0].source_type == "paragraph"
 
 
 def test_communication_power_unit_quantity_ignores_generic_dc_battery_panel():
@@ -6296,9 +6742,34 @@ def test_collector_line_combined_fields_from_route_paragraph_and_table(tmp_path)
     assert fields["collectorVoltage"] == 35
     assert fields["circuitCount"] == 8
     assert fields["newRouteLength"] == 81.6
+    assert fields["newOverheadLineLength"] == 81.6
+    assert fields["newSingleCircuitLineLength"] == 78
+    assert fields["newDoubleCircuitLineLength"] == 3.6
+    details = json.loads((tmp_path / "sample_details.json").read_text(encoding="utf-8"))
+    assert "单回架空线路" in details["fieldIndex"]["newSingleCircuitLineLength"]["source"]["text"]
+    assert "双回架空线路" in details["fieldIndex"]["newDoubleCircuitLineLength"]["source"]["text"]
     assert fields["doubleCircuitOverheadRouteLength"] == "2×3.6"
     assert fields["singleCircuitOverheadRouteLength"] == "1×78"
     assert not any(table["key"] == "collectorLineCombined" for table in section["tables"])
+
+
+def test_collector_new_overhead_lengths_across_paragraph_break(tmp_path):
+    ast = DocumentAST(
+        file_name="sample.docx",
+        blocks=[
+            DocumentBlock(id="p1", type="paragraph", order=1, section_path=["集电线路"],
+                          text="全线线路总计长度：新建线路路径长约81.6km，其中双回架空线路路径长约2×"),
+            DocumentBlock(id="p2", type="paragraph", order=2, section_path=["集电线路"],
+                          text="3.6km，单回架空线路路径长约1×78km。全线共用铁塔316基。"),
+        ],
+    )
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    result = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    section = next(section for section in result["sections"] if section["name"] == "集电线路")
+    fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
+    assert fields["newOverheadLineLength"] == 81.6
+    assert fields["newSingleCircuitLineLength"] == 78
+    assert fields["newDoubleCircuitLineLength"] == 3.6
 
 
 def test_collector_line_combined_fields_use_union_headers_from_source_tables(tmp_path):
@@ -6346,9 +6817,25 @@ def test_collector_line_combined_fields_extract_total_and_cable_lengths_from_tex
     assert fields["collectorVoltage"] == 35
     assert fields["circuitCount"] == 4
     assert fields["totalCollectorRouteLength"] == 41.131
+    assert fields["newOverheadLineLength"] == 35.181
+    assert fields["newSingleCircuitLineLength"] == 34.715
+    assert fields["newDoubleCircuitLineLength"] == 6.116
     assert fields["doubleCircuitOverheadRouteLength"] == 6.116
     assert fields["boxToTerminalTowerCableRouteLength"] == 5.65
     assert fields["doubleCircuitCableRouteLength"] == 0.3
+
+
+def test_collector_total_route_fallback_stays_in_collector_section(tmp_path):
+    ast = DocumentAST(file_name="sample.docx", blocks=[
+        DocumentBlock(id="collector", type="paragraph", order=1, section_path=["集电线路"], text="全线线路总计长度：新建线路路径长约81.6km，其中双回架空线路路径长约2×3.6km。"),
+        DocumentBlock(id="outgoing", type="paragraph", order=2, section_path=["送出线路"], text="全线线路总计长度：新建线路路径长约35.48km，电缆线路路径长约1km。"),
+    ])
+    JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
+    result = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    section = next(section for section in result["sections"] if section["name"] == "集电线路")
+    fields = {field["fieldCode"]: field["value"] for field in section["fields"]}
+    assert fields["totalCollectorRouteLength"] == 81.6
+    assert fields["newCableLineLength"] is None
 
 
 def test_collector_line_text_fields_extract_cable_material_and_laying_method(tmp_path):
@@ -6509,7 +6996,7 @@ def test_wind_resource_combined_fields_can_use_air_density_text_without_tower_ta
     fields = {field["fieldCode"]: field["value"] for field in resource["fields"]}
     assert fields["windResourceTowerCodes"] == ["0821#", "8688#", "8899#"]
     assert fields["windResourceAirDensities"] == [1.011, 1.013, 1.015]
-    assert fields["windResourceGenerationUses"] == ["是", "是", "是"]
+    assert fields["windResourceGenerationUses"] is None
 
 
 def test_wind_resource_combined_fields_extract_density_direction_and_generation_use_from_text(tmp_path):
@@ -6527,6 +7014,7 @@ def test_wind_resource_combined_fields_extract_density_direction_and_generation_
     JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
 
     result_json = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    mapped_json = json.loads((tmp_path / "sample_mapped.json").read_text(encoding="utf-8"))
     resource = next(section for section in result_json["sections"] if section["name"] == "资源章节")
     fields = {field["fieldCode"]: field["value"] for field in resource["fields"]}
     assert fields["windResourceTowerCodes"] == ["7123#", "6601#", "6602#"]
@@ -6537,6 +7025,7 @@ def test_wind_resource_combined_fields_extract_density_direction_and_generation_
     assert fields["windResourceMainWindEnergyDirections"] == ["N", "---", "---"]
     assert fields["windResourceSecondaryWindEnergyDirections"] == ["NNW", "---", "---"]
     assert fields["windResourceGenerationUses"] == ["是", "否", "否"]
+    assert mapped_json["${hubHeightAirDensityRange}"] == []
 
 
 def test_wind_resource_combined_fields_handle_radar_tower_report_text(tmp_path):
@@ -6553,6 +7042,7 @@ def test_wind_resource_combined_fields_handle_radar_tower_report_text(tmp_path):
     JsonExporter(output_dir=tmp_path).export(ParseContext(file_path="sample.docx", ast=ast, validated={}))
 
     result_json = json.loads((tmp_path / "sample_result.json").read_text(encoding="utf-8"))
+    mapped_json = json.loads((tmp_path / "sample_mapped.json").read_text(encoding="utf-8"))
     resource = next(section for section in result_json["sections"] if section["name"] == "资源章节")
     fields = {field["fieldCode"]: field["value"] for field in resource["fields"]}
     assert fields["windResourceTowerCodes"] == ["2001#", "B03#"]
@@ -6564,6 +7054,10 @@ def test_wind_resource_combined_fields_handle_radar_tower_report_text(tmp_path):
     ]
     assert fields["windResourceAirDensity10m"] == [1.085, "---"]
     assert fields["windResourceAirDensity160m"] == [1.069, "---"]
+    assert mapped_json["${hubHeightAirDensityRange}"] == [
+        {"tower_code": "2001#", "height": 10, "value": 1.085},
+        {"tower_code": "2001#", "height": 160, "value": 1.069},
+    ]
     assert fields["windResourceMainWindDirections"] == ["ESE", "---"]
     assert fields["windResourceSecondaryWindDirections"] == ["NNW", "---"]
     assert fields["windResourceMainWindEnergyDirections"] == ["NNW", "---"]

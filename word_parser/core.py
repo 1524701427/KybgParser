@@ -1,0 +1,10 @@
+"""解析服务的稳定 Python 导入入口。"""
+
+from word_parser.application.api import create_parser, enhance_parse_result, parse_document, parse_document_with_table_values
+
+__all__ = [
+    "create_parser",
+    "enhance_parse_result",
+    "parse_document",
+    "parse_document_with_table_values",
+]

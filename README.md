@@ -1,578 +1,95 @@
-﻿# WordParser
+# WordParser
 
-WordParser 是一个面向风电可研报告 Word 文档的结构化解析引擎。它负责加载 `.doc/.docx`，识别章节和表格，召回候选证据，抽取配置字段，校验结果，并输出业务 JSON 和人工核对用的 details JSON。
+WordParser 将风电可行性研究报告（`.doc`、`.docx`、`.pdf`）解析为结构化 JSON。项目采用配置和确定性规则，不依赖生成式大模型。输入文件可以放在任意目录；默认输出到 `data/predictions/`。
 
-当前设计约束：
+## 先用起来
 
-- 不使用生成式 LLM。
-- 主入口是 Python API：`word_parser.core`；旧 `parser_engine.*` 入口保留兼容，不再作为新代码首选入口。
-- 规则、BGE、UIE、Reranker、NLI 都通过 `configs/pipeline.yaml` 控制。
-- Word 解析优先使用 Aspose，缺失时 `.docx` 可退回轻量解析器。
-
-## 项目结构
-
-根目录只保留少量固定入口：
-
-```text
-WordParser/
-  word_parser/        # 简化后的主代码入口：document/extraction/output/core
-  parser_engine/      # 解析引擎代码
-  configs/            # 主抽取和二次抽取配置
-  tools/              # 调试脚本、评估、训练、临时工具
-  tests/              # 自动化测试
-  samples/            # 样例报告和解析参考文档
-  runtime/            # Aspose/SkiaSharp DLL 和 license
-  data/               # 输出、日志、调试图片
-  models/             # 本地模型
-  main.py             # 本地示例入口
-```
-
-推荐开发时只看 `word_parser/` 的四层入口：
-
-```text
-word_parser/
-  document/     Word/PDF 加载、统一文档模型、章节和结构解析
-  extraction/   配置化抽取、原表抽取、二次表格抽取、OCR 兜底
-  output/       result.json / details.json / fields.json 构建
-  core/         pipeline、配置和服务 API
-```
-
-`parser_engine/` 目前作为兼容实现层保留，避免结构调整影响已有业务抽取逻辑。新增调用优先从 `word_parser.*` 导入。
-
-## 目录
-
-- [项目结构](#项目结构)
-- [环境要求](#环境要求)
-- [安装](#安装)
-- [模型下载](#模型下载)
-- [配置](#配置)
-- [运行解析](#运行解析)
-- [部署建议](#部署建议)
-- [OCR 调试](#ocr-调试)
-- [BGE/UIE 调试](#bgeuie-调试)
-- [输出文件](#输出文件)
-- [新增抽取规则](#新增抽取规则)
-- [测试](#测试)
-- [常见问题](#常见问题)
-
-## 环境要求
-
-推荐环境：
-
-- Windows 10/11
-- Python 3.10
-- Anaconda 或 Miniconda
-- 8GB 以上内存，启用 BGE/UIE/Reranker/NLI 时建议 16GB 以上
-- 网络仅用于首次安装依赖和下载模型，运行时可离线
-
-本项目当前在如下环境中验证较多：
-
-```text
-Python 3.10
-paddlepaddle 2.6.2
-paddleocr 2.10.0
-numpy 1.26.4
-torch CPU wheel
-```
-
-## 安装
-
-### 1. 创建环境
+在项目根目录运行，建议使用 Python 3.10。把示例中的报告路径替换为实际文件：
 
 ```powershell
-conda create -n python310 python=3.10 -y
-conda activate python310
-python -m pip install --upgrade pip
-```
-
-### 2. 安装基础依赖
-
-```powershell
-cd C:\Users\EDY\Desktop\WordParser
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
+python main.py "samples/reports/你的报告.docx"
 ```
 
-基础依赖包含：配置、日志、表格处理、Aspose DLL 加载、传统机器学习和部分 ML 运行依赖。
-
-### 3. 安装 PyTorch CPU 版本
-
-如果只使用 CPU，建议显式安装 CPU wheel，避免 CUDA DLL 问题：
-
-```powershell
-python -m pip install --no-cache-dir --force-reinstall torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cpu
-```
-
-如果环境里有 `docling-ibm-models` 等依赖，它通常要求 `torch>=2.2.2`，不建议长期停在 `torch==2.1.2`。
-
-### 4. 安装 UIE / Paddle 依赖
-
-UIE 依赖 PaddlePaddle 和 PaddleNLP。建议分步安装，避免 pip 解析出不兼容依赖：
-
-```powershell
-python -m pip install -r requirements-uie.txt
-python -m pip install paddlenlp==2.6.1 --no-deps
-```
-
-如需 PaddleOCR 封面图片识别：
-
-```powershell
-python -m pip install paddleocr==2.10.0
-python -m pip install "numpy<2"
-```
-
-`numpy<2` 是为了避免部分二进制扩展在 NumPy 2.x 下出现 `_ARRAY_API not found` 或 ABI 警告。
-
-### 5. 验证关键依赖
-
-```powershell
-python -c "import torch; print(torch.__version__)"
-python -c "from paddleocr import PaddleOCR; print('paddleocr ok')"
-python -c "from sentence_transformers import SentenceTransformer; print('sentence-transformers ok')"
-python -c "from paddlenlp import Taskflow; print('paddlenlp ok')"
-```
-
-## 模型下载
-
-项目默认使用本地模型目录：
-
-```text
-models/
-  bge/bge-base-zh-v1.5/
-  reranker/bge-reranker-base/
-  nli/erlangshen-roberta-110m-nli/
-```
-
-`configs/pipeline.yaml` 里的路径需要和本地目录一致。
-
-### 方式一：使用 huggingface-cli
-
-先安装下载工具：
-
-```powershell
-python -m pip install -U huggingface_hub
-```
-
-下载 BGE：
-
-```powershell
-huggingface-cli download BAAI/bge-base-zh-v1.5 --local-dir models/bge/bge-base-zh-v1.5
-```
-
-下载 Reranker：
-
-```powershell
-huggingface-cli download BAAI/bge-reranker-base --local-dir models/reranker/bge-reranker-base
-```
-
-下载 NLI：
-
-```powershell
-huggingface-cli download IDEA-CCNL/Erlangshen-Roberta-110M-NLI --local-dir models/nli/erlangshen-roberta-110m-nli
-```
-
-如果网络访问 HuggingFace 不稳定，可以设置镜像：
-
-```powershell
-$env:HF_ENDPOINT="https://hf-mirror.com"
-huggingface-cli download BAAI/bge-base-zh-v1.5 --local-dir models/bge/bge-base-zh-v1.5
-```
-
-### 方式二：使用 ModelScope
-
-```powershell
-python -m pip install modelscope
-```
-
-示例：
-
-```powershell
-modelscope download --model BAAI/bge-base-zh-v1.5 --local_dir models/bge/bge-base-zh-v1.5
-modelscope download --model BAAI/bge-reranker-base --local_dir models/reranker/bge-reranker-base
-```
-
-NLI 模型如 ModelScope 无对应条目，建议用 HuggingFace 或手工下载。
-
-### Reranker ONNX 模型
-
-当前配置使用 ONNX Reranker：
-
-```yaml
-semantic_verifier:
-  reranker_backend: onnx
-  reranker_model_name: C:\Users\EDY\Desktop\WordParser\models\reranker\bge-reranker-base
-```
-
-代码会寻找：
-
-```text
-models/reranker/bge-reranker-base/onnx/model.onnx
-```
-
-如果下载的 reranker 目录没有 `onnx/model.onnx`，有两个选择：
-
-1. 改用 `cross_encoder` 后端：
-
-```yaml
-semantic_verifier:
-  reranker_backend: cross_encoder
-```
-
-2. 自行导出 ONNX，并放到：
-
-```text
-models/reranker/bge-reranker-base/onnx/model.onnx
-```
-
-## Aspose 配置
-
-项目默认从 `runtime/` 读取以下本地文件：
-
-```text
-runtime/Aspose.Words.dll
-runtime/Aspose.Total.NET.lic
-runtime/SkiaSharp.dll
-```
-
-也可以用环境变量覆盖：
-
-```powershell
-$env:ASPOSE_WORDS_DLL_DIR="C:\Users\EDY\Desktop\WordParser\runtime"
-$env:ASPOSE_WORDS_LICENSE_PATH="C:\Users\EDY\Desktop\WordParser\runtime\Aspose.Total.NET.lic"
-```
-
-说明：
-
-- `.doc` 文件建议使用 Aspose。
-- `.docx` 文件在 Aspose 不可用时可以退回 `SimpleDocxLoader`，但复杂文本框、浮动图片、合并单元格支持会弱一些。
-
-## 配置
-
-主配置文件：
-
-```text
-configs/pipeline.yaml
-configs/output_schema.yaml
-configs/fields/*.yaml
-configs/sections.yaml
-```
-
-关键模块：
-
-```yaml
-bge_matcher:
-  enabled: true
-  mode: active
-  model_name: C:\Users\EDY\Desktop\WordParser\models\bge\bge-base-zh-v1.5
-
-uie_extractor:
-  enabled: true
-  mode: active
-  model_name: uie-base
-
-semantic_verifier:
-  enabled: true
-  mode: active
-  reranker_enabled: true
-  reranker_backend: onnx
-  nli_enabled: true
-```
-
-建议准备两套配置：
-
-- 快速调试：关闭 BGE/UIE/Reranker/NLI，只看规则和表格抽取。
-- 准确率模式：打开 BGE/UIE/Reranker/NLI。
-
-`configs/output_schema.yaml` 控制最终输出结构，包括章节顺序、每个章节展示哪些字段/表格、原表抽取规则、组合表映射和资源章节表格 key。资源章节原表通常配置在 `original_table_groups` 和 `resource_table_key_patterns` 下，例如 `windResourceDirectionEnergyFrequency` 对应《测风塔风向风能频率统计成果表》。
-
-`configs/deterministic_rules.yaml` 控制配置化的确定性业务规则。它适合放跨句、正文兜底、组合判断类规则，例如：
-
-- 资源章节的本期测风塔优先判断、空气密度、风速、风功率密度、湍流、风切变。
-- 电气一次的主变容量、主接线形式、SVG 无功补偿容量、接入站脏值过滤。
-- 风机基础的桩数、桩径、桩长、承台直径、基础埋深、台柱直径。
-- 财务的材料费、流动资金单位千瓦指标、人员工资。
-
-快速调试可参考：
-
-```yaml
-bge_matcher:
-  enabled: false
-
-uie_extractor:
-  enabled: false
-
-semantic_verifier:
-  enabled: false
-```
-
-## 运行解析
-
-### Python API
-
-完整解析，包含二次表内抽取：
+也可以使用已有的 Conda 环境。直接运行 `python main.py` 会提示输入报告路径，也可在命令后传入实际存在的报告路径；`python main.py --help` 可查看选项。默认运行**完整流程**；仅需一次抽取时加 `--primary-only`。在项目根目录运行，因为默认配置目录为 `configs/`、输出目录为 `data/predictions/`。使用其他配置目录时加 `--config-root 路径`。
 
 ```python
-from word_parser.core import parse_document_with_table_values
+from word_parser.core import parse_document_with_table_values, parse_document
 
-result = parse_document_with_table_values(r"C:\Users\EDY\Desktop\WordParser\samples\reports\sample.docx")
-print(result.get("outputFiles", {}))
+full = parse_document_with_table_values("report.pdf")  # 完整流程
+primary = parse_document("report.docx")                # 仅一次解析
+print(full["outputFiles"])
 ```
 
-只跑主解析：
+命令行结束后会打印输出文件路径和二次抽取摘要。正式对接通常读取 `*_mapped.json`；排查错误先看 `*_details.json`。
 
-```python
-from word_parser.core import parse_document
-
-result = parse_document(r"C:\Users\EDY\Desktop\WordParser\samples\reports\sample.docx")
-```
-
-### 命令行示例
-
-`main.py` 目前只是本地示例入口。可以直接运行：
-
-```powershell
-python main.py
-```
-
-如果需要正式命令行入口，建议后续把 `main.py` 改成 argparse，例如：
-
-```powershell
-python main.py --input report.docx --output data/predictions
-```
-
-## 部署建议
-
-### 单机部署
-
-推荐目录结构：
+## 架构与执行顺序
 
 ```text
-WordParser/
-  word_parser/
-  configs/
-  models/
-  runtime/
-  samples/
-  tools/
-  data/predictions/
-  main.py
+报告 Word/PDF
+  → document：读取、统一文档结构、识别章节和原表
+  → discovery：前置指标扫描，建立带原文位置的候选指标索引
+  → primary：一次抽取，按字段配置召回、匹配、取值、归一化、选值
+  → output：构建一次结果并保留原表
+  → secondary：基于一次结果中的表格执行二次取值
+  → mapping：同步二次结果、组合最终字段、检查一致性
+  → result / details / mapped 三种 JSON
 ```
 
-部署步骤：
+完整入口在 `word_parser/application/workflow.py`。它调用 `ParserPipeline.parse(..., defer_mapping=True)`，二次抽取完成后才生成最终映射。一次抽取入口 `parse_document()` 保持原有行为：一次解析后直接映射并输出三种 JSON。前置扫描从段落中的多组名称和值、并列表格和横向表头记录数值或短文本、单位、行列及原文位置。名称变体在单位和章节相容时向一次抽取提供定位提示；唯一精确命中的数值即使字段已有其他候选，也会进入一次抽取候选池。名称包含关系和模糊匹配仍须满足字段唯一、单位及口径等约束才能参与最终选值。一次抽取默认不按每字段 Top-K 丢弃候选，最终值由字段规则、上下文约束和冲突消解决定。多实体表格的列值保留行身份，不自动写入单值字段。二次抽取按现有优先级处理原表。
 
-1. 拷贝代码和配置。
-2. 拷贝本地模型到 `models/`。
-3. 拷贝 Aspose DLL/license。
-4. 创建 Python 3.10 环境。
-5. 安装依赖。
-6. 运行一次 `python -m pytest tests/test_pipeline.py -q` 验证基础功能。
-7. 使用 `parse_document()` 或服务封装调用。
+`details.json` 中的 `discoveredIndicators` 是前置扫描的原文观测，`extractionCandidates` 是一次抽取产生的全部字段候选，均不等于最终映射。候选包含取值、方法、位置、规则分和上下文拒绝原因。排查缺值时先查预抽取有没有原文观测，再查一次抽取有没有字段候选，最后查看 `fieldIndex` 的选值证据和映射规则。扫描依赖解析器得到的文本和表格；图片、扫描页或解析失败的内容仍可能漏掉。
 
-### 服务化部署
+| 目录 | 职责 | 常看文件 |
+| --- | --- | --- |
+| `word_parser/application/` | 对外 API、完整流程、一次流水线、组件装配、HTTP 服务 | `api.py`、`workflow.py`、`pipeline.py`、`http_api.py` |
+| `word_parser/document/word/`、`pdf/` | Word/PDF 加载 | `aspose_loader.py`、`pdf_loader.py` |
+| `word_parser/document/ast/`、`tables/` | 统一文档结构及原始表格 | 文档类型、原表解析 |
+| `word_parser/document/` | 章节、版面、封面 OCR | `section_detector.py`、`cover_ocr.py` |
+| `word_parser/discovery/` | 前置指标发现 | `stage.py`、`indicators.py` |
+| `word_parser/primary/` | 一次抽取及候选消解 | `stage.py`、`value_extractor.py` |
+| `word_parser/secondary/table_values/` | 二次表格取值原语 | `resolver.py`、`results.py` |
+| `word_parser/mapping/` | 最终映射、二次同步、一致性检查 | `projector.py`、`validation.py` |
+| `word_parser/domains/` | 风资源、电气、土建、财务等专业规则 | 各领域文件 |
+| `word_parser/output/` | 结果构建、共用规则辅助方法与三种 JSON 导出 | `result_builder.py`、`builder_support/`、`json_exporter.py` |
+| `word_parser/extraction/` | 兼容旧版公共导入路径，新规则不再放这里 | `__init__.py` |
+| `word_parser/config/`、`configs/` | 读取配置与存放规则 | `loader.py`、各 YAML |
+| `tests/` | 单元与轻量流程回归 | `test_pipeline.py`、`test_table_values.py` |
+| `tools/` | 手工脚本、离线评估和训练辅助；不参与线上解析流程 | `scripts/`、`evaluation/`、`training/` |
+| `samples/`、`data/`、`runtime/` | 样例、输出、商业运行时 | 见下文 |
 
-如需要做 HTTP 服务，建议新增 FastAPI 包装层，不要把服务逻辑塞进解析实现层：
+`word_parser.core` 是稳定的 Python 导入入口，实现位于单文件 `word_parser/core.py`。`word_parser/config/` 是读取配置的 Python 代码，根目录 `configs/` 是实际 YAML 规则。旧的 `word_parser.http_api:app` 仍转发至服务实现。模块拆分只标明职责；专业规则的调用顺序、覆盖顺序和 NIL 行为仍以现有代码与配置为准。
 
-```python
-from fastapi import FastAPI
-from word_parser.core import create_parser
+## 输出与排查
 
-app = FastAPI()
-parser = create_parser()
+| 文件 | 用途 |
+| --- | --- |
+| `<报告名>_result.json` | 按章节组织的业务字段和表格 |
+| `<报告名>_details.json` | `fieldIndex`、`tableIndex`、来源、规则、候选和二次抽取过程 |
+| `<报告名>_mapped.json` | 按 `configs/output_schema.yaml` 输出的 `${...}` 占位符键，供回调或下游系统使用 |
 
-@app.post("/parse")
-def parse(file_path: str):
-    return parser.parse(file_path)
-```
+未取到的标量映射通常为 `null`，必需表格保留空表结构；具体结构以输出配置和当前映射器为准。需要核对“值为什么是这个”时，先在 `details.fieldIndex.<字段编码>` 看 `rule`、`source` 和 `articleLocation`；原表没出现时看 `tableIndex`、表题和 `output_schema.yaml`；二次抽取未命中时看 `tableValueExtraction` 中的行列定位与 NIL 原因。最终字段清单另见 `FINAL_EXTRACTION_INVENTORY.md`。
 
-服务化时建议：
+`samples/reports/` 可放原始报告，`samples/parsed/` 可放人工参考文档；`data/predictions/` 是默认 JSON 输出，`data/reports/` 用于人工核对报告，`data/logs/` 和 `data/debug-images/` 可存放调试产物。解析器不要求输入文件位于这些目录。
 
-- `release_after_match: false`，避免每个请求重复加载 BGE。
-- `release_after_extract: false`，避免每个请求重复加载 UIE。
-- `release_after_verify: false`，避免每个请求重复加载 Reranker/NLI。
-- 单机内存不足时再改回 `true`。
+## 配置从哪里改
 
-## OCR 调试
+| 需求 | 配置或代码 |
+| --- | --- |
+| 开关一次抽取模块、候选截断 | `configs/pipeline.yaml`（默认关闭 `funnel`，保留全部候选） |
+| 普通字段别名、正则、单位、章节和校验 | `configs/fields/*.yaml` |
+| 字段证据上下文约束 | `configs/field_constraints.yaml` |
+| 章节标题别名、通用单位别名 | `configs/sections.yaml`、`configs/units.yaml` |
+| 跨句或正文确定性规则 | `configs/deterministic_rules.yaml` |
+| 输出章节、字段、原表和占位符映射 | `configs/output_schema.yaml` |
+| 已保留表格中的二次取值 | `configs/table_field_extractors.yaml` |
+| 规则无法表达的专业算法 | `word_parser/domains/` 或对应抽取模块 |
 
-封面 OCR 使用 `CoverOcrExtractor`，主要用于从目录前正文图片中提取：
+### 一次抽取字段
 
-- 项目名称
-- 设计单位
-- 设计单位资质等级
-
-### 保存 OCR 扫描到的图片
-
-设置环境变量：
-
-```powershell
-$env:COVER_OCR_DEBUG_DIR="C:\Users\EDY\Desktop\WordParser\data\debug-images"
-```
-
-如果不是命令行运行，可以在 Python 入口最前面设置：
-
-```python
-import os
-os.environ["COVER_OCR_DEBUG_DIR"] = r"C:\Users\EDY\Desktop\WordParser\data\debug-images"
-```
-
-可选参数：
-
-```powershell
-$env:COVER_OCR_MAX_IMAGES="32"
-$env:COVER_OCR_MIN_IMAGE_BYTES="4096"
-```
-
-说明：
-
-- `COVER_OCR_MAX_IMAGES` 控制最多 OCR 几张目录前正文图片。
-- `COVER_OCR_MIN_IMAGE_BYTES` 过滤太小的图标或碎片图。
-- 当前 OCR 只扫描正文 `word/document.xml` 中目录前图片，不扫描页眉页脚。
-- 支持 `a:blip` 和 `v:imagedata` 两类 Word 图片表示。
-
-### 手动测试单张证书图
-
-```powershell
-python tools\ocr_cert_test.py .\1.png
-```
-
-这个脚本会打印：
-
-- PaddleOCR 原始输出
-- OCR 文本行
-- 项目规则提取结果
-- `designUnit`
-- `designUnitQualification`
-
-## BGE/UIE 调试
-
-### BGE 用途
-
-BGE 只做候选语义匹配，不直接抽值。它解决的问题是：候选文本和字段语义是否相关。
-
-重点配置：
-
-```yaml
-bge_matcher:
-  threshold: 0.72
-  max_text_length: 128
-  batch_size: 4
-  top_k_per_field: 50
-  min_match_score: 0.0
-```
-
-调参建议：
-
-- 误判多：提高 `threshold` 到 `0.75 ~ 0.80`。
-- 漏候选：提高 `top_k_per_field`，或降低 `min_match_score`。
-- 长句语义不完整：提高 `max_text_length` 到 `256`。
-- 内存不足：降低 `batch_size`，保持 `memory_aware: true`。
-
-### UIE 用途
-
-UIE 从候选文本中补充抽取字段值，不负责全文扫描。
-
-重点配置：
-
-```yaml
-uie_extractor:
-  threshold: 0.75
-  max_text_length: 256
-  batch_size: 2
-  top_k_per_field: 3
-  min_match_score: 1.0
-```
-
-调参建议：
-
-- 漏抽：降低 `threshold` 到 `0.65 ~ 0.70`。
-- 截断：提高 `max_text_length` 到 `512`。
-- 候选太少：提高 `top_k_per_field` 到 `5`。
-- 速度慢：降低 `top_k_per_field` 或关闭 UIE。
-
-### 判断问题在哪一步
-
-优先看 `data/predictions/*_details.json`：
-
-- 字段值不对：先看 `fieldIndex.<fieldCode>.rule`，确认命中的配置文件、规则名、正则和 `matchedText`。
-- 来源段落不对：看 `articleLocation.sectionPath` 和 `source.text`，确认是否落在字段允许的章节或强上下文兜底范围内。
-- 原表没出来：看 `tableIndex` 是否有目标表 key；没有则检查 `configs/output_schema.yaml` 的 `original_table_groups`、`optional_tables` 和表题正则。
-- 原表出来但字段没算出：说明原表透传已命中，字段 resolver 还需要适配该表的行列结构。
-
-## 输出文件
-
-默认输出目录：
-
-```text
-data/predictions/
-```
-
-解析输出两类文件；执行二次抽取后会把二次结果合并回最终结果：
-
-```text
-*_result.json
-*_details.json
-```
-
-### result JSON
-
-给业务系统使用，只包含最终结构化结果：
-
-```json
-{
-  "filePath": "sample.docx",
-  "sections": [
-    {
-      "name": "通用",
-      "fields": [
-        {"fieldCode": "projectName", "name": "项目名称", "value": "...", "unit": null}
-      ],
-      "tables": []
-    }
-  ]
-}
-```
-
-二次抽取成功的字段会按同样的 `fieldCode/name/value/unit` 结构合入对应章节的 `fields`。涉及原表保留的二次结果会合入对应章节的 `tables`，并用 `tableRef` 指向已有原表。二次抽取的 NIL、行列命中、来源表、trace 和完整表数据都写入 `*_details.json` 的 `tableValueExtraction`。
-
-### details JSON
-
-给人工核对和调试使用，包含：
-
-- summary
-- sections
-- fieldIndex
-- tableIndex
-
-字段详情重点看：
-
-- `rule`：命中的配置规则、正则、resolver 或 builder 来源。
-- `articleLocation`：原文定位，包括 `sectionPath`、`blockId`、`tableId`、`caption` 等。
-- `sourceText`：章节视图中的简短原文证据；完整索引用 `fieldIndex`。
-
-原表详情重点看：
-
-- `key`：稳定表格编码，例如 `windResourceDirectionEnergyFrequency`。
-- `source.caption`：原文表题。
-- `source.rule.ruleSource`：原表命中的配置文件，通常是 `configs/output_schema.yaml`。
-- `articleLocation.sectionPath`：原表所在原文章节。
-
-排查字段问题时优先看 `fieldIndex`。
-
-## 新增抽取规则
-
-新增规则前先判断属于哪一类：
-
-| 场景 | 改哪个配置 |
-|---|---|
-| 新增一个普通字段，从正文或表格候选中抽值 | `configs/fields/*.yaml` |
-| 控制最终 JSON 哪个章节展示哪些字段/表 | `configs/output_schema.yaml` |
-| 原文里有一整张表，要透传到最终 JSON | `configs/output_schema.yaml` 的 `original_table_groups` / `resource_table_key_patterns` |
-| 已经抽到表，还要从表里二次取单元格或派生表 | `configs/table_field_extractors.yaml` |
-| 正文里跨句、多字段、要优先级/过滤/兜底的业务规则 | `configs/deterministic_rules.yaml` |
-
-### 新增一次抽取字段
-
-一次抽取优先放在 `configs/fields/*.yaml`。适合“字段名附近有值”的情况。
-
-示例：
+`configs/fields/` 按业务领域拆分，例如 `wind_resource.yaml`、`finance.yaml`、`electrical.yaml`。每个文件以 `fields:` 为根节点，字段编码为子键。建议复制相近字段并按报告证据修改：
 
 ```yaml
 fields:
@@ -582,243 +99,95 @@ fields:
     standard_unit: m/s
     sections:
       include: [资源章节, 风能资源]
-      exclude: [财务, 投资]
+      exclude: [财务]
     aliases: [平均风速, 年平均风速]
     unit_aliases: [m/s, 米/秒]
     patterns:
-      - '年?平均风速(?:为)?\s*([0-9]+(?:\.[0-9]+)?)\s*(m/s|米/秒)'
+      - '年?平均风速.{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(m/s|米/秒)?'
     validators:
       min: 0
       max: 50
 ```
 
-加完字段后，如果要出现在最终 JSON，还要把字段 code 加到 `configs/output_schema.yaml` 对应章节的 `sections[].fields`，并在 `fields:` 下配置中文名和单位。
+`aliases` 负责召回，`sections.include/exclude` 调整候选章节，`patterns` 提供字段专用正则（第一组通常取值，第二组通常取单位），`unit_aliases` 和 `standard_unit` 约束单位，`validators` 限制明显不合理的值。正则尽量限制字段名与数值间的距离，避免跨句误抽。表格定位可使用 `table_lookup`（行/列别名）、`table_aggregate`（如求和）、`table_list`（整列列表）和 `row_context`（行内要求词/排除词）；相关字段已有可复制的实际配置。字段级 `extractors.table_rule`、`extractors.regex` 与 `pipeline.yaml` 的模块开关共同决定抽取器是否参与。 `value_map` 可把原文写法归一为标准值，`source_priority`、`preferred_methods` 和证据校验项影响候选选择。
 
-### 新增确定性正文规则
+需要在固定结果中展示新字段时，还要将字段编码加入 `output_schema.yaml` 对应 `sections[].fields`，并在该文件的 `fields:` 中登记名称与单位。`field_constraints.yaml` 可为特定字段配置 `required_context_any`、`negative_context`、`detect_conflicts`；未配置的字段不受此约束。修改 `sections.yaml` 或 `units.yaml` 时沿用其 `sections.<类别>.aliases`、`units.<类别>.aliases/standard` 结构。
 
-如果字段不是简单“字段名: 值”，而是需要正文兜底、跨句判断、取最后一个值、过滤脏值，就放到 `configs/deterministic_rules.yaml`。
+下游占位符名由 `output_schema.yaml` 的 `output_field_codes` 指定，例如 `projectName: project_name` 会输出 `${project_name}`。字段值来源于一次或二次抽取；少数需要重组列表或跨字段合并的映射由 `word_parser/mapping/` 中的代码完成。修改占位符时要同时核对下游接口与映射测试。
 
-示例：
+### 正文确定性规则与原表
 
-```yaml
-finance:
-  sections: ['财务']
-  fallback_keywords: ['材料费', '流动资金', '工资']
-  fields:
-    materialCostPerKw:
-      name: 材料费（元/KW）
-      unit: 元/KW
-      value_type: number
-      evidence_keywords: ['材料费']
-      patterns:
-        - '材料费(?:定额)?取\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*元\s*/\s*kW'
-```
+`configs/deterministic_rules.yaml` 适合需要跨句、排除词、取最后一个值等逻辑的正文规则。按现有业务领域条目增加 `sections`、`fallback_keywords`、`fields.<编码>.patterns`、`evidence_keywords` 和 `validators`；正则可使用 `(?P<value>...)` 标明值。若需要透传原文整表，在 `output_schema.yaml` 对应章节登记 `optional_tables` 或 `optional_table_prefixes`，再在 `original_table_groups[].key_patterns` 配置表题匹配。报告间表号常变化，优先匹配表题内容、列名和必要正文，而非固定表号。
 
-常用配置项：
+### 二次表格抽取
 
-| 配置项 | 说明 |
-|---|---|
-| `sections` | 优先扫描哪些章节 |
-| `fallback_keywords` | 章节识别不到时，用哪些关键词筛正文块 |
-| `patterns` | 正则，推荐用 `(?P<value>...)` 标出值 |
-| `value_type` | `number` 或 `text` |
-| `select` | `last` 表示同一段里取最后一个命中值 |
-| `require_keywords` | 文本必须包含这些词才允许命中 |
-| `reject_keywords` | 文本包含这些词就拒绝 |
-| `validators.min/max` | 数值范围保护 |
-| `evidence_keywords` | details 里定位证据时优先找这些词 |
+`configs/table_field_extractors.yaml` 的 `rules:` 声明二次抽取规则。最常用的 `operation: cell` 先用 `source_table` 找表，再用 `row`、`column` 定位单元格；还支持 `column_values`、`cell_items`、`table_projection`、`copy_table`、`sum_fields` 等操作。表题可写 `name_patterns`，列名用 `required_columns`，正文用 `required_text`；`name_match_content: true` 可在表题不贴着表格时按内容回退。行列的 `aliases` 接受不同报告写法，`exclude_aliases` 排除相近但错误的行，`value_pattern` 在长文本中截取局部值，`conversion` 做单位换算。
 
-### 新增原表透传
-
-如果需求要保留原文表，先在 `configs/output_schema.yaml` 对应章节加入 `optional_tables` 或 `optional_table_prefixes`，再在 `original_table_groups` 里加表题规则。
-
-示例：
-
-```yaml
-original_table_groups:
-  - key_prefix: resourceOriginalTable
-    title_only: true
-    key_patterns:
-      - key: windResourceDirectionEnergyFrequency
-        patterns:
-          - '测风塔.*风向风能频率统计成果表'
-          - '风向.*风能.*频率统计'
-```
-
-如果表名编号经常变化，不要把 `表2.6-16` 写死，优先写内容关键词。
-
-### 新增二次抽取规则
-
-二次抽取改 `configs/table_field_extractors.yaml`。它只处理已经进入 `result.json` 的表，不重新读 Word。
-
-新增一个“最终固定输出的表格字段”只需要维护配置和测试，不需要再同步修改 `ResultBuilder`：
-
-1. 在 `configs/table_field_extractors.yaml` 声明如何定位表、行、列和值。
-2. 在 `configs/output_schema.yaml` 的 `sections[].fields` 注册字段所属章节。
-3. 在同一文件的 `fields:` 配置字段中文名和标准单位。
-4. 在 `tests/test_table_values.py` 增加正常命中、易混淆行和缺列场景测试。
-5. 更新 `FINAL_EXTRACTION_INVENTORY.md`，供业务确认最终字段清单。
-
-`configs/output_schema.yaml` 是最终字段结构的唯一数据源。未命中时仍需输出空字段，就必须在这里注册；只想命中时追加，则只配置二次抽取规则。
-
-示例：从某张表里按行列取一个字段：
+附表若落在其他章节，一次抽取会把带“附表/附录/附件”章节、明确附表题、`01…表` 一类编号表题，或命中字段配置表题的内容作为跨章节候选，继续执行字段原有的表格、正则、单位及上下文规则；目标章节已有通过校验的值时优先使用目标章节。普通其他章节和字段明确排除的章节仍不参与这个兜底。二次抽取会在目标章节找不到表时，按全篇唯一的表格 `key` 和原有表名、列名约束查找。明确需要全篇搜索时也可在 `source_table` 中设置 `search_all_sections: true`。原表识别允许带明确表题的附表跨章节匹配；不要只凭章节名或相似标题取值。
 
 ```yaml
 rules:
-  - field_code: exampleField
-    field_name: 示例字段
+  - field_code: exampleFinancialRate
+    field_name: 示例收益率
     section: 财务
     source_table:
-      key: financialIndicatorSummary
       name_patterns: ['财务指标汇总表']
       required_columns: ['项目', '数值']
-    row:
-      type: label
-      column: 项目
-      patterns: ['资本金财务内部收益率']
-    column:
-      aliases: ['数值', '指标']
+    row: {type: label, column: 项目, aliases: ['资本金财务内部收益率']}
+    column: {aliases: ['数值', '指标']}
     value_type: number
     unit: '%'
 ```
 
-表格字段通用模板：
+多测风塔、不同高度可使用配置中的 `towers.from_table` 和 `variables.*.from_table` 动态发现，不必把塔号和高度写死。新增固定输出字段时，依次更新二次规则、`output_schema.yaml` 的章节字段及字段元数据，再增加相关回归用例；只在命中时出现的动态字段可不注册为固定字段。修改字段清单后同步核对 `FINAL_EXTRACTION_INVENTORY.md`。
 
-```yaml
-- field_code: exampleEquipmentPrice
-  field_name: 示例设备单价
-  section: 技经概算
-  source_table:
-    key: investmentEquipmentInstallation
-    name_patterns: ['设备及安装工程概算表', '第二部分\s*设备及安装工程']
-    name_match_content: true
-    required_columns:
-      - {aliases: ['项目名称及规格', '项目名称', '名称']}
-      - {aliases: ['单位']}
-      - {aliases: ['数量']}
-  row:
-    type: label
-    column: ['项目名称及规格', '项目名称', '名称']
-    aliases: ['示例设备', '设备别名']
-    all_aliases: ['必须词A', '必须词B']
-    exclude_aliases: ['排除词']
-  column:
-    aliases: ['设备费', '设备购置费', '设备购置费（万元）']
-  value_type: number
-  unit: 万元
-```
+## 运行环境与部署
 
-常用规则：
+### 本地运行
 
-| 配置 | 用途 |
-|---|---|
-| `aliases` | 任一别名命中即可。 |
-| `all_aliases` | 所有关键词必须同时出现，例如“主变压器 + 中性点设备”。 |
-| `exclude_aliases` | 出现任一排除词就拒绝，例如普通风机排除“塔筒”。 |
-| `exact: true` | 归一化后精确匹配列名或行标签。 |
-| `occurrence` | 同名行或列按从 0 开始的出现顺序选择。 |
-| `merge_following_rows.max_rows` | 合并设备规格的后续空名称行。 |
-| `value_pattern` / `value_patterns` | 从长文本中截取目标值。 |
-| `value_groups` + `value_join` | 组合多个正则捕获组，例如把 `800` 和 `315` 组成 `800/315`。 |
-| `conversion` | 单位换算，例如 `wan_kwh_to_mwh`。 |
-| `dedupe: false` | 整列抽取时保留重复值，维持逐行对应关系。 |
+Python 要求见 `pyproject.toml`（至少 3.10）。`requirements.txt` 安装项目常规 Python 依赖；PDF 加载需要基础镜像中的 `opendataloader_pdf` 等组件，直接在本机解析 PDF 时需另行准备对应依赖。Word 优先使用 Aspose；`.docx` 在 Aspose 不可用时可退回简化加载器，复杂表格和图片的效果可能不同；`.doc` 应准备 Aspose 运行时。默认从 `runtime/` 读取 `Aspose.Words.dll`、`Aspose.Total.NET.lic` 和 SkiaSharp 库。也可设置 `ASPOSE_WORDS_DLL_DIR`、`ASPOSE_WORDS_LICENSE_PATH` 指向外部位置。封面 OCR 可使用 RapidOCR 或 PaddleOCR；使用 `COVER_OCR_DEBUG_DIR` 保存扫描图片，`COVER_OCR_MAX_IMAGES` 和 `COVER_OCR_MIN_IMAGE_BYTES` 控制扫描范围。
 
-常用操作：
-
-| operation | 适用场景 |
-|---|---|
-| `cell`（默认） | 按目标行和目标列抽取一个值。 |
-| `cell_items` | 复用同一张表和目标列，按设备别名目录批量生成多个字段。 |
-| `column_values` | 抽取整列为列表。 |
-| `table_projection` | 从原表投影指定列。 |
-| `filter_table_projection` | 按设备别名分类并投影多行。 |
-| `copy_table` | 原样复制已经进入结果的表。 |
-| `sum_fields` | 对已有字段求和。 |
-
-示例：二次结果涉及原表保留时，用派生表引用原表：
-
-```yaml
-rules:
-  - key: generationCorrectionFactors
-    name: 折减修正系数表
-    section: 发电量章节
-    operation: copy_table
-    source_table:
-      name_patterns: ['折减修正系数表']
-      required_columns: ['项目', '取值']
-```
-
-二次抽取成功后会合并到最终 `*_result.json`；完整命中过程、NIL 原因、行列定位保留在 `*_details.json` 的 `tableValueExtraction`。
-
-### 修改后的验证
-
-每次新增规则后建议至少跑：
-
-```powershell
-python -m pytest -q tests/test_pipeline.py
-python main.py
-```
-
-如果改了二次抽取，再加跑：
-
-```powershell
-python -m pytest -q tests/test_table_values.py
-```
-
-## 测试
-
-运行全部测试：
+运行测试：
 
 ```powershell
 python -m pytest -q
+python -m pytest -q tests/test_pipeline.py tests/test_table_values.py
 ```
 
-只跑主回归：
+多数测试使用合成文档；真实报告的准确率及 Aspose/PDF/OCR 运行时需要在目标环境另行核对。
+
+### HTTP 服务
 
 ```powershell
-python -m pytest tests/test_pipeline.py -q
+python -m uvicorn word_parser.application.http_api:app --host 0.0.0.0 --port 8000
 ```
 
-语法检查：
+`POST /parse` 接收 `bizId`、`reportType`、`fileUrl`、`fileName`、`callbackUrl`，立即返回 `taskId`。后台下载报告（上限 200 MB）并解析，随后向请求指定的回调地址 POST `reportId`、`parseTaskId`、`parseStatus`、`rawData`、`errorMsg`；成功时 `rawData` 为映射 JSON 的字符串，失败时带错误信息。回调会重试。接口文档：`http://127.0.0.1:8000/docs`。仅浏览器直接访问该服务时，才需要通过 `WORD_PARSER_CORS_ORIGINS` 设置逗号分隔的允许来源。
 
-```powershell
-python -m compileall word_parser parser_engine main.py
+```bash
+curl -X POST http://127.0.0.1:8000/parse -H 'Content-Type: application/json' \
+  -d '{"bizId":2001,"reportType":"FEASIBILITY_STUDY","fileUrl":"https://example.com/report.pdf","fileName":"风电可研报告.pdf","callbackUrl":"https://example.com/parse/callback"}'
 ```
 
-## 常见问题
+### Docker 与 GitLab
 
-### 1. PaddleOCR 导入时报 `shm.dll` 或 WinError 127
+`Dockerfile` 基于 `docker.wh-ge.com/document-processing-base:1.0`，该基础镜像提供 Python、.NET、Java 和 PDF/OCR 系统依赖。构建环境须能访问基础镜像；`runtime/` 须包含 Dockerfile 检查的 Aspose、SkiaSharp 和 Linux 运行时文件。镜像构建时会检查导入和 Aspose 加载，容器启动时监听 8000 端口：
 
-通常是 `torch / torchvision / torchaudio` 混装或 DLL 依赖损坏。建议统一重装 CPU 版本：
-
-```powershell
-python -m pip uninstall -y torch torchvision torchaudio
-python -m pip install --no-cache-dir torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/cpu
+```bash
+docker build -t word-parser:local .
+docker run --rm -p 8000:8000 word-parser:local
 ```
 
-### 2. 出现 NumPy 2.x ABI 警告
+CI 配置在 `.gitlab-ci.yml`：`test` 分支构建、测试并自动部署测试环境，`main` 分支构建、测试后由人工触发生产部署。部署默认映射宿主机 9994 到容器 8000。构建及部署需要 Docker、仓库访问和 SSH 连通性。调整服务 worker 数可设置 `UVICORN_WORKERS`；现有部署默认 1。
 
-降级到 NumPy 1.x：
+当前部署凭据写在 `.gitlab-ci.yml` 的 `variables` 中：镜像仓库使用 `NEXUS_USERNAME`、`NEXUS_PASSWORD`；测试和生产环境分别使用 `TEST_SSH_PRIVATE_KEY_B64` / `PROD_SSH_PRIVATE_KEY_B64`，或对应的 `TEST_SSH_PASSWORD` / `PROD_SSH_PASSWORD`。SSH 私钥变量保存私钥文件内容的 Base64 编码。`FEISHU_WEBHOOK_URL` 为可选通知地址。镜像仓库、目标主机和端口也在该文件中配置，部署到其他环境时按实际地址修改。
 
-```powershell
-python -m pip install --force-reinstall "numpy<2"
-```
+## 新人上手路径
 
-### 3. Reranker 报 ONNX 输入类型错误
+1. 先读本页“架构与执行顺序”，再看 `application/workflow.py` 与 `application/pipeline.py`。
+2. 用一份已有报告运行 `python main.py <路径>`，打开三个输出文件。
+3. 选一个字段，在 `details.fieldIndex` 查证据与规则，再到 `configs/fields/` 或 `table_field_extractors.yaml` 找对应配置。
+4. 修改相近规则，增加一个命中和一个易混淆场景的回归测试，运行相关测试与完整测试。
+5. 调整最终字段或表格时同步检查 `output_schema.yaml` 和 `FINAL_EXTRACTION_INVENTORY.md`。
 
-当前代码会把 tokenizer 的整型输入转成 `int64`。如果仍然报错，检查 ONNX 模型输入签名和 tokenizer 输出字段是否匹配。
-
-### 4. OCR 没识别到证书图
-
-开启图片调试：
-
-```powershell
-$env:COVER_OCR_DEBUG_DIR="C:\Users\EDY\Desktop\WordParser\data\debug-images"
-$env:COVER_OCR_MAX_IMAGES="64"
-```
-
-重新解析后检查 `data/debug-images`。如果证书图仍不存在，说明它可能不在正文目录前，或者 Word 将其放在页眉/页脚/特殊对象中。
-
-### 5. `.doc` 解析失败
-
-`.doc` 推荐安装并配置 Aspose。轻量 loader 只支持 `.docx`。
+日志消息、注释和 docstring 使用中文；配置键、Python 标识符、JSON 键与外部 API 字段保持既有英文写法，避免破坏接口兼容。

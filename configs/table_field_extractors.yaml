@@ -48,9 +48,7 @@ x_investment_equipment_price_table: &investment_equipment_price_table
     - {aliases: ['数量']}
 
 x_investment_equipment_fee_column: &investment_equipment_fee_column
-  aliases: ['设备费', '设备购置费', '设备购置费（元）', '设备购置费(元)', '设备费（元）', '设备费(元)', '设备购置费（万元）', '设备购置费(万元)', '设备费（万元）', '设备费(万元)', '设备原价', '设备价格', '合计（万元）', '合计(万元)', '合计 （万元）', '合计   （万元）', '合计']
-  offset: 1
-  offset_when_source_matches: ['合计']
+  aliases: ['单价（元）', '单价(元)', '设备单价（元）', '设备单价(元)', '单价（万元）', '单价(万元)', '设备单价（万元）', '设备单价(万元)', '单价', '设备单价']
   conversion: yuan_to_wan_yuan_by_header
 
 x_investment_equipment_items: &investment_equipment_items
@@ -557,7 +555,7 @@ rules:
     section: 发电量章节
     operation: column_values
     source_table: &single_turbine_energy_table
-      name_patterns: ['单台风机年上网电量计算成果', '风电场发电量计算成果', '推荐机型单机发电量统计']
+      name_patterns: ['单台风机年上网电量计算成果', '风电场发电量计算成果', '推荐机型单机发电量统计', '风电场发电量表']
     column: {aliases: ['标签', '风机编号']}
     value_type: text
     dedupe: false
@@ -641,6 +639,7 @@ rules:
     operation: column_values
     source_table: *single_turbine_energy_table
     columns:
+      - {aliases: ['考虑尾流发电量 (MWh/a)', '考虑尾流发电量(MWh/a)', '考虑尾流发电量（MWh/a）'], exact: true}
       - {aliases: ['考虑尾流效应的发电量（兆瓦时/年）', '考虑尾流效应的发电量(兆瓦时/年)', '考虑尾流效应的发电量 [MWh]'], exact: true}
       - {aliases: ['考虑尾流效应的发电量（万kW·h）', '考虑尾流效应的发电量(万kW·h)', '考虑尾流效应的发电量 [万kW·h]', '考虑尾流效应的发电量（万kW.h）'], exact: true, conversion: wan_kwh_to_mwh}
       - {aliases: ['考虑尾流效应的发电量'], exact: true}
@@ -668,7 +667,7 @@ rules:
     section: 发电量章节
     operation: column_values
     source_table: *single_turbine_energy_table
-    column: {aliases: ['等效小时数（h）', '等效小时数(h)', '等效小时数 [h]', '等效小时数（时）', '等效小时数', '利用小时数（h）', '利用小时数(h)', '利用小时数 [h]', '利用小时数', '利用小时（h）', '利用小时 [h]', '利用小时']}
+    column: {aliases: ['等效小时数（h）', '等效小时数(h)', '等效小时数 [h]', '等效小时数（时）', '等效小时数', '利用小时数（h）', '利用小时数(h)', '利用小时数 [h]', '利用小时数', '利用小时（h）', '利用小时 [h]', '利用小时', '满发小时数（h）', '满发小时数']}
     value_type: number
     dedupe: false
     unit: h
@@ -678,7 +677,9 @@ rules:
     section: 发电量章节
     operation: column_values
     source_table: *single_turbine_energy_table
-    column: {aliases: ['尾流效应导致的平均折减率（%）', '尾流效应导致的平均折减率(%)', '尾流效应导致的平均折减率 [%]', '尾流效应导致的平均折减率']}
+    # 使用 columns 而不是 column：目标表头缺失时，column_values 否则会回退到第一列（风机标签列）。
+    columns:
+      - {aliases: ['尾流效应导致的平均折减率（%）', '尾流效应导致的平均折减率(%)', '尾流效应导致的平均折减率 [%]', '尾流效应导致的平均折减率', '尾流折减率（%）', '尾流折减率(%)', '尾流折减率'], exact: true}
     value_type: number
     dedupe: false
     unit: "%"
@@ -746,8 +747,8 @@ rules:
     field_name: 主变压器类型
     section: 电气一次
     source_table: &electrical_primary_equipment_table {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)', '主要电气一次设备', '电气一次设备']}
-    row: &main_transformer_row {type: label, column: ['名称', '名 称', '设备'], aliases: ['主变压器']}
-    column: &equipment_spec_column {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    row: &main_transformer_row {type: label, column: 名称, aliases: ['主变压器'], exact: true}
+    column: &equipment_spec_column {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 8}
     value_patterns:
       - '(三相[^，,；;]*?变压器)'
@@ -787,7 +788,7 @@ rules:
   - field_code: futureMainTransformerCount
     field_name: 主变远期台数
     section: 电气一次
-    source_table: {key: electricalPrimaryStationScale, name_patterns: ['110\s*kV\s*升压站']}
+    source_table: {key: electricalPrimaryStationScale, name_patterns: ['(?:升压站|变电站).*规模']}
     row: {type: label, aliases: ['主变压器', '主变']}
     column: {aliases: ['远期规模', '远期']}
     value_type: number
@@ -800,7 +801,9 @@ rules:
     row: *main_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 8}
-    value_pattern: '(\d+(?:\.\d+)?\s*[±+]\s*\d+\s*[×xX]\s*\d+(?:\.\d+)?%)'
+    value_pattern: 'SZ[A-Z0-9]*-\d+(?:\.\d+)?/(\d{2,3})(?:.|\n){0,100}?/\s*(\d{2}(?:\.\d+)?)(?:\s*/\s*(\d{1,2}(?:\.\d+)?))?\s*kV'
+    value_groups: [1, 2, 3]
+    value_join: '/'
     value_type: text
 
   - field_code: connectionGroupType
@@ -820,10 +823,10 @@ rules:
     field_name: 接地变兼站用变型号
     section: 电气一次
     source_table: *electrical_primary_equipment_table
-    row: &grounding_station_transformer_row {type: label, column: ['名称', '名 称', '设备'], aliases: ['35kV接地变兼站用变成套装置', '35kV接地兼站用变成套装置', '接地变兼站用变成套装置', '接地兼站用变成套装置', '接地变兼站用变', '接地兼站用变']}
+    row: &grounding_station_transformer_row {type: label, column: 名称, aliases: ['35kV接地变兼站用变成套装置', '35kV接地兼站用变成套装置', '接地变兼站用变成套装置', '接地兼站用变成套装置', '接地变兼站用变', '接地兼站用变']}
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: '(DKSC[-－]\d+(?:\.\d+)?/(?:35|37)[-－]\d+(?:\.\d+)?/0\.4)'
+    value_pattern: '(DK[A-Z0-9]*[-－]\d+(?:\.\d+)?/\d+(?:\.\d+)?(?:[-－]\d+(?:\.\d+)?/\d+(?:\.\d+)?)?)'
     value_type: text
 
   - field_code: groundingStationTransformerVoltage
@@ -833,7 +836,7 @@ rules:
     row: *grounding_station_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: 'DKSC[-－]\d+(?:\.\d+)?/((?:35|37))[-－]'
+    value_pattern: 'DK[A-Z0-9]*[-－]\d+(?:\.\d+)?/(\d+(?:\.\d+)?)'
     value_type: number
     unit: kV
 
@@ -844,10 +847,8 @@ rules:
     row: *grounding_station_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: 'DKSC[-－](\d+(?:\.\d+)?)/(?:35|37)[-－](\d+(?:\.\d+)?)/0\.4'
-    value_groups: [1, 2]
-    value_join: '/'
-    value_type: text
+    value_pattern: 'DK[A-Z0-9]*[-－](\d+(?:\.\d+)?)/\d+(?:\.\d+)?'
+    value_type: number
     unit: kVA
 
   - field_code: groundingStationTransformerQuantity
@@ -873,18 +874,19 @@ rules:
     row: *grounding_station_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: '((?:NGR|DR)[-－][^，；;]*?(?:Ω|欧姆))'
-    value_type: text
+    value_pattern: '(?<!\d)(\d{1,4}(?:\.\d+)?)\s*(?:Ω|欧姆)'
+    value_type: number
+    unit: Ω
 
   # 接地变拆分字段。
   - field_code: groundingTransformerModel
     field_name: 接地变型号
     section: 电气一次
     source_table: *electrical_primary_equipment_table
-    row: &grounding_transformer_row {type: label, column: ['名称', '名 称', '设备'], aliases: ['35kV接地变成套装置', '35kv接地变成套装置', '接地变成套装置', '接地变']}
+    row: &grounding_transformer_row {type: label, column: 名称, aliases: ['35kV接地变成套装置', '35kv接地变成套装置', '接地变成套装置', '接地变']}
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: '(DKSC[-－]\d+(?:\.\d+)?/(?:35|37))'
+    value_pattern: '(DK[A-Z0-9]*[-－]\d+(?:\.\d+)?/\d+(?:\.\d+)?)'
     value_type: text
 
   - field_code: groundingTransformerVoltage
@@ -894,7 +896,7 @@ rules:
     row: *grounding_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: 'DKSC[-－]\d+(?:\.\d+)?/((?:35|37))'
+    value_pattern: 'DK[A-Z0-9]*[-－]\d+(?:\.\d+)?/(\d+(?:\.\d+)?)'
     value_type: number
     unit: kV
 
@@ -905,7 +907,7 @@ rules:
     row: *grounding_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: 'DKSC[-－](\d+(?:\.\d+)?)/(?:35|37)'
+    value_pattern: 'DK[A-Z0-9]*[-－](\d+(?:\.\d+)?)/\d+(?:\.\d+)?'
     value_type: number
     unit: kVA
 
@@ -932,15 +934,16 @@ rules:
     row: *grounding_transformer_row
     column: *equipment_spec_column
     merge_following_rows: {max_rows: 6}
-    value_pattern: '((?:NGR|DR)[-－][^，；;]*?(?:Ω|欧姆))'
-    value_type: text
+    value_pattern: '(?<!\d)(\d{1,4}(?:\.\d+)?)\s*(?:Ω|欧姆)'
+    value_type: number
+    unit: Ω
 
   - field_code: electricalPrimaryTransformerSpec
     field_name: 主变压器型号、规格及技术数据
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: [1], aliases: ['主变压器']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 8}
     include_patterns:
       - '三相双绕组油浸自冷式有\s*载调压变压器'
@@ -954,7 +957,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: 名称, aliases: ['35kV SVG', '35kv SVG', 'SVG']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     value_type: text
 
   - field_code: electricalPrimarySvgUnit
@@ -978,7 +981,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: [1], aliases: ['GIS组合电器'], occurrence: 0}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 8}
     include_patterns:
       - '126kV\s*[，,]\s*2000A\s*[，,]\s*40kA/3s'
@@ -992,7 +995,8 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)', '主要电气一次设备', '电气一次设备']}
     row: {type: label, column: [1], aliases: ['GIS', 'AIS'], occurrence: 0}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
+    value_pattern: '(?:^|型号\s*(?:为|是)?\s*[:：]?\s*)([A-Z][A-Z0-9]{1,12}[-－]\d{2,4}(?:/[A-Z0-9.]+)?)\b'
     value_type: text
 
   - field_code: electricalPrimaryGisQuantity
@@ -1069,7 +1073,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: [1], aliases: ['GIS组合电器'], occurrence: 0}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 8}
     include_patterns:
       - '126kV\s*[，,]\s*2000A\s*[，,]\s*40kA/3s'
@@ -1083,7 +1087,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: [1], aliases: ['35kV接地变成套装置', '接地变成套装置']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 6}
     include_patterns:
       - 'DKSC-500/35'
@@ -1096,7 +1100,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: [1], aliases: ['35kV接地变兼站用变成套装置', '接地变兼站用变成套装置']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 6}
     include_patterns:
       - 'DKSC-800/35-315/0\.4'
@@ -1109,7 +1113,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: 名称, aliases: ['10kV站用变', '10kv站用变', '站用变']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     value_type: text
 
   - field_code: electricalPrimaryExternalPowerTransformerSpec
@@ -1117,7 +1121,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: 名称, aliases: ['站外电源变压器', '站外备用电源变压器', '外来电源变压器']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     value_type: text
 
   - field_code: electricalPrimaryBoxTransformerSpec
@@ -1125,7 +1129,7 @@ rules:
     section: 电气一次
     source_table: {key: electricalPrimaryEquipmentMaterial, name_patterns: ['电气一次.*(?:主要设备|设备材料|材料工程量)']}
     row: {type: label, column: 名称, aliases: ['箱变', '箱式变压器', '箱式变电站']}
-    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据']}
+    column: {aliases: ['型号、规格及技术数据', '型号规格及技术数据', '型号及规格']}
     merge_following_rows: {max_rows: 6}
     value_type: text
 
@@ -1294,68 +1298,68 @@ rules:
     value_type: number
     unit: 万元
 
-  - field_code: investmentOutgoingLineStaticInvestment
-    field_name: 110kV送出工程静态投资
+  # 概算正文没有单列该金额时，允许从明确命名的财务附表读取。
+  - field_code: investmentDeductibleVatWindFarm
+    field_name: 可抵扣增值税（风电场工程）
     section: 技经概算
-    source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, exact: true, patterns: ['^静态投资$'], occurrence: 0}
-    column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
+    source_table: {key: financeProjectInvestmentCashFlow, search_all_sections: true}
+    row: {type: label, column: 项目, aliases: ['固定资产增值税抵扣'], occurrence: 0}
+    column: {aliases: ['合计']}
     value_type: number
     unit: 万元
 
-  - field_code: investmentOutgoingLineConstructionInterest
-    field_name: 110kV送出工程建设期利息
+  - field_code: finalSupportingCost
+    field_name: 配套费
     section: 技经概算
-    source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, exact: true, patterns: ['^建设期利息$'], occurrence: 1}
-    column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
+    source_table: {key: investmentOtherCost, search_all_sections: true}
+    row: {type: label, column: 工程或费用名称, aliases: ['基础设施配套服务费', '配套费']}
+    column: {aliases: ['合计（万元）', '合计']}
     value_type: number
     unit: 万元
 
-  - field_code: investmentOutgoingLineProjectTotal
-    field_name: 110kV送出工程工程总投资
-    section: 技经概算
-    source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, exact: true, patterns: ['^工程总投资$'], occurrence: 0}
-    column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
-    value_type: number
-    unit: 万元
+  - field_code: workingCapitalLoanRatio
+    field_name: 流动资金贷款比例
+    section: 财务
+    operation: cell_ratio
+    source_table: {key: financeInvestmentPlanFunding, search_all_sections: true}
+    numerator:
+      row: {type: label, column: 1, aliases: ['流动资金借款'], exact: true}
+      column: {aliases: ['合计', 'col_2']}
+    denominator:
+      row: {type: label, column: 1, aliases: ['流动资金'], exact: true}
+      column: {aliases: ['合计', 'col_2']}
+    unit: "%"
 
-  - field_code: investmentDeductibleVatOutgoingLine
-    field_name: 可抵扣增值税（110kV送出工程）
+  # 分项标题中的电压等级和接入站名称由报告发现；下属投资行按标题范围定位。
+  - operation: investment_group_fields
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, aliases: ['可抵扣增值税'], occurrence: 1}
+    group_kind: outgoing_line
+    heading_patterns: ['(?:送出|外送|送电)(?:线路)?工程', '(?:送出|外送)线路', '^送出投资']
+    heading_amount_suffix: ProjectTotal
+    label_column: [项目名称, 工程或费用名称]
+    serial_column: [序号, 编号]
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
-    value_type: number
     unit: 万元
+    metrics:
+      - {suffix: StaticInvestment, name: 静态投资, patterns: ['^(?:工程|项目)?静态投资(?:合计)?$']}
+      - {suffix: ConstructionInterest, name: 建设期利息, patterns: ['^建设期利息(?:合计)?$']}
+      - {suffix: ProjectTotal, name: 工程总投资, patterns: ['^(?:工程|项目)?总投资(?:合计)?$', '^动态投资(?:合计)?$']}
+      - {suffix: DeductibleVat, name: 可抵扣增值税, patterns: ['^可抵扣增值税$']}
 
-  - field_code: investmentCaochengShareStaticInvestment
-    field_name: 接入曹城变电站分摊费用静态投资
+  - operation: investment_group_fields
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, exact: true, patterns: ['^静态投资$'], occurrence: 1}
+    group_kind: access_station_share
+    heading_patterns: ['(?:接入|接至|接到).*?(?:变电站|升压站|开关站).*?(?:分摊|费用)', '(?:变电站|升压站|开关站).*?分摊']
+    label_column: 项目名称
+    serial_column: 序号
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
-    value_type: number
     unit: 万元
-
-  - field_code: investmentCaochengShareConstructionInterest
-    field_name: 接入曹城变电站分摊费用建设期利息
-    section: 技经概算
-    source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, exact: true, patterns: ['^建设期利息$'], occurrence: 2}
-    column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
-    value_type: number
-    unit: 万元
-
-  - field_code: investmentCaochengShareProjectTotal
-    field_name: 接入曹城变电站分摊费用工程总投资
-    section: 技经概算
-    source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, exact: true, patterns: ['^工程总投资$'], occurrence: 1}
-    column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
-    value_type: number
-    unit: 万元
+    metrics:
+      - {suffix: StaticInvestment, name: 静态投资, patterns: ['^(?:工程|项目)?静态投资(?:合计)?$']}
+      - {suffix: ConstructionInterest, name: 建设期利息, patterns: ['^建设期利息(?:合计)?$']}
+      - {suffix: ProjectTotal, name: 工程总投资, patterns: ['^(?:工程|项目)?总投资(?:合计)?$', '^动态投资(?:合计)?$']}
 
   - field_code: investmentSupportingCostStaticInvestment
     field_name: 配套费静态投资
@@ -1460,7 +1464,7 @@ rules:
     field_name: 动态投资（部分）
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, aliases: ['动态投资（部分）', '工程总投资（部分）'], exclude_aliases: ['单位千瓦'], occurrence: 0, min_occurrences: 2}
+    row: {type: label, column: 项目名称, aliases: ['动态投资（部分）', '工程总投资（部分）'], preferred_patterns: ['工程总投资.*一.{0,2}七.*部分合计'], exclude_aliases: ['单位千瓦'], occurrence: 0, min_occurrences: 2}
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
     value_type: number
     unit: 万元
@@ -1469,7 +1473,7 @@ rules:
     field_name: 工程总投资合计
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, aliases: ['工程总投资合计']}
+    row: {type: label, column: 项目名称, aliases: ['工程总投资合计'], preferred_patterns: ['^动态投资合计$', '^动态总投资合计$']}
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
     value_type: number
     unit: 万元
@@ -1577,7 +1581,7 @@ rules:
     field_name: 静态投资
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, aliases: ['静态投资', '静态总投资'], exclude_aliases: ['单位千瓦'], occurrence: 1}
+    row: {type: label, column: 项目名称, aliases: ['静态投资', '静态总投资'], preferred_patterns: ['^静态投资合计$', '^静态总投资合计$'], exclude_aliases: ['单位千瓦'], occurrence: 1}
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
     value_type: number
     unit: 万元
@@ -1586,7 +1590,7 @@ rules:
     field_name: 建设期利息合计
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
-    row: {type: label, column: 项目名称, aliases: ['建设期利息']}
+    row: {type: label, column: 项目名称, aliases: ['建设期利息'], preferred_patterns: ['^建设期利息合计$']}
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
     value_type: number
     unit: 万元
@@ -1596,6 +1600,7 @@ rules:
     section: 技经概算
     source_table: {key: investmentEstimate, name_patterns: ['工程总概算表']}
     row: {type: label, column: 项目名称, aliases: ['动态总投资', '动态投资合计'], exclude_aliases: ['单位千瓦'], occurrence: 1}
+    fallback_row: {type: label, column: ['项目名称', '工程或费用名称'], aliases: ['^动态投资$'], exact: true}
     column: {aliases: ['合计（万元）', '合计 （万元）', '合计']}
     value_type: number
     unit: 万元
@@ -1736,13 +1741,13 @@ rules:
     table_name: 总成本费用估算表
     section: 财务
     operation: copy_table
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
 
   - field_code: financeLaborWelfareTotal
     field_name: 人工工资及福利费合计
     section: 财务
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
-    row: {type: label, column: 项目, aliases: ['人工工资及福利费']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['人工工资及福利费', '工资及福利'], occurrence: 0}
     column: {aliases: ['合计']}
     value_type: number
     unit: 万元
@@ -1750,8 +1755,8 @@ rules:
   - field_code: financeMaterialCostTotal
     field_name: 材料费合计
     section: 财务
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
-    row: {type: label, column: 项目, aliases: ['材料费']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['材料费'], occurrence: 0}
     column: {aliases: ['合计']}
     value_type: number
     unit: 万元
@@ -1760,7 +1765,7 @@ rules:
     field_name: 材料费第1年至第13年
     section: 财务
     operation: cell_series
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
     row: {type: label, column: 项目, aliases: ['材料费']}
     columns:
       - {name: 第1年, aliases: ['第1年', '1']}
@@ -1783,8 +1788,8 @@ rules:
   - field_code: financeRepairCostTotal
     field_name: 修理费合计
     section: 财务
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
-    row: {type: label, column: 项目, aliases: ['修理费']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['修理费', '维修费'], occurrence: 0}
     column: {aliases: ['合计']}
     value_type: number
     unit: 万元
@@ -1793,7 +1798,7 @@ rules:
     field_name: 修理费第1年至第13年
     section: 财务
     operation: cell_series
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
     row: {type: label, column: 项目, aliases: ['修理费']}
     columns:
       - {name: 第1年, aliases: ['第1年', '1']}
@@ -1816,8 +1821,8 @@ rules:
   - field_code: financeInsuranceCostTotal
     field_name: 保险费合计
     section: 财务
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
-    row: {type: label, column: 项目, aliases: ['保险费']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['保险费'], occurrence: 0}
     column: {aliases: ['合计']}
     value_type: number
     unit: 万元
@@ -1826,7 +1831,7 @@ rules:
     field_name: 保险费率
     section: 财务
     operation: cell_ratio
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
     numerator:
       row: {type: label, column: 项目, aliases: ['保险费']}
       column: {aliases: ['第2年', '运行期']}
@@ -1849,8 +1854,8 @@ rules:
   - field_code: financeOtherCostTotal
     field_name: 其他费用合计
     section: 财务
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
-    row: {type: label, column: 项目, aliases: ['其他费用']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['其他费用'], occurrence: 0}
     column: {aliases: ['合计']}
     value_type: number
     unit: 万元
@@ -1858,9 +1863,35 @@ rules:
   - field_code: financeLandUseTaxTotal
     field_name: 其中：土地使用税合计
     section: 财务
-    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表(?!.*续)']}
+    source_table: {key: financeTotalCostEstimate, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用(?:估算)?表(?!.*续)']}
     row: {type: label, column: 项目, aliases: ['其中：土地使用税', '土地使用税']}
     column: {aliases: ['合计']}
+    value_type: number
+    unit: 万元
+
+  - field_code: financeMaterialCostYears12To13Continuation
+    field_name: 材料费续表第12年至第13年
+    section: 财务
+    operation: cell_series
+    source_table: {key: financeTotalCostEstimateContinuation, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表.*续']}
+    row: {type: label, column: 项目, aliases: ['材料费']}
+    columns:
+      - {name: 第12年, aliases: ['第12年', '12']}
+      - {name: 第13年, aliases: ['第13年', '13']}
+    strict: false
+    value_type: number
+    unit: 万元
+
+  - field_code: financeRepairCostYears12To13Continuation
+    field_name: 修理费续表第12年至第13年
+    section: 财务
+    operation: cell_series
+    source_table: {key: financeTotalCostEstimateContinuation, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*总成本费用估算表.*续']}
+    row: {type: label, column: 项目, aliases: ['修理费']}
+    columns:
+      - {name: 第12年, aliases: ['第12年', '12']}
+      - {name: 第13年, aliases: ['第13年', '13']}
+    strict: false
     value_type: number
     unit: 万元
 
@@ -1913,7 +1944,7 @@ rules:
     section: 财务
     operation: cell_series
     source_table: {key: financeDepreciationAmortization, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*资产折旧摊销估算表']}
-    row: {type: label, aliases: ['1.1.1']}
+    row: {type: label, preferred_patterns: ['^1\.1\s+原值'], aliases: ['原值']}
     columns:
       - {name: 建设期, aliases: ['建设期']}
       - {name: 第1年, aliases: ['第1年', '1']}
@@ -1936,34 +1967,52 @@ rules:
   - field_code: financeOnGridPriceWithoutTaxTotal
     field_name: 上网电价（不含税）合计
     section: 财务
-    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表']}
-    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）']}
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）', '电价（不含增值税）（元/kWh）', '电价（不含增值税）']}
     column: {aliases: ['合计']}
     value_type: number
 
   - field_code: financeOnGridPriceWithTaxTotal
     field_name: 上网电价（含税）合计
     section: 财务
-    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表']}
-    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）']}
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）', '电价（含增值税）（元/kWh）', '电价（含增值税）']}
     column: {aliases: ['合计']}
     value_type: number
 
   - field_code: financeIncomeTaxTotal
     field_name: 所得税合计
     section: 财务
-    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表']}
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
     row: {type: label, column: 项目, aliases: ['所得税']}
     column: {aliases: ['合计']}
     value_type: number
     unit: 万元
 
+  - field_code: financeOnGridPriceWithoutTaxYear1
+    field_name: 上网电价（不含税）第1年
+    section: 财务
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）', '电价（不含增值税）（元/kWh）', '电价（不含增值税）']}
+    column: {aliases: ['第1年']}
+    value_type: number
+    unit: 元/kWh
+
+  - field_code: financeOnGridPriceWithTaxYear1
+    field_name: 上网电价（含税）第1年
+    section: 财务
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）', '电价（含增值税）（元/kWh）', '电价（含增值税）']}
+    column: {aliases: ['第1年']}
+    value_type: number
+    unit: 元/kWh
+
   - field_code: financeOnGridPriceWithoutTaxYears2To13
     field_name: 上网电价（不含税）第2年至第13年
     section: 财务
     operation: cell_series
-    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表']}
-    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）']}
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）', '电价（不含增值税）（元/kWh）', '电价（不含增值税）']}
     columns:
       - {name: 第2年, aliases: ['第2年', '2']}
       - {name: 第3年, aliases: ['第3年', '3']}
@@ -1985,8 +2034,8 @@ rules:
     field_name: 上网电价（含税）第2年至第13年
     section: 财务
     operation: cell_series
-    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表']}
-    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）']}
+    source_table: {key: financeProfitDistribution, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表(?!.*续)']}
+    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）', '电价（含增值税）（元/kWh）', '电价（含增值税）']}
     columns:
       - {name: 第2年, aliases: ['第2年', '2']}
       - {name: 第3年, aliases: ['第3年', '3']}
@@ -2009,7 +2058,7 @@ rules:
     section: 财务
     operation: cell_series
     source_table: {key: financeProfitDistributionContinuation, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表.*续']}
-    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）']}
+    row: {type: label, column: 项目, aliases: ['上网电价（不含税）（元/kWh）', '上网电价（不含税）', '电价（不含增值税）（元/kWh）', '电价（不含增值税）']}
     columns:
       - {name: 第14年, aliases: ['第14年', '14']}
       - {name: 第15年, aliases: ['第15年', '15']}
@@ -2028,7 +2077,7 @@ rules:
     section: 财务
     operation: cell_series
     source_table: {key: financeProfitDistributionContinuation, name_patterns: ['(?:附表|表)?\s*(?:\d+(?:\.\d+)*\s*)?.*利润与利润分配表.*续']}
-    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）']}
+    row: {type: label, column: 项目, aliases: ['上网电价（含税）（元/kWh）', '上网电价（含税）', '电价（含增值税）（元/kWh）', '电价（含增值税）']}
     columns:
       - {name: 第14年, aliases: ['第14年', '14']}
       - {name: 第15年, aliases: ['第15年', '15']}

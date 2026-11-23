@@ -4,11 +4,11 @@ import sys
 import json
 from pathlib import Path
 
-from parser_engine.document.ast.document import DocumentAST, DocumentBlock, DocumentTable, TableCell
-from parser_engine.document.layout_sidecar import LayoutTable, OpenDataLoaderLayoutSidecar
-from parser_engine.document.loaders.document_loader import DocumentLoader
-from parser_engine.document.loaders.pdf_loader import PdfTextLoader
-from parser_engine.document import StructureParser
+from word_parser.document.ast.document import DocumentAST, DocumentBlock, DocumentTable, TableCell
+from word_parser.document.layout_sidecar import LayoutTable, OpenDataLoaderLayoutSidecar
+from word_parser.document.router import DocumentLoader
+from word_parser.document.pdf.pdf_loader import PdfTextLoader
+from word_parser.document import StructureParser
 
 
 class FakeWordLoader:

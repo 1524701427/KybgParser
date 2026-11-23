@@ -1,9 +1,9 @@
-﻿"""Manual PaddleOCR probe for consulting certificate images.
+﻿"""用于咨询证书图片的 PaddleOCR 手工验证工具。
 
-Usage:
+用法：
     python tools\\ocr_cert_test.py C:\\path\\to\\certificate.png
 
-If no path is provided, the script tries cert_test.png in the project root.
+未提供路径时，脚本尝试读取项目根目录下的 cert_test.png。
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from parser_engine.output.cover_ocr import CoverOcrExtractor
+from word_parser.document.cover_ocr import CoverOcrExtractor
 
 
 def parse_args() -> argparse.Namespace:

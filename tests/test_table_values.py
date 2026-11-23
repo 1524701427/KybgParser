@@ -4,8 +4,556 @@ from __future__ import annotations
 
 import json
 
-from parser_engine.tables.table_values import TableValueResolver, enhance_result_file
-from parser_engine.tables.table_values import final_result_with_table_values
+import pytest
+
+from word_parser.document.ast.evidence import FieldEvidence, ParsedField
+from word_parser.secondary.table_values import TableValueResolver, enhance_result_file
+from word_parser.secondary.table_values import final_result_with_table_values
+from word_parser.application.api import enhance_parse_result
+from word_parser.mapping.common import _COMBINED_TABLE_DISPLAY_FIELDS, _values_covered
+from word_parser.mapping.finance import _combine_finance_cost_mappings, _combine_finance_price_mappings
+from word_parser.mapping.wind import _align_combined_table_mappings, _hide_combined_table_duplicate_fields
+from word_parser.mapping.validation import _validate_final_mapping
+from word_parser.config.loader import ConfigLoader
+from word_parser.output.result_builder import ResultBuilder
+
+
+def test_unique_table_key_can_read_appendix_across_sections():
+    """附表位于其他章节时，只凭唯一表键和表名约束跨章取值。"""
+    rule = {
+        "field_code": "appendixAmount", "field_name": "附表金额", "section": "技经概算",
+        "source_table": {"key": "financeCashFlow", "name_patterns": ["项目投资现金流量表"]},
+        "row": {"type": "label", "column": "项目", "aliases": ["固定资产增值税抵扣"]},
+        "column": {"aliases": ["合计"]}, "value_type": "number",
+    }
+    result = {"sections": [{"name": "财务", "fields": [], "tables": [{
+        "key": "financeCashFlow", "name": "06项目投资现金流量表",
+        "columns": ["项目", "合计"], "data": [["固定资产增值税抵扣", 42]],
+    }]}]}
+    enhanced = TableValueResolver({"rules": [rule]}).enhance_result(result)
+    field = next(field for section in enhanced["sections"] for field in section.get("tableFields", []) if field.get("fieldCode") == "appendixAmount")
+    assert field["status"] == "OK"
+    assert field["value"] == 42
+    assert field["source"]["section"] == "财务"
+
+    result["sections"][0]["tables"][0]["name"] = "无关附表"
+    blocked = TableValueResolver({"rules": [rule]}).enhance_result(result)
+    blocked_field = next(field for section in blocked["sections"] for field in section.get("tableFields", []) if field.get("fieldCode") == "appendixAmount")
+    assert blocked_field["status"] == "NIL"
+
+
+def test_investment_groups_create_dynamic_voltage_and_station_fields():
+    config = ConfigLoader("configs").load_yaml("table_field_extractors.yaml")
+    rules = [rule for rule in config["rules"] if rule.get("operation") == "investment_group_fields"]
+    result = {"sections": [{"name": "技经概算", "fields": [], "tables": [{
+        "key": "investmentEstimate", "name": "工程总概算表",
+        "columns": ["序号", "项目名称", "合计（万元）"],
+        "data": [
+            ["Ⅰ", "风电场工程", None],
+            [None, "静态投资", 9999],
+            ["Ⅱ", "220kV送出线路工程", None],
+            [None, "静态投资", 2100],
+            [None, "建设期利息", 31],
+            [None, "工程总投资", 2131],
+            [None, "可抵扣增值税", 105],
+            ["Ⅲ", "接入章阳变电站分摊费用", None],
+            [None, "静态投资", 460],
+            [None, "建设期利息", 7],
+            [None, "工程总投资", 467],
+            ["Ⅳ", "配套费", None],
+            [None, "静态投资", 888],
+        ],
+    }]}]}
+    enhanced = TableValueResolver({"rules": rules}).enhance_result(result)
+    fields = {field["fieldCode"]: field for field in final_result_with_table_values(enhanced)["sections"][0]["fields"]}
+    outgoing = {code: field for code, field in fields.items() if code.startswith("investmentOutgoingLine")}
+    station = {code: field for code, field in fields.items() if code.startswith("investmentAccessStationShare")}
+    assert {field["name"]: field["value"] for field in outgoing.values()} == {
+        "220kV送出工程静态投资": 2100,
+        "220kV送出工程建设期利息": 31,
+        "220kV送出工程工程总投资": 2131,
+        "220kV送出工程可抵扣增值税": 105,
+    }
+    assert all("220kV" in code for code in outgoing)
+    assert {field["name"]: field["value"] for field in station.values()} == {
+        "接入章阳变电站分摊费用静态投资": 460,
+        "接入章阳变电站分摊费用建设期利息": 7,
+        "接入章阳变电站分摊费用工程总投资": 467,
+    }
+    source_fields = next(section for section in enhanced["sections"] if section["name"] == "技经概算")["tableFields"]
+    assert all(field["source"]["groupHeading"] == "接入章阳变电站分摊费用"
+               for field in source_fields if field["fieldCode"] in station)
+
+
+def test_investment_group_heading_without_serial_number():
+    config = ConfigLoader("configs").load_yaml("table_field_extractors.yaml")
+    rules = [rule for rule in config["rules"] if rule.get("operation") == "investment_group_fields"]
+    result = {"sections": [{"name": "技经概算", "fields": [], "tables": [{
+        "key": "investmentEstimate", "name": "工程总概算表",
+        "columns": ["序号", "项目名称", "合计（万元）"],
+        "data": [[None, "66kV送出工程", None], [None, "静态投资", 60],
+                 [None, "接入临河升压站分摊费用", None], [None, "工程总投资", 90]],
+    }]}]}
+    enhanced = TableValueResolver({"rules": rules}).enhance_result(result)
+    fields = {field["name"]: field["value"] for field in final_result_with_table_values(enhanced)["sections"][0]["fields"]}
+    assert fields == {"66kV送出工程静态投资": 60, "接入临河升压站分摊费用工程总投资": 90}
+
+
+def test_final_result_hides_only_fields_covered_by_populated_combined_tables(tmp_path):
+    result_path = tmp_path / "sample_result.json"
+    wind_columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["windResourceCombined"].values())
+    wind_row = [None] * len(wind_columns)
+    wind_row[0] = "0821#"
+    generation_columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["generationSingleTurbineAligned"].values())
+    generation_row = [None] * len(generation_columns)
+    generation_row[:2] = ["J01", 123]
+    mapped = {
+        "${wind_tower_number}": ["0821#"],
+        "${wind_resource_combined_table}": {"data": [wind_row]},
+        "${parameter_data_label}": ["J01"],
+        "${single_turbine_generation_table}": {"data": [generation_row]},
+    }
+    parsed = {
+        "mapped": mapped.copy(),
+        "outputFiles": {"result": str(result_path)},
+        "result": {"sections": [
+            {"name": "资源章节", "fields": [
+                {"fieldCode": "windResourceTowerCodes", "value": ["0821#"]},
+                {"fieldCode": "windResourceGenerationUses", "value": ["是"]},
+                {"fieldCode": "windPowerDensityGrade", "value": "2级"},
+            ], "tables": [
+                {"key": "windResourceCombined", "columns": wind_columns, "data": [wind_row]},
+                {"key": "windResourceTowerBasic", "data": [["0821#", "other data"]]},
+            ]},
+            {"name": "发电量章节", "fields": [
+                {"fieldCode": "generationSingleTurbineLabels", "value": ["J01"]},
+                {"fieldCode": "generationSingleTurbineXMeters", "value": [123]},
+                {"fieldCode": "gridAnnualEnergy", "value": 100},
+            ], "tables": [
+                {"key": "generationSingleTurbineAligned", "columns": generation_columns, "data": [generation_row]},
+                {"key": "singleTurbineAnnualEnergy", "data": [["J01", 123, "other data"]]},
+                {"key": "generationSingleTurbineAnnualEnergyProjected", "data": [["J01", 123]]},
+            ]},
+            {"name": "未合并章节", "fields": [
+                {"fieldCode": "generationSingleTurbineLabels", "value": ["J02"]},
+            ], "tables": [{"key": "generationSingleTurbineAligned", "data": []}]},
+        ]},
+    }
+
+    _hide_combined_table_duplicate_fields(parsed)
+
+    sections = parsed["result"]["sections"]
+    assert [field["fieldCode"] for field in sections[0]["fields"]] == ["windResourceGenerationUses", "windPowerDensityGrade"]
+    assert [field["fieldCode"] for field in sections[1]["fields"]] == ["gridAnnualEnergy"]
+    assert [field["fieldCode"] for field in sections[2]["fields"]] == ["generationSingleTurbineLabels"]
+    assert [table["key"] for table in sections[0]["tables"]] == ["windResourceCombined", "windResourceTowerBasic"]
+    assert [table["key"] for table in sections[1]["tables"]] == [
+        "generationSingleTurbineAligned", "singleTurbineAnnualEnergy", "generationSingleTurbineAnnualEnergyProjected",
+    ]
+    assert parsed["mapped"] == mapped
+    assert json.loads(result_path.read_text(encoding="utf-8")) == parsed["result"]
+
+
+def test_combined_mapping_preserves_duplicate_tower_coordinates_and_summary_rate(tmp_path):
+    wind_columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["windResourceCombined"].values())
+    generation_columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["generationSingleTurbineAligned"].values())
+    wind_rows = []
+    for tower in ("8868#", "8899#"):
+        row = [None] * len(wind_columns)
+        row[:3] = [tower, "E108°41.333'", "N37°02.495'"]
+        wind_rows.append(row)
+    summary_row = [None] * len(generation_columns)
+    summary_row[0] = "求和/平均"
+    summary_row[-1] = 4.28
+    mapped = {
+        "${wind_tower_longitude}": ["E108°41.333"],
+        "${wind_tower_latitude}": ["N37°02.495"],
+        "${average_wake_reduction_rate}": None,
+        "${wind_resource_combined_table}": {"data": wind_rows},
+        "${single_turbine_generation_table}": {"data": [summary_row]},
+    }
+    mapped_path = tmp_path / "mapped.json"
+    detail_path = tmp_path / "details.json"
+    detail_path.write_text(json.dumps({"fieldIndex": {
+        "windTowerLongitude": {"value": mapped["${wind_tower_longitude}"]},
+        "generationSingleTurbineAverageWakeReductionRates": {"value": None},
+    }}), encoding="utf-8")
+    parsed = {
+        "mapped": mapped,
+        "outputFiles": {"mapped": str(mapped_path), "detail": str(detail_path)},
+        "result": {"sections": [
+            {"fields": [], "tables": [{"key": "windResourceCombined", "columns": wind_columns, "data": wind_rows}]},
+            {"fields": [], "tables": [{"key": "generationSingleTurbineAligned", "columns": generation_columns, "data": [summary_row]}]},
+        ]},
+    }
+
+    _align_combined_table_mappings(parsed, config_root="configs")
+
+    assert parsed["mapped"]["${wind_tower_longitude}"] == ["E108°41.333'"] * 2
+    assert parsed["mapped"]["${wind_tower_latitude}"] == ["N37°02.495'"] * 2
+    assert parsed["mapped"]["${average_wake_reduction_rate}"] == [4.28]
+    assert set(parsed["mapped"]) == set(mapped)
+    assert json.loads(mapped_path.read_text(encoding="utf-8")) == parsed["mapped"]
+    details = json.loads(detail_path.read_text(encoding="utf-8"))
+    assert details["fieldIndex"]["generationSingleTurbineAverageWakeReductionRates"]["value"] == [4.28]
+
+
+def test_combined_mapping_uses_source_rows_for_turbine_columns(tmp_path):
+    columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["generationSingleTurbineAligned"].values())
+    row = [None] * len(columns)
+    row[:2] = ["J01", 123]
+    parsed = {
+        "mapped": {"${x_coordinate_value}": [999]},
+        "outputFiles": {"result": str(tmp_path / "result.json")},
+        "result": {"sections": [{"fields": [
+            {"fieldCode": "generationSingleTurbineXMeters", "value": [999]},
+        ], "tables": [{"key": "generationSingleTurbineAligned", "columns": columns, "data": [row]}]}]},
+    }
+    _align_combined_table_mappings(parsed, config_root="configs")
+    _hide_combined_table_duplicate_fields(parsed)
+    assert parsed["mapped"]["${x_coordinate_value}"] == [123]
+    assert parsed["result"]["sections"][0]["fields"] == []
+
+    parsed["result"]["sections"][0]["tables"][0]["columns"] = list(reversed(columns))
+    _hide_combined_table_duplicate_fields(parsed)
+    assert parsed["mapped"]["${x_coordinate_value}"] == [123]
+
+
+def test_tower_mapping_realigns_all_three_lists_by_combined_table_rows(tmp_path):
+    (tmp_path / "output_schema.yaml").write_text(
+        "output_field_codes:\n"
+        "  windResourceTowerCodes: wind_tower_number\n"
+        "  windTowerLongitude: wind_tower_longitude\n"
+        "  windTowerLatitude: wind_tower_latitude\n"
+        "  windResourceSecondaryWindDirections: secondary_wind_direction\n"
+        "  windShearExponent: combinedWindShear\n",
+        encoding="utf-8",
+    )
+    columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["windResourceCombined"].values())
+    rows = []
+    for tower, longitude, latitude in (
+        ("A01#", "E108.1°", "N34.1°"),
+        ("B02#", None, "N34.2°"),
+        ("C03#", "E108.3°", "N34.3°"),
+    ):
+        row = [None] * len(columns)
+        row[:3] = [tower, longitude, latitude]
+        rows.append(row)
+    shear_index = columns.index("综合风切变")
+    rows[0][shear_index] = 0.18
+    parsed = {
+        "mapped": {
+            "${wind_tower_number}": ["C03#", "A01#"],
+            "${wind_tower_longitude}": ["E108.3°", "E108.1°", "E999°"],
+            "${wind_tower_latitude}": ["N34.1°", "N34.3°"],
+            "${secondary_wind_direction}": ["---", "---", "---"],
+            "${combinedWindShear}": [0.18, "---", "---"],
+        },
+        "outputFiles": {"mapped": str(tmp_path / "tower_mapped.json"),
+                        "result": str(tmp_path / "tower_result.json")},
+        "result": {"sections": [{"fields": [
+            {"fieldCode": "windResourceTowerCodes", "value": ["C03#", "A01#"]},
+            {"fieldCode": "windTowerLongitude", "value": ["E108.3°", "E108.1°", "E999°"]},
+            {"fieldCode": "windTowerLatitude", "value": ["N34.1°", "N34.3°"]},
+            {"fieldCode": "windResourceSecondaryWindDirections", "value": ["---", "---", "---"]},
+            {"fieldCode": "windShearExponent", "value": [0.18, "---", "---"]},
+        ], "tables": [{"key": "windResourceCombined", "columns": columns, "data": rows}]}]},
+    }
+    with pytest.raises(RuntimeError, match="windResourceTowerCodes"):
+        _validate_final_mapping(parsed, config_root=tmp_path)
+    _align_combined_table_mappings(parsed, config_root=tmp_path)
+    _validate_final_mapping(parsed, config_root=tmp_path)
+    _hide_combined_table_duplicate_fields(parsed, config_root=tmp_path)
+    _validate_final_mapping(parsed, config_root=tmp_path)
+    assert parsed["mapped"]["${wind_tower_number}"] == ["A01#", "B02#", "C03#"]
+    assert parsed["mapped"]["${wind_tower_longitude}"] == ["E108.1°", None, "E108.3°"]
+    assert parsed["mapped"]["${wind_tower_latitude}"] == ["N34.1°", "N34.2°", "N34.3°"]
+    assert parsed["mapped"]["${secondary_wind_direction}"] == [None, None, None]
+    assert parsed["mapped"]["${combinedWindShear}"] == [0.18, None, None]
+    for index, row in enumerate(rows):
+        assert [parsed["mapped"][key][index] for key in (
+            "${wind_tower_number}", "${wind_tower_longitude}", "${wind_tower_latitude}",
+        )] == row[:3]
+    assert parsed["result"]["sections"][0]["fields"] == []
+    assert parsed["result"]["sections"][0]["tables"][0]["data"] == rows
+    assert json.loads((tmp_path / "tower_mapped.json").read_text(encoding="utf-8")) == parsed["mapped"]
+    assert json.loads((tmp_path / "tower_result.json").read_text(encoding="utf-8")) == parsed["result"]
+
+
+def test_tower_mapping_rejects_parallel_lists_without_row_source(tmp_path):
+    (tmp_path / "output_schema.yaml").write_text(
+        "output_field_codes:\n"
+        "  windResourceTowerCodes: wind_tower_number\n"
+        "  windTowerLongitude: wind_tower_longitude\n"
+        "  windTowerLatitude: wind_tower_latitude\n",
+        encoding="utf-8",
+    )
+    parsed = {"mapped": {
+        "${wind_tower_number}": ["A01#", "B02#"],
+        "${wind_tower_longitude}": ["E108.1°", "E108.2°"],
+        "${wind_tower_latitude}": ["N34.1°", "N34.2°"],
+    }, "result": {"sections": [{"fields": [], "tables": []}]}}
+    with pytest.raises(RuntimeError, match="windResourceCombined_missing_for_tower_alignment"):
+        _validate_final_mapping(parsed, config_root=tmp_path)
+
+
+def test_wind_records_preserve_extra_tower_and_require_table_records(tmp_path):
+    (tmp_path / "output_schema.yaml").write_text(
+        "output_field_codes:\n"
+        "  windResourceTowerCodes: wind_tower_number\n"
+        "  windResourceTurbulenceIntensityRecords: eachTierHeightTurbulenceTableList\n",
+        encoding="utf-8",
+    )
+    columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["windResourceCombined"].values())
+    record_index = columns.index("各测风塔各高度湍流强度")
+    primary_record = {"tower_code": "A01#", "height": 90, "value": 0.1}
+    extra_record = {"tower_code": "B03#", "height": 240, "value": 0.2}
+    row = [None] * len(columns)
+    row[0] = "A01#"
+    row[record_index] = [primary_record]
+    parsed = {"mapped": {
+        "${wind_tower_number}": ["A01#"],
+        "${eachTierHeightTurbulenceTableList}": [primary_record, extra_record],
+    }, "result": {"sections": [{"fields": [], "tables": [{
+        "key": "windResourceCombined", "columns": columns, "data": [row],
+    }]}]}}
+    _validate_final_mapping(parsed, config_root=tmp_path)
+    parsed["mapped"]["${eachTierHeightTurbulenceTableList}"] = [extra_record]
+    with pytest.raises(RuntimeError, match="windResourceTurbulenceIntensityRecords"):
+        _validate_final_mapping(parsed, config_root=tmp_path)
+
+
+def test_tower_mapping_realigns_after_secondary_extraction_reorders_rows(tmp_path):
+    config_root = tmp_path / "configs"
+    config_root.mkdir()
+    (config_root / "output_schema.yaml").write_text(
+        "output_field_codes:\n"
+        "  windResourceTowerCodes: wind_tower_number\n"
+        "  windTowerLongitude: wind_tower_longitude\n"
+        "  windTowerLatitude: wind_tower_latitude\n",
+        encoding="utf-8",
+    )
+    table_config = config_root / "table_field_extractors.yaml"
+    table_config.write_text(
+        "rules:\n"
+        "  - field_code: windResourceTowerCodes\n"
+        "    section: 资源章节\n"
+        "    operation: column_values\n"
+        "    source_table: {key: windResourceTowerBasic}\n"
+        "    column: {aliases: [测风塔]}\n"
+        "    value_type: text\n"
+        "  - field_code: windTowerLongitude\n"
+        "    section: 资源章节\n"
+        "    operation: column_values\n"
+        "    source_table: {key: windResourceTowerBasic}\n"
+        "    column: {aliases: [经度]}\n"
+        "    value_type: text\n"
+        "  - field_code: windTowerLatitude\n"
+        "    section: 资源章节\n"
+        "    operation: column_values\n"
+        "    source_table: {key: windResourceTowerBasic}\n"
+        "    column: {aliases: [纬度]}\n"
+        "    value_type: text\n",
+        encoding="utf-8",
+    )
+    columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["windResourceCombined"].values())
+    aligned_rows = []
+    for tower, longitude, latitude in (("A01#", "E108.1°", "N34.1°"), ("B02#", "E108.2°", "N34.2°")):
+        row = [None] * len(columns)
+        row[:3] = [tower, longitude, latitude]
+        aligned_rows.append(row)
+    first_result = {"sections": [{"name": "资源章节", "fields": [], "tables": [
+        {"key": "windResourceCombined", "name": "测风塔风资源指标汇总表", "columns": columns, "data": aligned_rows},
+        {"key": "windResourceTowerBasic", "name": "测风塔基本情况表", "columns": ["测风塔", "经度", "纬度"],
+         "data": [["B02#", "E108.2°", "N34.2°"], ["A01#", "E108.1°", "N34.1°"]]},
+    ]}]}
+    result_path = tmp_path / "tower_result.json"
+    mapped_path = tmp_path / "tower_mapped.json"
+    result_path.write_text(json.dumps(first_result, ensure_ascii=False), encoding="utf-8")
+    mapped = {"${wind_tower_number}": None, "${wind_tower_longitude}": None, "${wind_tower_latitude}": None}
+    mapped_path.write_text(json.dumps(mapped, ensure_ascii=False), encoding="utf-8")
+    parsed = enhance_parse_result({
+        "mapped": mapped,
+        "outputFiles": {"result": str(result_path), "mapped": str(mapped_path)},
+    }, config_path=table_config, config_root=config_root)
+    assert parsed["mapped"]["${wind_tower_number}"] == ["A01#", "B02#"]
+    assert parsed["mapped"]["${wind_tower_longitude}"] == ["E108.1°", "E108.2°"]
+    assert parsed["mapped"]["${wind_tower_latitude}"] == ["N34.1°", "N34.2°"]
+    assert json.loads(mapped_path.read_text(encoding="utf-8")) == parsed["mapped"]
+    assert json.loads(result_path.read_text(encoding="utf-8")) == parsed["result"]
+
+
+def test_combined_mapping_does_not_cover_reordered_tower_values():
+    assert not _values_covered(["A", "B"], ["B", "A"])
+    assert _values_covered(["A", "B"], ["A", None, "B", "B"])
+
+
+def test_transposed_tower_basic_table_joins_by_header_not_row_position():
+    builder = ResultBuilder()
+    details = {"windResourceCombined": [{"测风塔编号": "2001#"}]}
+    tables = {"windResourceTowerBasic": {
+        "columns": ["测风塔", "2001#测风塔", "B03#雷达测风"],
+        "data": [
+            ["地理坐标", "34.796°", "34.794556°"],
+            ["", "108.256°", "108.302333°"],
+            ["测风时段", "2023.2.28-2024.10.1", "2024.11.28-2025.2.5"],
+        ],
+    }}
+
+    combined = builder._wind_resource_combined_table(details, tables, {})
+
+    assert combined is not None
+    assert combined["data"][0][:4] == ["2001#", "E108.256°", "N34.796°", "2023.2.28-2024.10.1"]
+
+
+def test_rowwise_tower_coordinates_accept_direction_colons():
+    builder = ResultBuilder()
+    details = {"windResourceCombined": [{"测风塔编号": "7123#"}]}
+    tables = {"windResourceTowerBasic": {
+        "columns": ["测风塔", "经纬度", "测风时段"],
+        "data": [["7123#", "N:35°16'41.10\" E:109°33'12.72\"", "2021.02.26 ~ 2023.01.03"]],
+    }}
+
+    combined = builder._wind_resource_combined_table(details, tables, {})
+
+    assert combined is not None
+    assert combined["data"][0][:4] == [
+        "7123#", "E:109°33'12.72\"", "N:35°16'41.10\"", "2021.02.26 ~ 2023.01.03",
+    ]
+
+
+def test_invalid_old_tower_metadata_is_replaced_only_with_verified_join(tmp_path):
+    columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["windResourceCombined"].values())
+    row = [None] * len(columns)
+    row[:4] = ["2001#", "E108.256°", "N34.796°", "2023.2.28-2024.10.1"]
+    old = ["海拔", "测风高度", "105°29"]
+    parsed = {
+        "mapped": {"${wind_tower_longitude}": old, "${wind_tower_latitude}": old,
+                   "${wind_measurement_period}": ["观测项目", "2023.2.28-2024.10.1"]},
+        "outputFiles": {"result": str(tmp_path / "result.json")},
+        "result": {"sections": [{"fields": [
+            {"fieldCode": "windTowerLongitude", "value": old},
+            {"fieldCode": "windTowerLatitude", "value": old},
+            {"fieldCode": "windMeasurementPeriod", "value": ["观测项目", "2023.2.28-2024.10.1"]},
+        ], "tables": [
+            {"key": "windResourceCombined", "columns": columns, "data": [row]},
+            {"key": "windResourceTowerBasic", "columns": ["测风塔", "额外数据"], "data": [["2001#", "保留"]]},
+        ]}]},
+    }
+
+    _align_combined_table_mappings(parsed, config_root="configs")
+    _hide_combined_table_duplicate_fields(parsed)
+
+    assert parsed["mapped"]["${wind_tower_longitude}"] == ["E108.256°"]
+    assert parsed["mapped"]["${wind_tower_latitude}"] == ["N34.796°"]
+    assert parsed["mapped"]["${wind_measurement_period}"] == ["2023.2.28-2024.10.1"]
+    assert parsed["result"]["sections"][0]["fields"] == []
+    assert len(parsed["result"]["sections"][0]["tables"]) == 2
+
+
+def test_final_mapping_audit_rejects_missing_or_divergent_values(tmp_path):
+    (tmp_path / "output_schema.yaml").write_text(
+        "output_field_codes:\n  sampleField: sample_field\n  sampleTable: sample_table\n", encoding="utf-8"
+    )
+    parsed = {
+        "mapped": {"${sample_field}": 1, "${sample_table}": {"data": [[2]]}},
+        "result": {"sections": [{"fields": [{"fieldCode": "sampleField", "value": 1}],
+                                 "tables": [{"key": "sampleTable", "data": [[2]]}]}]},
+    }
+    _validate_final_mapping(parsed, config_root=tmp_path)
+    parsed["result"]["sections"][0]["fields"][0]["value"] = 9
+    with pytest.raises(RuntimeError, match="sampleField"):
+        _validate_final_mapping(parsed, config_root=tmp_path)
+    parsed["result"]["sections"][0]["fields"][0]["value"] = 1
+    parsed["mapped"].pop("${sample_table}")
+    with pytest.raises(RuntimeError, match="sample_table"):
+        _validate_final_mapping(parsed, config_root=tmp_path)
+
+
+def test_final_mapping_audit_rejects_reordered_turbine_list(tmp_path):
+    (tmp_path / "output_schema.yaml").write_text(
+        "output_field_codes:\n  generationSingleTurbineLabels: parameter_data_label\n", encoding="utf-8"
+    )
+    columns = list(_COMBINED_TABLE_DISPLAY_FIELDS["generationSingleTurbineAligned"].values())
+    rows = [[label] + [None] * (len(columns) - 1) for label in ("F01", "F02")]
+    parsed = {"mapped": {"${parameter_data_label}": ["F02", "F01"]},
+              "result": {"sections": [{"fields": [], "tables": [{
+                  "key": "generationSingleTurbineAligned", "columns": columns, "data": rows,
+              }]}]}}
+
+    with pytest.raises(RuntimeError, match="generationSingleTurbineLabels"):
+        _validate_final_mapping(parsed, config_root=tmp_path)
+    _align_combined_table_mappings(parsed, config_root=tmp_path)
+    _validate_final_mapping(parsed, config_root=tmp_path)
+    assert parsed["mapped"]["${parameter_data_label}"] == ["F01", "F02"]
+
+
+def test_foundation_equivalent_fields_reuse_evidence_and_derive_diameter():
+    builder = ResultBuilder()
+    evidence = FieldEvidence(source_type="table", text="风机基础土方开挖 34262", table_id="table-1")
+    fields = {
+        "windFoundationEarthworkExcavation": ParsedField(
+            field_code="windFoundationEarthworkExcavation", field_name="风机基础土方开挖",
+            value=34262, unit="m3", status="PASS", confidence=0.95, evidence=[evidence],
+        ),
+        "windFoundationEarthworkBackfill": ParsedField(
+            field_code="windFoundationEarthworkBackfill", field_name="风机基础土方回填",
+            value=16687, unit="m3", status="PASS", confidence=0.95, evidence=[evidence],
+        ),
+        "foundationCapBottomRadius": ParsedField(
+            field_code="foundationCapBottomRadius", field_name="承台底面半径",
+            value=8.5, unit="m", status="PASS", confidence=0.95, evidence=[evidence],
+        ),
+    }
+
+    builder._fill_foundation_equivalent_fields(fields)
+
+    assert fields["windFoundationExcavationQuantity"].value == 34262
+    assert fields["windFoundationBackfillQuantity"].value == 16687
+    assert fields["windFoundationExcavationQuantity"].evidence == [evidence]
+    assert fields["foundationCapDiameter"].value == 17
+    assert fields["foundationCapDiameter"].evidence[0].table_id == "table-1"
+    assert fields["foundationCapDiameter"].evidence[0].meta["calculation"] == "8.5 × 2 = 17"
+
+
+def test_foundation_equivalent_fields_do_not_replace_existing_value_or_failed_source():
+    builder = ResultBuilder()
+    fields = {
+        "windFoundationExcavationQuantity": ParsedField(
+            field_code="windFoundationExcavationQuantity", field_name="风机基础开挖量", value=100,
+            status="PASS",
+        ),
+        "windFoundationEarthworkExcavation": ParsedField(
+            field_code="windFoundationEarthworkExcavation", field_name="风机基础土方开挖", value=200,
+            status="PASS",
+        ),
+        "windFoundationEarthworkBackfill": ParsedField(
+            field_code="windFoundationEarthworkBackfill", field_name="风机基础土方回填", value=300,
+            status="FAIL",
+        ),
+    }
+    builder._fill_foundation_equivalent_fields(fields)
+    assert fields["windFoundationExcavationQuantity"].value == 100
+    assert "windFoundationBackfillQuantity" not in fields
+
+
+def test_missing_average_wake_reduction_column_does_not_read_turbine_labels():
+    result = {"sections": [{
+        "name": "发电量章节", "fields": [],
+        "tables": [{
+            "key": "singleTurbineAnnualEnergy", "name": "推荐机型单机发电量统计表",
+            "columns": ["风机编号", "尾流系数 [%]"],
+            "data": [["H07", -5.3], ["求和/平均", -4.28]],
+        }],
+    }]}
+    extracted = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    target = next(
+        field for section in extracted["sections"] for field in section.get("tableFields", [])
+        if field["fieldCode"] == "generationSingleTurbineAverageWakeReductionRates"
+    )
+    assert target["status"] == "NIL"
+    assert target["nilReason"] == "column_not_found"
+    assert target["value"] is None
 
 
 def test_table_value_resolver_extracts_cell_and_max_row_label():
@@ -196,7 +744,7 @@ def test_investment_extracts_nine_equipment_unit_price_fields():
                     {
                         "key": "investmentEquipmentInstallation",
                         "name": "设备及安装工程概算表",
-                        "columns": ["名称及规格", "单位", "数量", "设备费(万元)"],
+                        "columns": ["名称及规格", "单位", "数量", "单价(万元)"],
                         "data": [
                             ["风电机组", "台", 20, 100],
                             ["风电机组（含塔筒）", "台", 20, 120],
@@ -256,7 +804,7 @@ def test_investment_equipment_price_converts_explicit_yuan_header_to_wan_yuan():
                     {
                         "key": "investmentEquipmentInstallation",
                         "name": "设备及安装工程概算表",
-                        "columns": ["名称", "单位", "数量", "设备费（元）"],
+                        "columns": ["名称", "单位", "数量", "单价（元）"],
                         "data": [["避雷器HY5WZ", "组", 1, 37000]],
                     }
                 ],
@@ -269,6 +817,31 @@ def test_investment_equipment_price_converts_explicit_yuan_header_to_wan_yuan():
 
     assert fields["surgeArresterHy5wzUnitPrice"]["value"] == 3.7
     assert fields["surgeArresterHy5wzUnitPrice"]["unit"] == "万元"
+
+
+def test_equipment_unit_price_does_not_read_total_price_column():
+    result = {"sections": [{"name": "技经概算", "fields": [], "tables": [{
+        "key": "investmentEquipmentInstallation",
+        "name": "设备及安装工程概算表",
+        "columns": ["项目名称及规格", "单位", "数量", "单价（元）", "合价（万元）", "合计（万元）"],
+        "data": [["避雷器 YH5W5-51/134W", "组", 128, 15000, 192, 214.65]],
+    }]}]}
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+    assert fields["surgeArresterHy5wzUnitPrice"]["value"] == 1.5
+    assert fields["surgeArresterHy5wzUnitPrice"]["source"]["column"] == "单价（元）"
+
+
+def test_equipment_unit_price_is_empty_without_unit_price_column():
+    result = {"sections": [{"name": "技经概算", "fields": [], "tables": [{
+        "key": "investmentEquipmentInstallation",
+        "name": "设备及安装工程概算表",
+        "columns": ["项目名称及规格", "单位", "数量", "设备费（万元）"],
+        "data": [["避雷器 YH5W5-51/134W", "组", 128, 192]],
+    }]}]}
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+    assert fields["surgeArresterHy5wzUnitPrice"]["status"] == "NIL"
 
 
 def test_filter_table_projection_falls_back_to_equipment_content_when_table_key_is_stale():
@@ -459,6 +1032,71 @@ rules:
     table_value_details = details_json["tableValueExtraction"]
     assert table_value_details["sections"][0]["tableFields"][0]["source"]["tableKey"] == "financialIndicatorSummary"
     assert table_value_details["sections"][0]["derivedTables"][0]["source"]["tableKey"] == "financialIndicatorSummary"
+
+
+def test_enhance_parse_result_syncs_secondary_values_to_mapped_and_details(tmp_path):
+    config_root = tmp_path / "configs"
+    config_root.mkdir()
+    (config_root / "output_schema.yaml").write_text(
+        "output_field_codes:\n  financeWorkingCapitalValue: working_capital\n",
+        encoding="utf-8",
+    )
+    table_config = config_root / "table_field_extractors.yaml"
+    table_config.write_text(
+        """rules:
+  - field_code: financeWorkingCapitalValue
+    field_name: 流动资金数值
+    section: 财务
+    source_table: {key: financialIndicatorSummary}
+    row: {type: label, column: 项目, aliases: [流动资金]}
+    column: {aliases: [数值]}
+    value_type: number
+""",
+        encoding="utf-8",
+    )
+    result_path = tmp_path / "sample_result.json"
+    mapped_path = tmp_path / "sample_mapped.json"
+    detail_path = tmp_path / "sample_details.json"
+    result_path.write_text(json.dumps({
+        "filePath": "sample.docx",
+        "sections": [{
+            "name": "财务",
+            "fields": [{"fieldCode": "financeWorkingCapitalValue", "name": "流动资金数值", "value": None, "unit": None}],
+            "tables": [{
+                "key": "financialIndicatorSummary",
+                "name": "财务指标汇总表",
+                "columns": ["项目", "单位", "数值"],
+                "data": [["流动资金", "万元", "1600"]],
+            }],
+        }],
+    }, ensure_ascii=False), encoding="utf-8")
+    mapped_path.write_text(json.dumps({"${working_capital}": None}), encoding="utf-8")
+    detail_path.write_text(json.dumps({
+        "fieldIndex": {
+            "financeWorkingCapitalValue": {"value": None, "status": "MISSING", "source": None},
+            "${working_capital}": {"value": None, "status": "MISSING", "source": None},
+        },
+        "sections": [{"name": "财务", "fields": [
+            {"fieldCode": "financeWorkingCapitalValue", "value": None, "status": "MISSING"},
+            {"fieldCode": "${working_capital}", "value": None, "status": "MISSING"},
+        ]}],
+    }, ensure_ascii=False), encoding="utf-8")
+    parsed = {
+        "mapped": {"${working_capital}": None},
+        "outputFiles": {"result": str(result_path), "mapped": str(mapped_path), "detail": str(detail_path)},
+    }
+
+    enhanced = enhance_parse_result(parsed, config_path=table_config, config_root=config_root)
+
+    assert enhanced["mapped"]["${working_capital}"] == 1600
+    assert json.loads(mapped_path.read_text(encoding="utf-8"))["${working_capital}"] == 1600
+    details = json.loads(detail_path.read_text(encoding="utf-8"))
+    assert details["fieldIndex"]["financeWorkingCapitalValue"]["status"] == "PASS"
+    assert details["fieldIndex"]["financeWorkingCapitalValue"]["value"] == 1600
+    assert details["fieldIndex"]["financeWorkingCapitalValue"]["source"]["tableId"] == "financialIndicatorSummary"
+    assert details["fieldIndex"]["${working_capital}"]["value"] == 1600
+    assert details["sections"][0]["fields"][0]["value"] == 1600
+    assert details["sections"][0]["fields"][1]["value"] == 1600
 
 
 def test_final_result_keeps_precise_electrical_primary_fields_when_secondary_is_noisier():
@@ -697,6 +1335,55 @@ def test_generation_secondary_columns_extract_single_turbine_metrics_and_convert
     assert fields["generationSingleTurbineAverageWakeReductionRates"]["value"] == [-1.9, -2.1]
 
 
+def test_generation_column_lists_keep_blank_rows_and_never_fall_back_to_labels():
+    result = {"sections": [{"name": "发电量章节", "fields": [], "tables": [{
+        "key": "singleTurbineAnnualEnergy",
+        "name": "单台风机年上网电量计算成果表",
+        "columns": ["标签", "平均风速"],
+        "data": [["F01", 5.6], ["F02", None], ["F03", 5.8]],
+    }]}]}
+
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+
+    assert fields["generationSingleTurbineAverageWindSpeeds"]["value"] == [5.6, None, 5.8]
+    assert fields["generationSingleTurbineZMeters"]["status"] == "NIL"
+    assert fields["generationSingleTurbineHubHeights"]["status"] == "NIL"
+
+
+def test_secondary_merge_only_fills_empty_fields_and_tables():
+    enhanced = {"sections": [{
+        "name": "财务", "fields": [
+            {"fieldCode": "workingCapital", "value": 100},
+            {"fieldCode": "incomeTax", "value": None},
+        ],
+        "tables": [{"key": "financialIndicatorSummary", "data": [[1], [2]]}],
+        "tableFields": [
+            {"fieldCode": "workingCapital", "value": 90, "status": "OK"},
+            {"fieldCode": "incomeTax", "value": 50, "status": "OK"},
+        ],
+        "derivedTables": [{"key": "financialIndicatorSummary", "data": [[1]], "status": "OK"}],
+    }]}
+
+    section = final_result_with_table_values(enhanced)["sections"][0]
+    assert {field["fieldCode"]: field["value"] for field in section["fields"]} == {
+        "workingCapital": 100, "incomeTax": 50,
+    }
+    assert section["tables"][0]["data"] == [[1], [2]]
+
+
+def test_missing_dynamic_rule_inputs_are_reported():
+    resolver = TableValueResolver({"rules": [{
+        "section": "资源章节", "field_code": "tower_{tower}",
+        "towers": {"from_table": {"source_table": {"key": "missingTable"}}},
+    }]})
+
+    enhanced = resolver.enhance_result({"sections": [{"name": "资源章节", "fields": [], "tables": []}]})
+    summary = enhanced["tableValueExtraction"]["summary"]
+    assert summary["skippedDynamicRuleCount"] == 1
+    assert summary["skippedDynamicRules"][0]["fieldCode"] == "tower_{tower}"
+
+
 def test_generation_mwh_columns_are_not_multiplied_by_ten():
     result = {
         "sections": [
@@ -918,20 +1605,44 @@ def test_electrical_primary_extracts_transformer_detail_fields():
     assert fields["mainTransformerRatedCapacity"]["value"] == 100000
     assert fields["mainTransformerNum"]["value"] == 1
     assert fields["futureMainTransformerCount"]["value"] == 2
-    assert fields["mainTransformerVoltageRatio"]["value"] == "115±8×1.25%"
+    assert fields["mainTransformerVoltageRatio"]["value"] == "110/37"
     assert fields["connectionGroupType"]["value"] == "YN，d11"
     assert fields["groundingStationTransformerModel"]["value"] == "DKSC-800/35-315/0.4"
     assert fields["groundingStationTransformerVoltage"]["value"] == 35
-    assert fields["groundingStationTransformerCapacity"]["value"] == "800/315"
+    assert fields["groundingStationTransformerCapacity"]["value"] == 800
     assert fields["groundingStationTransformerQuantity"]["value"] == 1
     assert fields["groundingStationTransformerUnit"]["value"] == "台"
-    assert fields["groundingStationTransformerResistance"]["value"] == "NGR-37/200A—10s,106.8Ω"
+    assert fields["groundingStationTransformerResistance"]["value"] == 106.8
+    assert fields["groundingStationTransformerResistance"]["unit"] == "Ω"
     assert fields["groundingTransformerModel"]["value"] == "DKSC-500/35"
     assert fields["groundingTransformerVoltage"]["value"] == 35
     assert fields["groundingTransformerCapacity"]["value"] == 500
     assert fields["groundingTransformerQuantity"]["value"] == 1
     assert fields["groundingTransformerUnit"]["value"] == "台"
-    assert fields["groundingTransformerResistance"]["value"] == "DR-35/280,101Ω"
+    assert fields["groundingTransformerResistance"]["value"] == 101
+
+
+def test_electrical_primary_transformer_patterns_accept_other_voltage_levels():
+    result = {"sections": [{"name": "电气一次", "fields": [], "tables": [{
+        "key": "electricalPrimaryEquipmentMaterial", "name": "电气一次主要设备材料工程量表",
+        "columns": ["序号", "名称", "型号、规格及技术数据", "单位", "数量"],
+        "data": [
+            ["1.1", "主变压器", "三相双绕组油浸变压器", "台", 2],
+            ["", "", "型号：SZ20-200000/220", "", ""],
+            ["", "", "230±8×1.25%/36.5kV", "", ""],
+            ["5.1", "接地变兼站用变成套装置", "DKSC-1000/36.5-400/0.4", "台", 1],
+            ["", "", "小电阻型号：DR-36.5/280,87.5Ω", "", ""],
+        ],
+    }]}]}
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+    assert fields["mainTransformerModel"]["value"] == "SZ20-200000/220"
+    assert fields["mainTransformerRatedCapacity"]["value"] == 200000
+    assert fields["mainTransformerVoltageRatio"]["value"] == "220/36.5"
+    assert fields["groundingStationTransformerModel"]["value"] == "DKSC-1000/36.5-400/0.4"
+    assert fields["groundingStationTransformerVoltage"]["value"] == 36.5
+    assert fields["groundingStationTransformerCapacity"]["value"] == 1000
+    assert fields["groundingStationTransformerResistance"]["value"] == 87.5
 
 
 def test_compound_row_match_fills_down_group_label_for_wind_power_average():
@@ -1160,7 +1871,7 @@ def test_electrical_primary_specs_can_filter_required_fragments_from_merged_rows
     fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
 
     assert fields["electricalPrimaryTransformerSpec"]["value"] == "三相双绕组油浸自冷式有载调压变压器，型号：SZ18-100000/110，115±8×1.25%/37kV，接线组别：YN，d11"
-    assert fields["electricalPrimaryGisModelInfo"]["value"] == "126kV，2000A，40kA/3s"
+    assert fields["electricalPrimaryGisModelInfo"]["status"] == "NIL"
     assert fields["electricalPrimaryGisQuantity"]["value"] == 1
     assert fields["electricalPrimaryGisUnit"]["value"] == "个"
     assert fields["electricalPrimaryGisRemark"]["value"] == "110kV架空出线间隔"
@@ -1357,6 +2068,36 @@ def test_investment_repeated_summary_rows_follow_partial_and_project_fallback_ru
     assert singleton["unitKwDynamicInvestmentEstimate"] == 22
 
 
+def test_investment_dynamic_plain_row_uses_embedded_header_fallback():
+    result = {"sections": [{"name": "技经概算", "fields": [], "tables": [{
+        "key": "investmentEstimate", "name": "01工程总概算表",
+        "columns": ["01工程总概算表", "col_1", "col_2", "col_3", "col_4", "col_5"],
+        "data": [
+            ["序号", "工程或费用名称", "设备购置费(万元)", "安装工程费(万元)", "建筑工程费(万元)", "合计(万元)"],
+            ["九", "动态投资", "", "", "", 63296.97],
+        ],
+    }]}]}
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+    assert fields["investmentDynamicTotalItoIv"]["value"] == 63296.97
+
+
+def test_electrical_short_spec_header_keeps_gis_components_unassigned():
+    result = {"sections": [{"name": "电气一次", "fields": [], "tables": [{
+        "key": "electricalPrimaryEquipmentMaterial", "name": "电气一次主要设备表",
+        "columns": ["序号", "名称", "型号及规格", "数量"],
+        "data": [
+            [1, "主变压器", "SZ11-100000/110 115/37/10.5kV", 1],
+            [2, "GIS组合电器", "126kV，1600A，含 1 台断路器", 1],
+        ],
+    }]}]}
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    fields = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+    assert fields["mainTransformerModel"]["value"] == "SZ11-100000/110"
+    assert fields["electricalPrimaryGisModelInfo"]["status"] == "NIL"
+    assert fields["electricalPrimaryCircuitBreakerModel"]["status"] == "NIL"
+
+
 def test_table_value_resolver_promotes_year_header_row():
     """验证横向年份在首行时会提升为真实表头，避免年份错位。"""
     result = {
@@ -1519,9 +2260,79 @@ def test_finance_table_values_extract_cost_depreciation_and_continuation_years()
     assert fields["financeRepairCostYears1To13"]["value"]["第7年"] == 800
     assert fields["financeMaterialCostYears14To21"]["value"]["第14年"] == 220
     assert fields["financeRepairCostYears14To21"]["value"]["第14年"] == 900
+    parsed = {
+        "result": final_result_with_table_values(enhanced),
+        "mapped": {"${material_cost}": None, "${repair_cost}": None},
+    }
+    _combine_finance_cost_mappings(parsed, enhanced, config_root="configs")
+    material = parsed["mapped"]["${material_cost}"]
+    repair = parsed["mapped"]["${repair_cost}"]
+    assert len(material) == len(repair) == 2
+    assert material[0] == repair[0] == ["合计", *(f"第{year}年" for year in range(1, 22))]
+    assert len(material[1]) == len(repair[1]) == 22
+    assert [material[1][index] for index in (0, 1, 2, 14, 21)] == [3800, 0, 100, 220, 220]
+    assert [repair[1][index] for index in (0, 1, 2, 14, 21)] == [14600, 0, 320, 900, 900]
+    assert next(field for field in parsed["result"]["sections"][0]["fields"] if field["fieldCode"] == "financeMaterialCostSchedule")["value"] == material
+    fields["financeMaterialCostYears14To21"]["value"].pop("第19年")
+    _combine_finance_cost_mappings(parsed, enhanced, config_root="configs")
+    assert parsed["mapped"]["${material_cost}"][1][19] is None
+    assert parsed["mapped"]["${material_cost}"][1][20] == 220
     assert fields["financeFixedAssetOriginalValueBuildYearAndYear1"]["value"] == {"建设期": 0, "第1年": 1000}
     assert fields["financeOnGridPriceWithoutTaxYears14To21"]["value"]["第14年"] == 0.25
     assert fields["financeOnGridPriceWithTaxYears14To21"]["value"]["第14年"] == 0.28
+
+
+def test_repair_cost_mapping_accepts_maintenance_fee_label():
+    field = {
+        "fieldCode": "financeRepairCostTotal", "status": "OK", "value": 13985.66,
+        "source": {"tableKey": "financeTotalCostEstimate", "rowText": "维修费 13985.66"},
+    }
+    enhanced = {"sections": [{"name": "财务", "tableFields": [field]}]}
+    parsed = {"result": {"sections": [{"name": "财务", "fields": []}]}, "mapped": {"${repair_cost}": None}}
+    _combine_finance_cost_mappings(parsed, enhanced, config_root="configs")
+    assert parsed["mapped"]["${repair_cost}"][1][0] == 13985.66
+
+
+def test_finance_cost_mapping_recovers_years_from_split_pdf_headers():
+    """年份表头落在数据行时，只恢复有对应数值的年份。"""
+    table = {
+        "key": "financeTotalCostEstimate",
+        "name": "02总成本费用表",
+        "columns": ["02总成本费用表", *(f"col_{index}" for index in range(1, 13))],
+        "data": [
+            ["序号", "项目", "合计", "建设期", *([""] * 9)],
+            [*(f"第{year}年" for year in range(1, 11)), "", "", ""],
+            [1, "材料费", 2000, 0, *([100] * 9)],
+            [2, "维修费", 13985.66, 0, *([279.71] * 5), *([559.43] * 4)],
+            ["02总成本费用表", *([""] * 12)],
+            ["序号", "项目", "运行期", *([""] * 10)],
+            [*(f"第{year}年" for year in range(11, 22)), "", ""],
+            [1, "材料费", *([100] * 11)],
+            [2, "维修费", 559.43, *([839.14] * 5), *([1118.85] * 5)],
+        ],
+    }
+    total_fields = [
+        {"fieldCode": "financeMaterialCostTotal", "status": "OK", "value": 2000,
+         "source": {"tableKey": "financeTotalCostEstimate", "rowText": "材料费 2000"}},
+        {"fieldCode": "financeRepairCostTotal", "status": "OK", "value": 13985.66,
+         "source": {"tableKey": "financeTotalCostEstimate", "rowText": "维修费 13985.66"}},
+    ]
+    parsed = {"result": {"sections": [{"name": "财务", "fields": [], "tables": [table]}]},
+              "mapped": {"${material_cost}": None, "${repair_cost}": None}}
+    enhanced = {"sections": [{"name": "财务", "tableFields": total_fields}]}
+
+    _combine_finance_cost_mappings(parsed, enhanced, config_root="configs")
+
+    material = parsed["mapped"]["${material_cost}"][1]
+    repair = parsed["mapped"]["${repair_cost}"][1]
+    assert material[0] == 2000
+    assert material[1:10] == [100] * 9
+    assert material[10] is None
+    assert material[11:22] == [100] * 11
+    assert repair[1] == 279.71
+    assert repair[6] == 559.43
+    assert repair[10] is None
+    assert repair[11] == 559.43
 
 
 def test_finance_year_series_treats_merged_operation_period_as_year_one():
@@ -1565,6 +2376,68 @@ def test_finance_year_series_treats_merged_operation_period_as_year_one():
     }
     assert fields["financeRepairCostYears1To13"]["value"]["第1年"] == 240
     assert fields["financeRepairCostYears1To13"]["value"]["第7年"] == 600
+
+
+def test_finance_cost_schedule_fills_years_12_and_13_from_continuation(tmp_path):
+    result = {"sections": [{"name": "财务", "fields": [], "tables": [
+        {
+            "key": "financeTotalCostEstimate",
+            "name": "总成本费用估算表",
+            "columns": ["项目", "合计", *(f"第{year}年" for year in range(1, 12))],
+            "data": [["材料费", 1900, 0, *([50] * 5), *([110] * 5)],
+                     ["修理费", 7300, 0, *([160] * 5), *([400] * 5)]],
+        },
+        {
+            "key": "financeTotalCostEstimateContinuation",
+            "name": "总成本费用估算表（续）",
+            "columns": ["项目", *(f"第{year}年" for year in range(12, 22))],
+            "data": [["材料费", *([110] * 10)], ["修理费", *([450] * 10)]],
+        },
+    ]}]}
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(result)
+    parsed = {"result": final_result_with_table_values(enhanced), "mapped": {
+        "${material_cost}": None, "${repair_cost}": None,
+    }}
+    _combine_finance_cost_mappings(parsed, enhanced, config_root="configs")
+    assert parsed["mapped"]["${material_cost}"][1][12:14] == [110, 110]
+    assert parsed["mapped"]["${repair_cost}"][1][12:14] == [450, 450]
+
+    # 从结果文件执行二次抽取，再核对业务结果、映射文件和详情文件一致。
+    result_path = tmp_path / "cost_result.json"
+    mapped_path = tmp_path / "cost_mapped.json"
+    details_path = tmp_path / "cost_details.json"
+    result_path.write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
+    output_codes = ConfigLoader("configs").load_yaml("output_schema.yaml")["output_field_codes"]
+    all_mapped = {code if code.startswith("${") else "${" + code + "}": None for code in output_codes.values()}
+    for table in result["sections"][0]["tables"]:
+        code = output_codes.get(table["key"])
+        if code:
+            all_mapped["${" + code + "}"] = {
+                "name": table["name"], "columns": table["columns"], "columnKeys": [], "data": table["data"],
+            }
+    mapped_path.write_text(json.dumps(all_mapped, ensure_ascii=False), encoding="utf-8")
+    details_path.write_text(json.dumps({"fieldIndex": {
+        code: {"value": None, "status": "MISSING"}
+        for code in ("financeMaterialCostSchedule", "financeRepairCostSchedule")
+    }}, ensure_ascii=False), encoding="utf-8")
+    end_to_end = enhance_parse_result({
+        "mapped": all_mapped,
+        "outputFiles": {"result": str(result_path), "mapped": str(mapped_path), "detail": str(details_path)},
+    })
+    for placeholder, total, year_12 in (("${material_cost}", 1900, 110), ("${repair_cost}", 7300, 450)):
+        values = end_to_end["mapped"][placeholder]
+        assert isinstance(values, list) and len(values) == 2
+        assert values[0] == ["合计", *(f"第{year}年" for year in range(1, 22))]
+        assert len(values[1]) == 22
+        assert values[1][0] == total and values[1][1] == 0 and values[1][12] == year_12
+        assert sum(values[1][1:]) == total
+        assert json.loads(mapped_path.read_text(encoding="utf-8"))[placeholder] == values
+    saved_result = json.loads(result_path.read_text(encoding="utf-8"))
+    saved_fields = {field["fieldCode"]: field["value"] for field in saved_result["sections"][0]["fields"]}
+    saved_details = json.loads(details_path.read_text(encoding="utf-8"))["fieldIndex"]
+    for code, placeholder in (("financeMaterialCostSchedule", "${material_cost}"), ("financeRepairCostSchedule", "${repair_cost}")):
+        assert saved_fields[code] == end_to_end["mapped"][placeholder]
+        assert saved_details[code]["value"] == end_to_end["mapped"][placeholder]
 
 
 def test_dynamic_tower_discovery_fallback_scans_table_columns():
@@ -1985,3 +2858,52 @@ def test_wind_shear_values_use_merged_table_occurrences_when_title_key_is_stale(
     assert fields["windShear2517"]["value"] == 0.137
     assert fields["windShear2518"]["value"] == 0.13
     assert fields["windShear2519"]["value"] == 0.122
+
+
+def test_finance_grid_prices_preserve_year_order_and_empty_total():
+    labels = ("上网电价（不含税）（元/kWh）", "上网电价（含税）（元/kWh）")
+    prices = (0.2788, 0.315)
+    source = {
+        "sections": [{
+            "name": "财务", "fields": [], "tables": [
+                {
+                    "key": "financeProfitDistribution", "name": "利润与利润分配表",
+                    "columns": ["序号", "项目", "合计", *(f"第{year}年" for year in range(1, 14))],
+                    "data": [[i, label, "", 0, *([price] * 12)]
+                             for i, (label, price) in enumerate(zip(labels, prices), 1)],
+                },
+                {
+                    "key": "financeProfitDistributionContinuation", "name": "利润与利润分配表（续）",
+                    "columns": ["序号", "项目", "合计", *(f"第{year}年" for year in range(14, 22))],
+                    "data": [[i, label, "", *([price] * 8)]
+                             for i, (label, price) in enumerate(zip(labels, prices), 1)],
+                },
+            ],
+        }],
+    }
+    enhanced = TableValueResolver.from_config_file("configs/table_field_extractors.yaml").enhance_result(source)
+    extracted = {field["fieldCode"]: field for field in enhanced["sections"][0]["tableFields"]}
+    assert extracted["financeOnGridPriceWithoutTaxYear1"]["value"] == 0
+    assert extracted["financeOnGridPriceWithTaxYear1"]["value"] == 0
+    assert extracted["financeOnGridPriceWithoutTaxTotal"]["value"] is None
+    parsed = {
+        "result": final_result_with_table_values(enhanced),
+        "mapped": {
+            "${net_electricity_price_excluding_value_added_tax}": None,
+            "${net_electricity_price_including_value_added_tax}": None,
+        },
+    }
+    _combine_finance_price_mappings(parsed, enhanced, config_root="configs")
+    for placeholder, price in zip(parsed["mapped"], prices):
+        years, values = parsed["mapped"][placeholder]
+        assert years == [f"第{year}年" for year in range(1, 22)]
+        assert values == [0, *([price] * 20)]
+        code = "financeOnGridPriceWithoutTaxSchedule" if price == prices[0] else "financeOnGridPriceWithTaxSchedule"
+        assert next(field for field in parsed["result"]["sections"][0]["fields"]
+                    if field["fieldCode"] == code)["value"] == [years, values]
+
+    extracted["financeOnGridPriceWithTaxYears14To21"]["value"].pop("第19年")
+    _combine_finance_price_mappings(parsed, enhanced, config_root="configs")
+    # 二次字段缺一个年份时，仍可从原始附表的对应单元格补回。
+    assert parsed["mapped"]["${net_electricity_price_including_value_added_tax}"][1][18] == prices[1]
+    assert parsed["mapped"]["${net_electricity_price_including_value_added_tax}"][1][19] == prices[1]

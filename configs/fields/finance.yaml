@@ -28,8 +28,18 @@ fields:
       - 全部投资财务内部收益率
     unit_aliases: ["%"]
     patterns:
+      - '全部投资财务内部收益率[（(]所得税前[、,，/]税后[）)]\s*分别为\s*[0-9]+(?:\.[0-9]+)?\s*[%％][、,，]\s*([0-9]+(?:\.[0-9]+)?)\s*[%％]'
       - \|\s*\u5168\u90e8\u6295\u8d44\u8d22\u52a1\u5185\u90e8\u6536\u76ca\u7387\s*\|\s*%\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|\s*(?:\uff08|\()?\u7a0e\u540e
       - \u5168\u90e8\u6295\u8d44\u8d22\u52a1\u5185\u90e8\u6536\u76ca\u7387(?:\uff08|\()\u6240\u5f97\u7a0e\u540e(?:\uff09|\)).{0,20}?([0-9]+(?:\.[0-9]+)?)\s*(%)?
+    scalar_rules:
+      - name: 正文全部投资税后内部收益率
+        source_types: [paragraph]
+        value_type: number
+        value_group: value
+        section_include: [财务评价, 综合说明, 经济评价]
+        require_any: [全部投资财务内部收益率]
+        patterns:
+          - '全部投资财务内部收益率[（(]所得税前[、,，/]税后[）)]\s*分别为\s*[0-9]+(?:\.[0-9]+)?\s*[%％][、,，]\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*[%％]'
     validators:
       min: -100
       max: 100
@@ -83,6 +93,16 @@ fields:
       - 元/kW·h
     patterns:
       - (?:\u5ea6\u7535\u6210\u672c).{0,30}?([0-9]+(?:\.[0-9]+)?)\s*(\u5143/kWh|\u5143/\u5343\u74e6\u65f6|\u5143/\s*kW\u00b7h)?
+    scalar_rules:
+      - name: 技术经济指标表度电成本
+        source_types: [table]
+        value_type: number
+        value_group: value
+        section_include: [财务评价, 经济评价, 主要技术经济指标, 综合说明]
+        section_fallback_require_all: [度电成本, 元/kWh]
+        require_any: [度电成本]
+        patterns:
+          - '度电成本(?:[（(]LCOE[）)])?\s*\|\s*元\s*/\s*kW[·.]?h\s*\|\s*(?P<value>[0-9]+(?:\.[0-9]+)?)'
     validators:
       min: 0
       max: 2

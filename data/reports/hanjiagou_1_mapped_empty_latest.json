@@ -1,0 +1,265 @@
+{
+  "source": "C:\\Users\\EDY\\Desktop\\WordParser\\data\\predictions\\陕西华电靖边韩家沟200MW风电项目可行性研究报告(1)_mapped.json",
+  "summary": {
+    "totalMappedKeys": 262,
+    "nonEmptyKeys": 234,
+    "emptyKeys": 28,
+    "nullKeys": 25,
+    "emptyTableKeys": 1,
+    "emptyListKeys": 2
+  },
+  "empty": [
+    {
+      "key": "${secondary_wind_direction}",
+      "fieldCode": "windResourceSecondaryWindDirections",
+      "name": "轮毂高度处的次风向",
+      "section": "资源章节",
+      "kind": "empty_list",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${secondary_wind_energy_direction}",
+      "fieldCode": "windResourceSecondaryWindEnergyDirections",
+      "name": "轮毂高度处的次风能方向",
+      "section": "资源章节",
+      "kind": "empty_list",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${expanded_booster_station}",
+      "fieldCode": "electricalPrimaryExpandedSubstationName",
+      "name": "扩建升压站",
+      "section": "电气一次",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${substation_future_outgoing_circuits}",
+      "fieldCode": "electricalPrimaryFutureOutgoingLineCount",
+      "name": "升压站远期出线回数",
+      "section": "电气一次",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${buried_cable_length}",
+      "fieldCode": "newCableLineLength",
+      "name": "新建电缆线路长度",
+      "section": "集电线路",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${turbine_foundation_c15_concrete}",
+      "fieldCode": "windFoundationC15Concrete",
+      "name": "风机基础-C15混凝土",
+      "section": "风机基础",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${turbine_foundation_c45_concrete}",
+      "fieldCode": "windFoundationC45Concrete",
+      "name": "风机基础-C45混凝土",
+      "section": "风机基础",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${access_road_length}",
+      "fieldCode": "siteEntryRoadLength",
+      "name": "进场道路长度",
+      "section": "道路",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${maintenance_road_length}",
+      "fieldCode": "maintenanceRoadLength",
+      "name": "检修道路长度",
+      "section": "道路",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${waste_disposal_sites_num}",
+      "fieldCode": "spoilDisposalSiteCount",
+      "name": "弃渣场数量",
+      "section": "土石方平衡",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${waste_disposal_site_total_land_area}",
+      "fieldCode": "spoilDisposalSiteArea",
+      "name": "弃渣场面积",
+      "section": "土石方平衡",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${wind_farm_engineering_land_area_table}",
+      "fieldCode": "landTotalAcquisition",
+      "name": "landTotalAcquisition",
+      "section": "",
+      "kind": "empty_table",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${maintenance_road_total_land_area}",
+      "fieldCode": "longTermLeaseMaintenanceRoadArea",
+      "name": "检修道路征地总面积",
+      "section": "用地面积",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${tower_foundation_total_land_area}",
+      "fieldCode": "longTermLeaseTowerFoundationArea",
+      "name": "铁塔基础征地总面积",
+      "section": "用地面积",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${buried_cable_total_land_area}",
+      "fieldCode": "temporaryLandDirectBuriedCableArea",
+      "name": "直埋电缆征地总面积",
+      "section": "用地面积",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${investment_outgoing_line_legacy_total}",
+      "fieldCode": "investment110kvOutgoingLineProjectTotal",
+      "name": "110kV送出线路工程合计",
+      "section": "技经概算",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${investment_opposite_bay_expansion_total}",
+      "fieldCode": "investmentOppositeBayExpansionTotal",
+      "name": "对侧间隔扩建工程合计",
+      "section": "技经概算",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${investment_outgoing_line_share_legacy_total}",
+      "fieldCode": "investment330kvOutgoingLineShareTotal",
+      "name": "330kV送出线路分摊费合计",
+      "section": "技经概算",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${investment_product_supporting_cost_total}",
+      "fieldCode": "investmentProductSupportingCostTotal",
+      "name": "产品配套费合计",
+      "section": "技经概算",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${investment_new_energy_perception_equipment_total}",
+      "fieldCode": "investmentNewEnergyStationPerceptionEquipmentTotal",
+      "name": "新能源场站感知设备合计",
+      "section": "技经概算",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${investment_technology_special_total}",
+      "fieldCode": "investmentTechnologySpecialTotal",
+      "name": "科技专篇合计",
+      "section": "技经概算",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${land_use_tax}",
+      "fieldCode": "landUseTax",
+      "name": "土地使用税",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${equity_internal_return_rate}",
+      "fieldCode": "financeCapitalIrrWithoutOutgoing",
+      "name": "资本金财务内部收益率(不含送出)",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${curtailment_rate_single}",
+      "fieldCode": "financeCurtailmentRateSingle",
+      "name": "限电率（单一值）",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${curtailment_rate_segmented}",
+      "fieldCode": "financeCurtailmentRateSegments",
+      "name": "限电率（分段值）",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${annual_grid_energy_curtailment}",
+      "fieldCode": "financeCurtailmentAnnualOnGridEnergyMwh",
+      "name": "限电后年上网电量",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${curtailment_equivalent_full_load_hours}",
+      "fieldCode": "financeCurtailmentEquivalentFullLoadHours",
+      "name": "限电等效满负荷小时数",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    },
+    {
+      "key": "${land_tax}",
+      "fieldCode": "financeLandUseTaxTotal",
+      "name": "其中：土地使用税合计",
+      "section": "财务",
+      "kind": "null",
+      "status": "MISSING",
+      "reason": null
+    }
+  ]
+}

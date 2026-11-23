@@ -1,0 +1,11 @@
+# 字段名及别名定义在 fields/*.yaml；这里仅定义证据所属对象和冲突策略。
+fields:
+  plannedCapacity:
+    required_context_any: [升压站, 变电站, 变电所, 汇集站, 主接线, 一次接线, 主变压器, 主变, 电气一次, 一次系统]
+    detect_conflicts: true
+  currentCapacity:
+    required_context_any: [升压站, 变电站, 变电所, 汇集站, 主接线, 一次接线, 主变压器, 主变, 电气一次, 一次系统]
+    detect_conflicts: true
+  installedCapacity:
+    negative_context: [单机容量, 单机额定容量, 单台容量, 单台额定容量, 储能容量, 储能规模, 储能系统容量, 电池容量, 主变容量, 主变压器容量, 箱变容量, 箱式变压器容量]
+    detect_conflicts: true

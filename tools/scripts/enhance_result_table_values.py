@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
     # 独立运行 tools/scripts 下脚本时，显式把项目根目录加入导入路径。
     sys.path.insert(0, str(ROOT))
 
-from parser_engine.tables.table_values import default_table_value_details_path, enhance_result_file
+from word_parser.secondary.table_values import default_table_value_details_path, enhance_result_file
 
 
 def parse_args() -> argparse.Namespace:

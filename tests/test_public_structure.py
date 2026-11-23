@@ -2,21 +2,20 @@ from word_parser.core import create_parser, parse_document, parse_document_with_
 from word_parser.document import DocumentAST, DocumentBlock, DocumentLoader, DocumentTable, TableCell
 from word_parser.extraction import OriginalTableResolver, StandardTableExtractor, TableValueResolver, ValueExtractor
 from word_parser.output import JsonExporter, ResultBuilder
-from word_parser.output.schema import REQUIRED_FIELD_META, REQUIRED_SECTION_SCHEMA
+from word_parser.config.output_schema import REQUIRED_FIELD_META, REQUIRED_SECTION_SCHEMA
 
 
-def test_legacy_parser_engine_import_paths_remain_compatible():
-    from parser_engine.document.layout.opendataloader_sidecar import OpenDataLoaderLayoutSidecar
-    from parser_engine.document.sections.section_detector import SectionDetector
-    from parser_engine.document.structure.structure_parser import StructureParser
-    from parser_engine.extraction.matching.field_matcher import FieldMatcher
-    from parser_engine.extraction.normalization.normalizer import Normalizer
-    from parser_engine.extraction.pruning.funnel_pruner import FunnelPruner
-    from parser_engine.extraction.resolving.candidate_resolver import CandidateResolver
-    from parser_engine.extraction.retrieval.candidate_retriever import CandidateRetriever
-    from parser_engine.extraction.semantic.semantic_verifier import SemanticVerifier
-    from parser_engine.extraction.validation.validator import Validator
-    from parser_engine.tables.table_values.resolver import TableValueResolver
+def test_modular_import_paths_are_available():
+    from word_parser.document.layout_sidecar import OpenDataLoaderLayoutSidecar
+    from word_parser.document.section_detector import SectionDetector
+    from word_parser.document.structure_parser import StructureParser
+    from word_parser.primary.field_matcher import FieldMatcher
+    from word_parser.primary.normalizer import Normalizer
+    from word_parser.primary.funnel_pruner import FunnelPruner
+    from word_parser.primary.candidate_resolver import CandidateResolver
+    from word_parser.primary.candidate_retriever import CandidateRetriever
+    from word_parser.primary.validator import Validator
+    from word_parser.secondary.table_values.resolver import TableValueResolver
 
     assert all(
         item is not None
@@ -29,7 +28,6 @@ def test_legacy_parser_engine_import_paths_remain_compatible():
             FunnelPruner,
             CandidateResolver,
             CandidateRetriever,
-            SemanticVerifier,
             Validator,
             TableValueResolver,
         )

@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from parser_engine.tables.table_values import TableValueResolver
+from word_parser.secondary.table_values import TableValueResolver
 
 
 def _run(config: dict, tables: list[dict]) -> dict[str, dict]:

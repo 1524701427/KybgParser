@@ -1,0 +1,336 @@
+# WordParser 持续集成与部署
+# test 分支：构建、测试、推送并自动部署测试环境。
+# main 分支：构建、测试、推送，生产部署保留人工确认。
+
+stages:
+  - build
+  - deploy
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - when: never
+
+variables:
+  APP_NAME: "word-parser"
+  SERVICE_DISPLAY_NAME: "WordParser 可研报告解析服务"
+  HOST_PORT: "9994"
+  CONTAINER_PORT: "8000"
+  DOCKER_NETWORK: "server_default"
+  CONTAINER_MEMORY: "8g"
+  CONTAINER_CPUS: "4"
+  CONTAINER_SHM_SIZE: "1g"
+  UVICORN_WORKERS: "1"
+
+  BASE_IMAGE: "docker.wh-ge.com/document-processing-base:1.0"
+  REGISTRY_PUSH: "172.16.12.155:38082"
+  REGISTRY_PULL: "docker.wh-ge.com"
+  NEXUS_USERNAME: "admin"
+  NEXUS_PASSWORD: "336699aa"
+
+  TEST_HOST: "172.16.14.71"
+  TEST_SSH_USER: "root"
+  TEST_SSH_PRIVATE_KEY_B64: "LS0tLS1CRUdJTiBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0KYjNCbGJuTnphQzFyWlhrdGRqRUFBQUFBQkc1dmJtVUFBQUFFYm05dVpRQUFBQUFBQUFBQkFBQUFNd0FBQUF0emMyZ3RaVwpReU5UVXhPUUFBQUNBdk03akpiWWJLd0djZ2tEd1FwWVpnR0JYM3V2SXFiSU9oclJPdU9weWdTQUFBQUpoVVdDVXdWRmdsCk1BQUFBQXR6YzJndFpXUXlOVFV4T1FBQUFDQXZNN2pKYlliS3dHY2drRHdRcFlaZ0dCWDN1dklxYklPaHJST3VPcHlnU0EKQUFBRUJtRkxBcVpLRDBWcWJiVmUwSU5YYnRVYTVyVmZvcEtNQkRzbktiUkpUa2NTOHp1TWx0aHNyQVp5Q1FQQkNsaG1BWQpGZmU2OGlwc2c2R3RFNjQ2bktCSUFBQUFFR2RwZEd4aFlpMWphUzFrWlhCc2Iza0JBZ01FQlE9PQotLS0tLUVORCBPUEVOU1NIIFBSSVZBVEUgS0VZLS0tLS0K"
+  TEST_SSH_PASSWORD: ""
+
+  PROD_HOST: "123.57.69.168"
+  PROD_SSH_USER: "root"
+  PROD_SSH_PRIVATE_KEY_B64: ""
+  PROD_SSH_PASSWORD: "Wuhuan-=4321"
+  FEISHU_WEBHOOK_URL: "https://open.feishu.cn/open-apis/bot/v2/hook/1bae5806-2288-453b-bf1a-6fab0abd56e1"
+
+  IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
+  IMAGE_NAME: "$APP_NAME-$CI_COMMIT_REF_SLUG"
+  IMAGE_REPOSITORY_PUSH: "$REGISTRY_PUSH/$IMAGE_NAME"
+  IMAGE_REPOSITORY_PULL: "$REGISTRY_PULL/$IMAGE_NAME"
+
+  SSH_PORT: "22"
+  DOCKER_BUILDKIT: "1"
+  BUILDKIT_PROGRESS: "plain"
+
+build-push:
+  image: docker:24
+  stage: build
+  resource_group: word-parser-build
+  tags:
+    - whln-gis-runner
+  before_script:
+    - |
+      if [ -z "${NEXUS_USERNAME:-}" ] || [ -z "${NEXUS_PASSWORD:-}" ]; then
+        echo "缺少镜像仓库凭据：请检查 .gitlab-ci.yml 的 NEXUS_USERNAME 和 NEXUS_PASSWORD。" >&2
+        exit 1
+      fi
+    - printf '%s' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USERNAME" --password-stdin "$REGISTRY_PUSH"
+    - printf '%s' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USERNAME" --password-stdin "$REGISTRY_PULL"
+  script:
+    - |
+      set -eu
+
+      docker build --pull --build-arg "BASE_IMAGE=$BASE_IMAGE" \
+        -t "$IMAGE_REPOSITORY_PUSH:$IMAGE_TAG" .
+
+      # 先创建临时容器再复制 tests 和测试用工具，兼容使用宿主机 Docker Socket 的 Runner。
+      TEST_CONTAINER=$(docker create "$IMAGE_REPOSITORY_PUSH:$IMAGE_TAG" python -m pytest -q)
+      trap 'docker rm -f "$TEST_CONTAINER" >/dev/null 2>&1 || true' EXIT
+      docker cp "$CI_PROJECT_DIR/tests/." "$TEST_CONTAINER:/app/tests/"
+      docker cp "$CI_PROJECT_DIR/tools" "$TEST_CONTAINER:/app/"
+      docker start -a "$TEST_CONTAINER"
+      test "$(docker inspect -f '{{.State.ExitCode}}' "$TEST_CONTAINER")" -eq 0
+      docker rm "$TEST_CONTAINER"
+      trap - EXIT
+
+      # 与已正常运行的项目保持一致：推送前登录推送地址，并用同一 Docker
+      # 配置执行 push。测试阶段结束后重新登录，避免使用过期凭据。
+      printf '%s' "$NEXUS_PASSWORD" | docker login \
+        -u "$NEXUS_USERNAME" --password-stdin "$REGISTRY_PUSH"
+
+      push_image() {
+        image="$1"
+        attempt=1
+        until docker push "$image"; do
+          if [ "$attempt" -ge 3 ]; then return 1; fi
+          attempt=$((attempt + 1))
+          sleep $((attempt * 5))
+        done
+      }
+      push_image "$IMAGE_REPOSITORY_PUSH:$IMAGE_TAG"
+      docker tag "$IMAGE_REPOSITORY_PUSH:$IMAGE_TAG" "$IMAGE_REPOSITORY_PUSH:latest"
+      push_image "$IMAGE_REPOSITORY_PUSH:latest"
+  after_script:
+    - docker logout "$REGISTRY_PUSH" 2>/dev/null || true
+    - docker logout "$REGISTRY_PULL" 2>/dev/null || true
+    - docker rmi "$IMAGE_REPOSITORY_PUSH:$IMAGE_TAG" 2>/dev/null || true
+    - docker rmi "$IMAGE_REPOSITORY_PUSH:latest" 2>/dev/null || true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+.deploy-base:
+  image: alpine:3.20
+  stage: deploy
+  tags:
+    - whln-gis-runner
+  needs:
+    - build-push
+  resource_group: "$CI_ENVIRONMENT_NAME"
+  before_script:
+    - |
+      set -eu
+      # Shell Executor 在 Runner 宿主环境执行，image: alpine 不会提供 apk。
+      if ! command -v ssh >/dev/null 2>&1 \
+        || ! command -v ssh-keyscan >/dev/null 2>&1 \
+        || ! command -v base64 >/dev/null 2>&1 \
+        || { [ -z "${SSH_PRIVATE_KEY_B64:-}" ] && ! command -v sshpass >/dev/null 2>&1; }; then
+        if [ "$(id -u)" -eq 0 ]; then
+          INSTALL_PREFIX=""
+        elif command -v sudo >/dev/null 2>&1; then
+          INSTALL_PREFIX="sudo"
+        else
+          echo "部署 Runner 缺少 SSH 工具，且当前用户无法安装。" >&2
+          exit 1
+        fi
+
+        if command -v apk >/dev/null 2>&1; then
+          $INSTALL_PREFIX apk add --no-cache openssh-client sshpass coreutils
+        elif command -v apt-get >/dev/null 2>&1; then
+          $INSTALL_PREFIX apt-get update
+          $INSTALL_PREFIX apt-get install -y openssh-client sshpass coreutils
+        elif command -v dnf >/dev/null 2>&1; then
+          $INSTALL_PREFIX dnf install -y openssh-clients sshpass coreutils
+        elif command -v yum >/dev/null 2>&1; then
+          $INSTALL_PREFIX yum install -y openssh-clients sshpass coreutils
+        else
+          echo "部署 Runner 缺少可用的包管理器。" >&2
+          exit 1
+        fi
+      fi
+    - test -n "$DEPLOY_HOST"
+    - test -n "$SSH_USER"
+    - |
+      if [ -z "${NEXUS_USERNAME:-}" ] || [ -z "${NEXUS_PASSWORD:-}" ]; then
+        echo "部署缺少镜像仓库凭据：请检查 .gitlab-ci.yml 的 NEXUS_USERNAME 和 NEXUS_PASSWORD。" >&2
+        exit 1
+      fi
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H -p "$SSH_PORT" "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+    - |
+      run_ssh() {
+        if [ -n "${SSH_PRIVATE_KEY_B64:-}" ]; then
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=no -p "$SSH_PORT" "$@"
+        else
+          SSHPASS="$SSH_PASSWORD" sshpass -e ssh -o StrictHostKeyChecking=no \
+            -p "$SSH_PORT" "$@"
+        fi
+      }
+      if [ -n "${SSH_PRIVATE_KEY_B64:-}" ]; then
+        printf '%s' "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+      elif [ -z "${SSH_PASSWORD:-}" ]; then
+        echo "必须在 .gitlab-ci.yml 中配置对应环境的 SSH 私钥或密码。" >&2
+        exit 1
+      fi
+  script:
+    - |
+      set -eu
+      NEXUS_USERNAME_B64=$(printf '%s' "$NEXUS_USERNAME" | base64 | tr -d '\n')
+      NEXUS_PASSWORD_B64=$(printf '%s' "$NEXUS_PASSWORD" | base64 | tr -d '\n')
+
+      run_ssh "$SSH_USER@$DEPLOY_HOST" \
+        "APP_NAME='$APP_NAME' \
+         IMAGE_REPOSITORY_PULL='$IMAGE_REPOSITORY_PULL' \
+         IMAGE_TAG='$IMAGE_TAG' \
+         HOST_PORT='$HOST_PORT' \
+         CONTAINER_PORT='$CONTAINER_PORT' \
+         DOCKER_NETWORK='$DOCKER_NETWORK' \
+         CONTAINER_MEMORY='$CONTAINER_MEMORY' \
+         CONTAINER_CPUS='$CONTAINER_CPUS' \
+         CONTAINER_SHM_SIZE='$CONTAINER_SHM_SIZE' \
+         UVICORN_WORKERS='$UVICORN_WORKERS' \
+         REGISTRY_PULL='$REGISTRY_PULL' \
+         NEXUS_USERNAME_B64='$NEXUS_USERNAME_B64' \
+         NEXUS_PASSWORD_B64='$NEXUS_PASSWORD_B64' \
+         sh -s" <<'REMOTE_SCRIPT'
+      set -eu
+      NEXUS_USERNAME=$(printf '%s' "$NEXUS_USERNAME_B64" | base64 -d)
+      NEXUS_PASSWORD=$(printf '%s' "$NEXUS_PASSWORD_B64" | base64 -d)
+
+      printf '%s' "$NEXUS_PASSWORD" | docker login \
+        -u "$NEXUS_USERNAME" --password-stdin "$REGISTRY_PULL" >/dev/null
+      docker pull "$IMAGE_REPOSITORY_PULL:$IMAGE_TAG"
+
+      # 启动前先验证生产镜像中的关键模块，失败时不停止现有服务。
+      docker run --rm --entrypoint python "$IMAGE_REPOSITORY_PULL:$IMAGE_TAG" \
+        -c "import word_parser.application.http_api; from word_parser.document.word.aspose_loader import AsposeWordsLoader; assert AsposeWordsLoader(fallback_to_simple=False)._load_aspose_runtime() is not None; print('镜像自检通过')"
+
+      OLD_IMAGE=$(docker inspect --format '{{.Config.Image}}' "$APP_NAME" 2>/dev/null || true)
+      docker stop --time 30 "$APP_NAME" 2>/dev/null || true
+      docker rm "$APP_NAME" 2>/dev/null || true
+
+      NETWORK_OPTS=""
+      if [ -n "${DOCKER_NETWORK:-}" ]; then
+        docker network inspect "$DOCKER_NETWORK" >/dev/null 2>&1 \
+          || docker network create "$DOCKER_NETWORK"
+        NETWORK_OPTS="--network $DOCKER_NETWORK"
+      fi
+
+      start_container() {
+        image="$1"
+        docker run -d \
+          --name "$APP_NAME" \
+          --restart unless-stopped \
+          --stop-timeout 30 \
+          --memory "$CONTAINER_MEMORY" \
+          --cpus "$CONTAINER_CPUS" \
+          --shm-size "$CONTAINER_SHM_SIZE" \
+          --pids-limit 512 \
+          -p "$HOST_PORT:$CONTAINER_PORT" \
+          -e UVICORN_WORKERS="$UVICORN_WORKERS" \
+          $NETWORK_OPTS \
+          "$image"
+      }
+
+      start_container "$IMAGE_REPOSITORY_PULL:$IMAGE_TAG"
+
+      healthy=false
+      attempt=1
+      while [ "$attempt" -le 45 ]; do
+        status=$(docker inspect -f '{{.State.Status}}' "$APP_NAME" 2>/dev/null || true)
+        if [ "$status" = "running" ] && docker exec "$APP_NAME" python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/openapi.json', timeout=3)" >/dev/null 2>&1; then
+          healthy=true
+          break
+        fi
+        if [ "$status" = "exited" ] || [ "$status" = "dead" ]; then break; fi
+        attempt=$((attempt + 1))
+        sleep 2
+      done
+
+      if [ "$healthy" != "true" ]; then
+        docker logs --tail 200 "$APP_NAME" 2>/dev/null || true
+        docker stop --time 10 "$APP_NAME" 2>/dev/null || true
+        docker rm "$APP_NAME" 2>/dev/null || true
+        if [ -n "$OLD_IMAGE" ]; then
+          echo "新版本健康检查失败，回滚到 $OLD_IMAGE"
+          start_container "$OLD_IMAGE"
+        fi
+        exit 1
+      fi
+
+
+      docker ps --filter "name=^/${APP_NAME}$"
+      docker logout "$REGISTRY_PULL" >/dev/null 2>&1 || true
+      docker image prune -f >/dev/null 2>&1 || true
+      REMOTE_SCRIPT
+  after_script:
+    - |
+      rm -f ~/.ssh/deploy_key 2>/dev/null || true
+
+      if [ -z "${FEISHU_WEBHOOK_URL:-}" ]; then exit 0; fi
+      if [ "${CI_JOB_STATUS:-failed}" = "success" ]; then
+        STATUS_TEXT="部署成功"
+        CARD_TEMPLATE="green"
+      else
+        STATUS_TEXT="部署失败"
+        CARD_TEMPLATE="red"
+      fi
+
+      json_escape() {
+        printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+      }
+      SERVICE_JSON=$(json_escape "$SERVICE_DISPLAY_NAME")
+      STATUS_JSON=$(json_escape "$STATUS_TEXT")
+      ENV_JSON=$(json_escape "${CI_ENVIRONMENT_NAME:-未知}")
+      BRANCH_JSON=$(json_escape "${CI_COMMIT_REF_NAME:-未知}")
+      SHA_JSON=$(json_escape "${CI_COMMIT_SHORT_SHA:-未知}")
+      IMAGE_JSON=$(json_escape "$IMAGE_REPOSITORY_PULL:$IMAGE_TAG")
+      TARGET_JSON=$(json_escape "$DEPLOY_HOST:$HOST_PORT")
+      JOB_URL_JSON=$(json_escape "${CI_JOB_URL:-未知}")
+
+      cat > /tmp/word_parser_feishu.json <<EOF
+      {
+        "msg_type": "interactive",
+        "card": {
+          "config": {"wide_screen_mode": true},
+          "header": {
+            "template": "$CARD_TEMPLATE",
+            "title": {"tag": "plain_text", "content": "$SERVICE_JSON $STATUS_JSON"}
+          },
+          "elements": [
+            {"tag": "div", "text": {"tag": "lark_md", "content": "**状态：** $STATUS_JSON\n**环境：** $ENV_JSON\n**分支：** $BRANCH_JSON\n**提交：** $SHA_JSON"}},
+            {"tag": "div", "text": {"tag": "lark_md", "content": "**镜像：** $IMAGE_JSON\n**部署目标：** $TARGET_JSON\n流水线：$JOB_URL_JSON"}}
+          ]
+        }
+      }
+      EOF
+      wget -qO- --header="Content-Type: application/json" \
+        --post-file=/tmp/word_parser_feishu.json "$FEISHU_WEBHOOK_URL" >/dev/null || true
+      rm -f /tmp/word_parser_feishu.json
+
+deploy-test:
+  extends: .deploy-base
+  variables:
+    DEPLOY_HOST: "$TEST_HOST"
+    SSH_USER: "$TEST_SSH_USER"
+    SSH_PRIVATE_KEY_B64: "$TEST_SSH_PRIVATE_KEY_B64"
+    SSH_PASSWORD: "$TEST_SSH_PASSWORD"
+  environment:
+    name: test
+    url: "http://$TEST_HOST:$HOST_PORT"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "test"'
+
+deploy-prod:
+  extends: .deploy-base
+  variables:
+    DEPLOY_HOST: "$PROD_HOST"
+    SSH_USER: "$PROD_SSH_USER"
+    SSH_PRIVATE_KEY_B64: "$PROD_SSH_PRIVATE_KEY_B64"
+    SSH_PASSWORD: "$PROD_SSH_PASSWORD"
+  environment:
+    name: production
+    url: "http://$PROD_HOST:$HOST_PORT"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual

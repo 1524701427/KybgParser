@@ -1,5 +1,5 @@
-"""Candidate merging, deterministic overrides and derived calculations."""
+"""兼容旧版 ResultBuilder 导入路径。"""
 
-from parser_engine.output.result_builder import ResultBuilder
+from word_parser.output.result_builder import ResultBuilder
 
 __all__ = ["ResultBuilder"]

@@ -1,0 +1,84 @@
+# 《组合 1(1).pdf》当前空值清单
+
+依据 2026-11-19 完整流程生成的 `组合 1(1)_mapped.json`；共 284 个占位符，其中 75 个完全为空：69 个 `null`、4 个全空数组、2 张空表。另有 `${combinedWindShear}` 仅 1/3 个塔有值。
+
+概算附表 01—05、财务附表 01—08 及财务指标汇总表已被识别为原表。已从附表取到送出投资、配套服务费、固定资产增值税抵扣和流动资金贷款比例。二次抽取现在还会在目标章节找不到表时，按全篇唯一表键及原有标题/内容约束跨章节查找；重新运行后仍为 75 个完全空值。下面的空值不能一律视为章节限制：例如本报告附表没有单独的“资产折旧摊销估算表”“投资各方现金流量表”；其他字段需逐一核对口径和原文证据。
+
+| 结果章节 | 字段 | 占位符 | 空值形式 |
+| --- | --- | --- | --- |
+| 通用 | 设计单位资质等级 | `${design_qualification_level}` | null |
+| 发电量章节 | 不考虑尾流效应的折减系数 | `${projectSelectedWakeReductionCoefficient}` | null |
+| 其他 | H（m） | `${h_coordinate_value}` | 空数组 |
+| 其他 | 理论发电量 | `${theoretical_power_generation}` | 空数组 |
+| 其他 | 尾流系数 | `${wake_effect_coefficient}` | 空数组 |
+| 其他 | 最终上网电量 | `${final_on_grid_energy}` | 空数组 |
+| 电气一次 | 扩建升压站 | `${expanded_booster_station}` | null |
+| 电气一次 | 可接入容量 | `${station_capacity_margin}` | null |
+| 电气一次 | 升压站远期出线回数 | `${substation_future_outgoing_circuits}` | null |
+| 电气一次 | 升压站电气主接线规划总规模 | `${planned_main_connection_capacity}` | null |
+| 电气一次 | 升压站电气主接线本期规模 | `${current_main_connection_capacity}` | null |
+| 电气一次 | 构架避雷针座数 | `${structure_lightning_rod_count}` | null |
+| 电气一次 | 构架避雷针高度 | `${structure_lightning_rod_height}` | null |
+| 电气一次 | 箱变类型 | `${box_transformer_type}` | null |
+| 电气一次 | 110kV架空出线间隔备注 | `${gis_remarks}` | null |
+| 电气一次 | 断路器型号 | `${circuit_breaker_model}` | null |
+| 电气一次 | 隔离开关型号 | `${disconnector_switch_model}` | null |
+| 电气一次 | 电流互感器型号 | `${current_transformer_model}` | null |
+| 电气一次 | 电压互感器型号 | `${voltage_transformer_signal}` | null |
+| 电气一次 | 主变远期台数 | `${future_main_transformer_count}` | null |
+| 电气一次 | 接地变兼站用变型号 | `${grounding_station_transformer_model}` | null |
+| 电气一次 | 接地变兼站用变电压 | `${grounding_station_transformer_voltage}` | null |
+| 电气一次 | 接地变兼站用变容量 | `${grounding_station_transformer_capacity}` | null |
+| 电气一次 | 接地变兼站用变数量 | `${grounding_station_transformer_quantity}` | null |
+| 电气一次 | 接地变兼站用变单位 | `${grounding_station_transformer_unit}` | null |
+| 电气一次 | 接地变兼站用变接地电阻 | `${grounding_station_transformer_resistance}` | null |
+| 电气一次 | SVG无功补偿装置容量 | `${svg_reactive_compensation_device}` | null |
+| 集电线路 | 全线集电线路路径长度 | `${total_line_route_length}` | null |
+| 集电线路 | 新建双回路线路长度 | `${double_circuit_line_length}` | null |
+| 集电线路 | 新建架空线路长度 | `${new_overhead_line_length}` | null |
+| 集电线路 | 双回架空线路路径长度 | `${double_circuit_overhead_line_length}` | null |
+| 集电线路 | 单回架空线路路径长度 | `${single_circuit_overhead_line_length}` | null |
+| 集电线路 | 电缆电芯材质 | `${cable_conductor_material}` | null |
+| 风机基础 | 风机基础-C20混凝土 | `${turbine_foundation_c20_concrete}` | null |
+| 风机基础 | 风机基础-C45混凝土 | `${turbine_foundation_c45_concrete}` | null |
+| 道路 | 进场道路长度 | `${access_road_length}` | null |
+| 用地面积 | 进站道路征地面积 | `${entrance_road_land_area}` | null |
+| 用地面积 | 铁塔基础征地总面积 | `${tower_foundation_total_land_area}` | null |
+| 技经概算 | 配套费静态投资 | `${investment_supporting_cost_static}` | null |
+| 技经概算 | 配套费建设期利息 | `${investment_supporting_cost_interest}` | null |
+| 技经概算 | 配套费工程总投资 | `${investment_supporting_cost_total}` | null |
+| 技经概算 | 片区管理综合楼静态投资 | `${investment_management_building_static}` | null |
+| 技经概算 | 片区管理综合楼建设期利息 | `${investment_management_building_interest}` | null |
+| 技经概算 | 片区管理综合楼工程总投资 | `${investment_management_building_total}` | null |
+| 技经概算 | 智慧风场静态投资 | `${investment_smart_wind_farm_static}` | null |
+| 技经概算 | 智慧风场建设期利息 | `${investment_smart_wind_farm_interest}` | null |
+| 技经概算 | 智慧风场动态投资 | `${investment_smart_wind_farm_total}` | null |
+| 技经概算 | 动态投资（部分） | `${investment_dynamic_partial}` | null |
+| 技经概算 | 单位千瓦静态投资（部分） | `${investment_per_kw_static_partial}` | null |
+| 技经概算 | 单位千瓦动态投资（部分） | `${investment_per_kw_dynamic_partial}` | null |
+| 技经概算 | 智慧管理平台合计 | `${investment_smart_management_platform_total}` | null |
+| 技经概算 | 对侧间隔扩建工程合计 | `${investment_opposite_bay_expansion_total}` | null |
+| 技经概算 | 330kV送出线路分摊费合计 | `${investment_outgoing_line_share_legacy_total}` | null |
+| 技经概算 | 产品配套费合计 | `${investment_product_supporting_cost_total}` | null |
+| 技经概算 | 新能源场站感知设备合计 | `${investment_new_energy_perception_equipment_total}` | null |
+| 技经概算 | 科技专篇合计 | `${investment_technology_special_total}` | null |
+| 其他 | investmentAccessStationShareGroups | `${investment_access_station_share_groups}` | null |
+| 其他 | finalExpansionProject | `${expansion_project}` | null |
+| 其他 | finalOutgoingSharedCost | `${outgoing_shared_cost}` | null |
+| 其他 | finalAreaManagementBuilding | `${area_management_building}` | null |
+| 其他 | finalSmartWindFarm | `${smart_wind_farm}` | null |
+| 其他 | finalNewEnergySensingEquipment | `${new_energy_sensing_equipment}` | null |
+| 其他 | finalResearchDevelopmentCost | `${research_development_cost}` | null |
+| 其他 | finalTechnologyCost | `${technology_cost}` | null |
+| 其他 | finalCentralizedControlPlatformCost | `${centralized_control_platform_cost}` | null |
+| 其他 | financeDepreciationAmortization | `${fixed_asset_depreciation_amortization}` | 空表 |
+| 其他 | financeInvestorCashFlowParty1 | `${investor_one_cashflow_statement}` | 空表 |
+| 财务 | 土地使用税 | `${land_use_tax}` | null |
+| 财务 | 资本金财务内部收益率(不含送出) | `${equity_internal_return_rate}` | null |
+| 财务 | 限电率（单一值） | `${curtailment_rate_single}` | null |
+| 财务 | 限电率（分段值） | `${curtailment_rate_segmented}` | null |
+| 财务 | 限电后年上网电量 | `${annual_grid_energy_curtailment}` | null |
+| 财务 | 限电等效满负荷小时数 | `${curtailment_equivalent_full_load_hours}` | null |
+| 财务 | 其中：土地使用税合计 | `${land_tax}` | null |
+| 财务 | 固定资产原值建设期及第1年 | `${fixed_asset_original_value}` | null |
+

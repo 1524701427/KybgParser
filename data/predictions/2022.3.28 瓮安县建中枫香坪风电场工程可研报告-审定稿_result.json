@@ -1,0 +1,4378 @@
+{
+  "filePath": "C:\\Users\\EDY\\Downloads\\2022.3.28 瓮安县建中枫香坪风电场工程可研报告-审定稿.pdf",
+  "sections": [
+    {
+      "name": "通用",
+      "fields": [
+        {
+          "fieldCode": "projectName",
+          "name": "项目名称",
+          "value": "瓮安县建中枫香坪风电场工程",
+          "unit": null
+        },
+        {
+          "fieldCode": "investmentOwnerCompany",
+          "name": "投资（建设）单位",
+          "value": "贵州盾安风电有限公司",
+          "unit": null
+        },
+        {
+          "fieldCode": "projectAddressCity",
+          "name": "项目地址-所属市",
+          "value": "黔南布依族苗族自治州",
+          "unit": null
+        },
+        {
+          "fieldCode": "projectAddressCounty",
+          "name": "项目地址-所属县区",
+          "value": "瓮安县",
+          "unit": null
+        },
+        {
+          "fieldCode": "projectAddressTown",
+          "name": "项目地址-所属乡镇",
+          "value": "建中镇、平定营镇、中坪镇",
+          "unit": null
+        },
+        {
+          "fieldCode": "projectAddressDetail",
+          "name": "项目地址-详细地址",
+          "value": "贵州省黔南布依族苗族自治州瓮安县西部建中镇、平定营镇、中坪镇一带",
+          "unit": null
+        },
+        {
+          "fieldCode": "designUnit",
+          "name": "设计单位",
+          "value": "北京计鹏信息咨询有限公司",
+          "unit": null
+        },
+        {
+          "fieldCode": "designUnitQualification",
+          "name": "设计单位资质等级",
+          "value": null,
+          "unit": null
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "资源章节",
+      "fields": [
+        {
+          "fieldCode": "selectedTurbineSafetyClass",
+          "name": "最终宜选机型",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "maxWindSpeed50Year",
+          "name": "50年一遇最大风速",
+          "value": 26.52,
+          "unit": "m/s"
+        },
+        {
+          "fieldCode": "windPowerDensityGrade",
+          "name": "风功率密度等级",
+          "value": "D-2",
+          "unit": "级"
+        },
+        {
+          "fieldCode": "windResourceGenerationUses",
+          "name": "发电量计算是否使用",
+          "value": [
+            "是",
+            "是",
+            "是"
+          ],
+          "unit": null
+        }
+      ],
+      "tables": [
+        {
+          "key": "windResourceCombined",
+          "name": "测风塔风资源指标汇总表",
+          "columns": [
+            "测风塔编号",
+            "测风塔经度",
+            "测风塔纬度",
+            "测风周期",
+            "该风电场的空气密度",
+            "高度对应的空气密度",
+            "10m高度空气密度",
+            "160m高度空气密度",
+            "各测风塔各高度空气密度",
+            "轮毂高度平均风速",
+            "轮毂高度平均风功率密度",
+            "各测风塔轮毂高度平均风速",
+            "各测风塔轮毂高度平均风功率密度",
+            "轮毂高度处的主风向",
+            "轮毂高度处的次风向",
+            "轮毂高度处的主风能方向",
+            "轮毂高度处的次风能方向",
+            "最大高度处代表性湍流强度",
+            "各测风塔各高度湍流强度",
+            "综合风切变",
+            "发电量计算是否使用"
+          ],
+          "columnKeys": [
+            "测风塔编号",
+            "测风塔经度",
+            "测风塔纬度",
+            "测风周期",
+            "该风电场的空气密度",
+            "高度对应的空气密度",
+            "10m高度空气密度",
+            "160m高度空气密度",
+            "各测风塔各高度空气密度",
+            "轮毂高度平均风速",
+            "轮毂高度平均风功率密度",
+            "各测风塔轮毂高度平均风速",
+            "各测风塔轮毂高度平均风功率密度",
+            "轮毂高度处的主风向",
+            "轮毂高度处的次风向",
+            "轮毂高度处的主风能方向",
+            "轮毂高度处的次风能方向",
+            "最大高度处代表性湍流强度",
+            "各测风塔各高度湍流强度",
+            "综合风切变",
+            "发电量计算是否使用"
+          ],
+          "index": [
+            0,
+            1,
+            2
+          ],
+          "data": [
+            [
+              "0047#",
+              "107°20′39.72″",
+              "27°6′2.88″",
+              "2017.4.6~2018.7.11",
+              null,
+              1.04,
+              null,
+              null,
+              [
+                {
+                  "tower_code": "0047#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 1.04,
+                  "unit": "kg/m³"
+                }
+              ],
+              5.6,
+              163.0,
+              [
+                {
+                  "tower_code": "0047#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 5.6,
+                  "unit": "m/s"
+                }
+              ],
+              [
+                {
+                  "tower_code": "0047#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 163.0,
+                  "unit": "W/m²"
+                }
+              ],
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              "0048#",
+              "107°24′36.96″",
+              "27°2′18.0″",
+              "2017.4.6~2017.8.24",
+              null,
+              1.04,
+              null,
+              null,
+              [
+                {
+                  "tower_code": "0048#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 1.04,
+                  "unit": "kg/m³"
+                }
+              ],
+              5.33,
+              138.0,
+              [
+                {
+                  "tower_code": "0048#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 5.33,
+                  "unit": "m/s"
+                }
+              ],
+              [
+                {
+                  "tower_code": "0048#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 138.0,
+                  "unit": "W/m²"
+                }
+              ],
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null
+            ],
+            [
+              "1006#",
+              "107°16′55.8″",
+              "27°3′10.98″",
+              "2016.9.13~2017.8.5",
+              null,
+              1.05,
+              null,
+              null,
+              [
+                {
+                  "tower_code": "1006#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 1.05,
+                  "unit": "kg/m³"
+                }
+              ],
+              5.38,
+              135.0,
+              [
+                {
+                  "tower_code": "1006#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 5.38,
+                  "unit": "m/s"
+                }
+              ],
+              [
+                {
+                  "tower_code": "1006#",
+                  "height": 105,
+                  "height_unit": "m",
+                  "value": 135.0,
+                  "unit": "W/m²"
+                }
+              ],
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              0.1617,
+              null
+            ]
+          ]
+        },
+        {
+          "key": "windResourceSpeedPowerStatistics",
+          "name": "根据测风塔各月平均风速和平均风功率密度日变化图表可知，测风塔代表年测风 塔各月风速与风功率密度日变化趋势基本吻合，但各月日变化略有不同。",
+          "columns": [
+            "扇区",
+            "90m 风向",
+            "90m 风能",
+            "80m 风向",
+            "80m 风能",
+            "10m 风向",
+            "10m 风能"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5",
+            "col_6"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "data": [
+            [
+              "N",
+              3.52,
+              1.09,
+              3.63,
+              1.09,
+              3.81,
+              0.91
+            ],
+            [
+              "NNE",
+              6.43,
+              1.65,
+              5.95,
+              1.59,
+              6.65,
+              1.52
+            ],
+            [
+              "NE",
+              8.19,
+              2.63,
+              8.11,
+              2.61,
+              7.99,
+              1.44
+            ],
+            [
+              "ENE",
+              8.83,
+              2.79,
+              8.07,
+              2.47,
+              9.09,
+              1.95
+            ],
+            [
+              "E",
+              8.37,
+              3.26,
+              8.65,
+              3.25,
+              7.05,
+              1.54
+            ],
+            [
+              "ESE",
+              5.53,
+              2.54,
+              6.11,
+              2.73,
+              4.67,
+              1.12
+            ],
+            [
+              "SE",
+              10.11,
+              12.85,
+              6.7,
+              4.88,
+              5.41,
+              1.93
+            ],
+            [
+              "SSE",
+              15.81,
+              27.92,
+              14.01,
+              19.91,
+              16.91,
+              19.12
+            ],
+            [
+              "S",
+              12.36,
+              26.97,
+              15.54,
+              34.6,
+              18.85,
+              53.62
+            ],
+            [
+              "SSW",
+              4.36,
+              6.78,
+              6.81,
+              14.43,
+              3.4,
+              7.58
+            ],
+            [
+              "SW",
+              1.32,
+              0.88,
+              1.36,
+              1.21,
+              1.11,
+              0.82
+            ],
+            [
+              "WSW",
+              1.42,
+              1.05,
+              0.89,
+              0.52,
+              0.98,
+              0.5
+            ],
+            [
+              "W",
+              2.4,
+              1.89,
+              1.38,
+              0.54,
+              1.92,
+              0.58
+            ],
+            [
+              "WNW",
+              3.34,
+              3.71,
+              3.44,
+              3.8,
+              3.29,
+              2.72
+            ],
+            [
+              "NW",
+              4.6,
+              2.76,
+              5.36,
+              4.74,
+              5.36,
+              3.62
+            ],
+            [
+              "NNW",
+              3.41,
+              1.23,
+              3.99,
+              1.63,
+              3.51,
+              1.04
+            ]
+          ]
+        },
+        {
+          "key": "windResourceSpeedPower0047",
+          "name": "通过上述分析处理，整理出 0047#测风塔完整一年的逐小时风速、风向数据，各 高度层年平均风速及风功率密度见下表。",
+          "columns": [
+            "col_0",
+            "风速 m/s",
+            "风功率密度 W/m2",
+            "col_3",
+            "col_4",
+            "col_5",
+            "col_6",
+            "col_7",
+            "col_8",
+            "col_9",
+            "col_10"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5",
+            "col_6",
+            "col_7",
+            "col_8",
+            "col_9",
+            "col_10"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "data": [
+            [
+              "",
+              "90m",
+              "80m",
+              "60m",
+              "30m",
+              "10m",
+              "90m",
+              "80m",
+              "60m",
+              "30m",
+              "10m"
+            ],
+            [
+              "1 月",
+              4.35,
+              4.18,
+              3.8,
+              3.02,
+              2.09,
+              64,
+              57,
+              43,
+              21,
+              7
+            ],
+            [
+              "2 月",
+              4.44,
+              4.28,
+              3.93,
+              3.2,
+              2.31,
+              89,
+              80,
+              62,
+              34,
+              13
+            ],
+            [
+              "3 月",
+              5.19,
+              5.03,
+              4.65,
+              3.87,
+              2.89,
+              139,
+              127,
+              101,
+              58,
+              25
+            ],
+            [
+              "",
+              "风速 m/s",
+              "风功率密度 W/m2",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              "",
+              "90m",
+              "80m",
+              "60m",
+              "30m",
+              "10m",
+              "90m",
+              "80m",
+              "60m",
+              "30m",
+              "10m"
+            ],
+            [
+              "4 月",
+              5.67,
+              5.55,
+              5.22,
+              4.7,
+              3.13,
+              178,
+              167,
+              146,
+              108,
+              31
+            ],
+            [
+              "5 月",
+              5.39,
+              5.26,
+              4.93,
+              4.34,
+              2.73,
+              139,
+              130,
+              113,
+              76,
+              19
+            ],
+            [
+              "6 月",
+              4.2,
+              4.07,
+              3.71,
+              3.31,
+              2.08,
+              82,
+              77,
+              64,
+              44,
+              10
+            ],
+            [
+              "7 月",
+              5.85,
+              5.73,
+              5.46,
+              4.82,
+              2.51,
+              166,
+              155,
+              136,
+              89,
+              13
+            ],
+            [
+              "8 月",
+              5.89,
+              5.75,
+              5.4,
+              4.63,
+              2.42,
+              175,
+              162,
+              140,
+              89,
+              11
+            ],
+            [
+              "9 月",
+              5.68,
+              5.42,
+              4.82,
+              3.65,
+              2.35,
+              155,
+              134,
+              94,
+              41,
+              11
+            ],
+            [
+              "10 月",
+              4.89,
+              4.7,
+              4.27,
+              3.4,
+              2.37,
+              100,
+              89,
+              67,
+              34,
+              12
+            ],
+            [
+              "11 月",
+              4.3,
+              4.14,
+              3.76,
+              2.98,
+              2.07,
+              68,
+              60,
+              45,
+              23,
+              8
+            ],
+            [
+              "12 月",
+              4.53,
+              4.35,
+              3.95,
+              3.14,
+              2.18,
+              75,
+              67,
+              50,
+              25,
+              8
+            ],
+            [
+              "平均",
+              5.04,
+              4.88,
+              4.5,
+              3.76,
+              2.43,
+              119,
+              109,
+              89,
+              54,
+              14
+            ]
+          ]
+        },
+        {
+          "key": "windResourceSpeedPower1006",
+          "name": "表 2-9：1006#测风塔插补后各高度风速、风功率密度",
+          "columns": [
+            "col_0",
+            "风速 m/s",
+            "风功率密度 W/m2",
+            "col_3",
+            "col_4",
+            "col_5",
+            "col_6",
+            "col_7",
+            "col_8",
+            "col_9",
+            "col_10"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5",
+            "col_6",
+            "col_7",
+            "col_8",
+            "col_9",
+            "col_10"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "data": [
+            [
+              "",
+              "80m",
+              "70m",
+              "50m",
+              "30m",
+              "20m",
+              "80m",
+              "70m",
+              "50m",
+              "30m",
+              "20m"
+            ],
+            [
+              "1 月",
+              4.86,
+              4.8,
+              4.61,
+              4.4,
+              4.19,
+              108,
+              105,
+              88,
+              77,
+              66
+            ],
+            [
+              "2 月",
+              4.93,
+              4.83,
+              4.52,
+              4.13,
+              3.9,
+              131,
+              124,
+              99,
+              79,
+              67
+            ],
+            [
+              "3 月",
+              4.63,
+              4.49,
+              4.3,
+              4.09,
+              3.87,
+              88,
+              83,
+              70,
+              61,
+              53
+            ],
+            [
+              "4 月",
+              5.63,
+              5.53,
+              5.2,
+              4.9,
+              4.57,
+              148,
+              141,
+              115,
+              97,
+              80
+            ],
+            [
+              "5 月",
+              5.3,
+              5.17,
+              4.87,
+              4.53,
+              4.16,
+              123,
+              115,
+              94,
+              77,
+              62
+            ],
+            [
+              "6 月",
+              4.23,
+              4.18,
+              3.87,
+              3.56,
+              3.25,
+              78,
+              74,
+              61,
+              50,
+              40
+            ],
+            [
+              "7 月",
+              5.56,
+              5.37,
+              5.1,
+              4.73,
+              4.34,
+              129,
+              117,
+              97,
+              78,
+              61
+            ],
+            [
+              "8 月",
+              5.28,
+              5.13,
+              4.88,
+              4.48,
+              4.18,
+              104,
+              97,
+              83,
+              65,
+              54
+            ],
+            [
+              "9 月",
+              5.13,
+              5.06,
+              4.72,
+              4.37,
+              3.98,
+              100,
+              96,
+              78,
+              62,
+              50
+            ],
+            [
+              "10 月",
+              5.12,
+              5.02,
+              4.74,
+              4.47,
+              4.05,
+              139,
+              135,
+              111,
+              94,
+              78
+            ],
+            [
+              "11 月",
+              4.49,
+              4.39,
+              4.15,
+              3.84,
+              3.48,
+              85,
+              82,
+              68,
+              56,
+              45
+            ],
+            [
+              "12 月",
+              4.52,
+              4.43,
+              4.18,
+              3.78,
+              3.51,
+              87,
+              83,
+              67,
+              53,
+              45
+            ],
+            [
+              "平均",
+              4.97,
+              4.87,
+              4.6,
+              4.28,
+              3.96,
+              110,
+              104,
+              86,
+              71,
+              58
+            ]
+          ]
+        },
+        {
+          "key": "windResourceTurbulence0047",
+          "name": "表 2-20：0047#测风塔各高度湍流强度",
+          "columns": [
+            "col_0",
+            "90m",
+            "80m",
+            "60m",
+            "30m",
+            "10m"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "data": [
+            [
+              "平均值",
+              0.16,
+              0.17,
+              0.17,
+              0.19,
+              0.3
+            ],
+            [
+              "15m/s 平均值",
+              0.124,
+              0.128,
+              0.137,
+              0.137,
+              0.185
+            ],
+            [
+              "代表性湍流",
+              0.166,
+              0.164,
+              0.179,
+              0.17,
+              0.208
+            ],
+            [
+              "",
+              "80m",
+              "70m",
+              "50m",
+              "30m",
+              "20m"
+            ],
+            [
+              "平均值",
+              0.19,
+              0.2,
+              0.21,
+              0.24,
+              0.28
+            ],
+            [
+              "15m/s 平均值",
+              0.119,
+              0.096,
+              0.133,
+              "",
+              ""
+            ],
+            [
+              "代表性湍流",
+              0.137,
+              0.147,
+              0.133,
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "key": "windResourceTurbulence0048",
+          "name": "表 2-22：0048#测风塔各高度湍流强度",
+          "columns": [
+            "col_0",
+            "90 m",
+            "80 m",
+            "60 m",
+            "30 m",
+            "10 m"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5"
+          ],
+          "index": [
+            0,
+            1,
+            2
+          ],
+          "data": [
+            [
+              "平均值",
+              0.18,
+              0.19,
+              0.21,
+              0.24,
+              0.42
+            ],
+            [
+              "15m/s 平均值",
+              0.063,
+              0.063,
+              0.075,
+              "",
+              ""
+            ],
+            [
+              "代表性湍流",
+              0.082,
+              0.075,
+              0.088,
+              "",
+              ""
+            ]
+          ]
+        },
+        {
+          "key": "resourceOriginalTable001",
+          "name": "0048#测风塔测风时段为 2017.4~2018.3，该时段平均风速为 4.835m/s，相较于近 30 年、近 20 年、近 10 年平均风速分别低 3.73%、2.87%、1.72%。根据《风电场工程",
+          "columns": [
+            "测风塔编号",
+            "订正高度 m",
+            "订正前年平均风速（m/s）",
+            "订正后年平均风速（m/s）"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "data": [
+            [
+              "0048#",
+              120,
+              5.31,
+              5.46
+            ],
+            [
+              110,
+              5.22,
+              5.38,
+              ""
+            ],
+            [
+              105,
+              5.18,
+              5.33,
+              ""
+            ],
+            [
+              100,
+              5.13,
+              5.28,
+              ""
+            ],
+            [
+              90,
+              5.04,
+              5.18,
+              ""
+            ],
+            [
+              "1006#",
+              120,
+              5.31,
+              5.5
+            ],
+            [
+              110,
+              5.24,
+              5.42,
+              ""
+            ],
+            [
+              105,
+              5.2,
+              5.38,
+              ""
+            ],
+            [
+              100,
+              5.16,
+              5.34,
+              ""
+            ],
+            [
+              80,
+              4.97,
+              5.14,
+              ""
+            ]
+          ]
+        },
+        {
+          "key": "resourceOriginalTable002",
+          "name": "将有所下降，结合测风塔的综合风切变指数据，初步估算整个风电场的发电量将减少约 2%。",
+          "columns": [
+            "折减项",
+            "折减系数",
+            "修正系数"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "data": [
+            [
+              "空气密度折减",
+              "0%",
+              "100%"
+            ],
+            [
+              "风力发电机组可利用率",
+              "4%",
+              "96%"
+            ],
+            [
+              "风力发电机组功率曲线",
+              "4%",
+              "96%"
+            ],
+            [
+              "气候影响",
+              "4%",
+              "96%"
+            ],
+            [
+              "偏航影响",
+              "2%",
+              "98%"
+            ],
+            [
+              "湍流",
+              "3%",
+              "97%"
+            ],
+            [
+              "叶片污染",
+              "2%",
+              "98%"
+            ],
+            [
+              "电路损耗、厂用电",
+              "3%",
+              "97%"
+            ],
+            [
+              "软件及模型误差",
+              "4%",
+              "96%"
+            ],
+            [
+              "场平折减",
+              "2%",
+              "98%"
+            ],
+            [
+              "周边风电场影响",
+              "0%",
+              "100%"
+            ],
+            [
+              "总计",
+              "24.78%",
+              "75.22%"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "发电量章节",
+      "fields": [
+        {
+          "fieldCode": "installedCapacity",
+          "name": "装机容量",
+          "value": 100,
+          "unit": "MW"
+        },
+        {
+          "fieldCode": "turbineCount",
+          "name": "风机台数",
+          "value": 25,
+          "unit": "台"
+        },
+        {
+          "fieldCode": "turbineCapacity",
+          "name": "单机容量",
+          "value": 4000,
+          "unit": "KW"
+        },
+        {
+          "fieldCode": "generationHubHeight",
+          "name": "轮毂高度",
+          "value": 105,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "nonWakeLossFactor",
+          "name": "不考虑尾流效应的折减系数",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "gridAnnualEnergy",
+          "name": "年上网发电量",
+          "value": 22110,
+          "unit": "万kW·h"
+        },
+        {
+          "fieldCode": "equivalentFullLoadHours",
+          "name": "年等效满负荷小时数",
+          "value": 2211,
+          "unit": "h"
+        },
+        {
+          "fieldCode": "generationSingleTurbineLabels",
+          "name": "标签",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "generationSingleTurbineXMeters",
+          "name": "X（m）",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "generationSingleTurbineYMeters",
+          "name": "Y（m）",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "generationSingleTurbineZMeters",
+          "name": "Z（m）",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "generationSingleTurbineHubHeights",
+          "name": "H（m）",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "generationSingleTurbineTheoreticalEnergyMwh",
+          "name": "理论发电量",
+          "value": null,
+          "unit": "兆瓦时/年"
+        },
+        {
+          "fieldCode": "generationSingleTurbineAverageWindSpeeds",
+          "name": "平均风速",
+          "value": null,
+          "unit": "m/s"
+        },
+        {
+          "fieldCode": "generationSingleTurbineWakeLossFactors",
+          "name": "尾流系数",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "generationSingleTurbineWakeAdjustedEnergyMwh",
+          "name": "考虑尾流效应的发电量",
+          "value": null,
+          "unit": "兆瓦时/年"
+        },
+        {
+          "fieldCode": "generationSingleTurbineFinalOnGridEnergyMwh",
+          "name": "最终上网电量",
+          "value": null,
+          "unit": "兆瓦时/年"
+        },
+        {
+          "fieldCode": "generationSingleTurbineEquivalentHours",
+          "name": "等效小时数",
+          "value": null,
+          "unit": "h"
+        },
+        {
+          "fieldCode": "generationSingleTurbineAverageWakeReductionRates",
+          "name": "尾流效应导致的平均折减率",
+          "value": null,
+          "unit": "%"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "地勘章节",
+      "fields": [
+        {
+          "fieldCode": "projectGeomorphology",
+          "name": "项目地貌",
+          "value": "构造侵蚀、溶蚀低中山地貌",
+          "unit": null
+        },
+        {
+          "fieldCode": "surfaceVegetationType",
+          "name": "地表类型",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "siteElevationRange",
+          "name": "场区海拔高度",
+          "value": "1200~1450",
+          "unit": "m"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "电气一次",
+      "fields": [
+        {
+          "fieldCode": "accessStationName",
+          "name": "接入站名称",
+          "value": "青坑110kV变电站",
+          "unit": null
+        },
+        {
+          "fieldCode": "accessibleVoltage",
+          "name": "可接入电压",
+          "value": null,
+          "unit": "kv"
+        },
+        {
+          "fieldCode": "accessibleCapacity",
+          "name": "可接入容量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "plannedCapacity",
+          "name": "升压站电气主接线规划总规模",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "currentCapacity",
+          "name": "升压站电气主接线本期规模",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "connectionType",
+          "name": "主接线形式",
+          "value": "变压器—线路组接线方式",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryCurrentOutgoingLineCount",
+          "name": "electricalPrimaryCurrentOutgoingLineCount",
+          "value": 1,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryFutureOutgoingLineCount",
+          "name": "升压站远期出线回数",
+          "value": null,
+          "unit": "回"
+        },
+        {
+          "fieldCode": "mainTransformerType",
+          "name": "主变压器",
+          "value": "三相双绕组油浸式有载调压节能型变压器",
+          "unit": null
+        },
+        {
+          "fieldCode": "mainTransformerModel",
+          "name": "mainTransformerModel",
+          "value": "SZ11-100000/110",
+          "unit": null
+        },
+        {
+          "fieldCode": "mainTransformerRatedCapacity",
+          "name": "mainTransformerRatedCapacity",
+          "value": 100,
+          "unit": null
+        },
+        {
+          "fieldCode": "mainTransformerNum",
+          "name": "主变本期台数",
+          "value": 1,
+          "unit": "台"
+        },
+        {
+          "fieldCode": "futureMainTransformerCount",
+          "name": "主变远期台数",
+          "value": null,
+          "unit": "台"
+        },
+        {
+          "fieldCode": "mainTransformerVoltageRatio",
+          "name": "主变压器额定电压比",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "connectionGroupType",
+          "name": "主变压器接线组别",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingStationTransformerModel",
+          "name": "接地变兼站用变型号",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingStationTransformerVoltage",
+          "name": "接地变兼站用变电压",
+          "value": null,
+          "unit": "kV"
+        },
+        {
+          "fieldCode": "groundingStationTransformerCapacity",
+          "name": "接地变兼站用变容量",
+          "value": null,
+          "unit": "kVA"
+        },
+        {
+          "fieldCode": "groundingStationTransformerQuantity",
+          "name": "接地变兼站用变数量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingStationTransformerUnit",
+          "name": "接地变兼站用变单位",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingStationTransformerResistance",
+          "name": "接地变兼站用变接地电阻",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingTransformerModel",
+          "name": "groundingTransformerModel",
+          "value": "DKSC-1200/37",
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingTransformerVoltage",
+          "name": "接地变电压",
+          "value": null,
+          "unit": "kV"
+        },
+        {
+          "fieldCode": "groundingTransformerCapacity",
+          "name": "接地变容量",
+          "value": null,
+          "unit": "kVA"
+        },
+        {
+          "fieldCode": "groundingTransformerQuantity",
+          "name": "接地变数量",
+          "value": 1,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingTransformerUnit",
+          "name": "接地变单位",
+          "value": "台",
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingTransformerResistance",
+          "name": "接地变接地电阻",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGisType",
+          "name": "GIS类型",
+          "value": "GIS组合电器",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGisModelInfo",
+          "name": "GIS型号信息",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGisQuantity",
+          "name": "110kV架空出线间隔数量",
+          "value": 1,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGisUnit",
+          "name": "110kV架空出线间隔单位",
+          "value": "套",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGisRemark",
+          "name": "110kV架空出线间隔备注",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryCircuitBreakerModel",
+          "name": "断路器型号",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryDisconnectorModel",
+          "name": "隔离开关型号",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryCurrentTransformerModel",
+          "name": "电流互感器型号",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryVoltageTransformerModel",
+          "name": "电压互感器型号",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryTransformerSpec",
+          "name": "主变压器型号、规格及技术数据",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimarySvgSpec",
+          "name": "35kV SVG型号、规格及技术数据",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimarySvgUnit",
+          "name": "35kV SVG单位",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimarySvgQuantity",
+          "name": "35kV SVG数量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGroundingTransformerSetSpec",
+          "name": "35kV接地变成套装置型号、规格及技术数据",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryExternalPowerTransformerSpec",
+          "name": "站外电源变压器型号、规格及技术数据",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryFrameLightningRodHeight",
+          "name": "构架避雷针高度",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "electricalPrimaryIndependentLightningRodHeight",
+          "name": "独立避雷针高度",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "electricalPrimaryBoxTransformerType",
+          "name": "箱变类型",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryBoxTransformerModel",
+          "name": "electricalPrimaryBoxTransformerModel",
+          "value": "S11-4400/35",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryBoxTransformerVoltageLevel",
+          "name": "箱变电压等级",
+          "value": 35,
+          "unit": "kV"
+        },
+        {
+          "fieldCode": "electricalPrimaryBoxTransformerCapacity",
+          "name": "electricalPrimaryBoxTransformerCapacity",
+          "value": 4400,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryBoxTransformerHighVoltageSideConfig",
+          "name": "高压侧配置信息",
+          "value": "本项目箱式升压站高压侧电压等级选择35kV，即风电机组与箱变的组合方式采用一机一变的单元接线，箱变容量为4400kVA，电压比为37±2×2.5%/0.69kV，布置在风力发电机塔筒附近",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryBoxTransformerLowVoltageSideConfig",
+          "name": "低压侧配置信息",
+          "value": "（1）风电区智能监控系统功能a）信号监视箱变高、低压侧断路器，箱变高、低压侧门等电气设备的运行状态信号",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryGridConnectionDistance",
+          "name": "接入距离",
+          "value": 7,
+          "unit": "km"
+        },
+        {
+          "fieldCode": "electricalPrimaryGridConnectionLineType",
+          "name": "接入站送出线路方式",
+          "value": "架空",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimarySubstationConstructionType",
+          "name": "electricalPrimarySubstationConstructionType",
+          "value": "新建",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimaryExpandedSubstationName",
+          "name": "扩建升压站",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalPrimarySubstationVoltageLevel",
+          "name": "electricalPrimarySubstationVoltageLevel",
+          "value": 110,
+          "unit": null
+        },
+        {
+          "fieldCode": "stationTransformerCapacity10kv",
+          "name": "10kV站用变容量",
+          "value": "315kVA",
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingTransformerCapacity35kv",
+          "name": "35kV接地变用变容量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "groundingStationTransformerCapacity35kv",
+          "name": "35kV接地变兼站用变容量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "svgReactiveCompensationCapacity",
+          "name": "SVG无功补偿装置容量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "independentLightningRodCount",
+          "name": "独立避雷针座数",
+          "value": null,
+          "unit": "座"
+        },
+        {
+          "fieldCode": "frameLightningRodCount",
+          "name": "构架避雷针座数",
+          "value": null,
+          "unit": "座"
+        }
+      ],
+      "tables": [
+        {
+          "key": "electricalPrimaryEquipmentMaterial",
+          "name": "表 6-16：电气一次主要设备清单",
+          "columns": [
+            "序号",
+            "设备名称",
+            "型号及规格",
+            "单 位",
+            "数量",
+            "备注"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78
+          ],
+          "data": [
+            [
+              "一",
+              "风电场区",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1,
+              "风电机组单元",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1.1,
+              "风电机组",
+              "4000kW",
+              "台",
+              25,
+              ""
+            ],
+            [
+              1.2,
+              "箱式变压器",
+              "S11-4400/35 37±2×2.5%/0.69kV",
+              "台",
+              25,
+              ""
+            ],
+            [
+              2,
+              "集电线路及电缆附件",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              2.1,
+              "电力电缆",
+              "YJLHY23-26/35-3×120",
+              "km",
+              6,
+              ""
+            ],
+            [
+              2.2,
+              "电力电缆",
+              "YJLHY23-26/35-3×300",
+              "km",
+              21.4,
+              ""
+            ],
+            [
+              2.3,
+              "电力电缆",
+              "YJLHY23-26/35-3×400",
+              "km",
+              55.7,
+              ""
+            ],
+            [
+              2.4,
+              "电力电缆",
+              "YJY23-26/35-3×400",
+              "km",
+              23.9,
+              ""
+            ],
+            [
+              2.5,
+              "1 kV 电力电缆",
+              "YJY23-3×240+1×120 1.8/3kV",
+              "km",
+              7.5,
+              ""
+            ],
+            [
+              2.6,
+              "35kV 电缆终端",
+              "",
+              "套",
+              55,
+              ""
+            ],
+            [
+              2.7,
+              "35kV 电缆中间接 头",
+              "",
+              "套",
+              385,
+              ""
+            ],
+            [
+              2.8,
+              "1 kV 电缆终端",
+              "",
+              "套",
+              500,
+              ""
+            ],
+            [
+              2.9,
+              "电缆防火堵料",
+              "",
+              "t",
+              2,
+              ""
+            ],
+            [
+              2.1,
+              "电缆防火涂料",
+              "",
+              "t",
+              3,
+              ""
+            ],
+            [
+              2.11,
+              "电缆分支箱",
+              "",
+              "个",
+              6,
+              ""
+            ],
+            [
+              3,
+              "风电机组防雷接地",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              3.1,
+              "接地扁钢",
+              "-50×5",
+              "km",
+              10,
+              ""
+            ],
+            [
+              "",
+              "镀锌钢管",
+              "50 L=2500mm",
+              "根",
+              500,
+              ""
+            ],
+            [
+              3.2,
+              "垂直接地极",
+              "L=3000mm",
+              "根",
+              230,
+              ""
+            ],
+            [
+              3.3,
+              "降阻剂",
+              "",
+              "m 3",
+              250,
+              ""
+            ],
+            [
+              "二",
+              "110kV 升压站主要电气设备",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1,
+              "主变压器系统",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1.1,
+              "主变压器",
+              "SZ11-100000/110 115±8×1.25%/37/10.5kV YN，d11 10kV 为平衡绕组，Ud%=10.5",
+              "台",
+              1,
+              ""
+            ],
+            [
+              1.2,
+              "中性点成套装置",
+              "ZW-BJ-110 型，每套含：",
+              "套",
+              1,
+              ""
+            ],
+            [
+              "1）",
+              "中性点隔离开关",
+              "GW13-72.5/630",
+              "组",
+              1,
+              ""
+            ],
+            [
+              "2）",
+              "中性点支柱绝缘 子",
+              "ZSW-72.5",
+              "只",
+              1,
+              ""
+            ],
+            [
+              "3）",
+              "中性点放电间隙",
+              "",
+              "套",
+              1,
+              ""
+            ],
+            [
+              "4）",
+              "中性点间隙电流 互感器",
+              "LRB-10 100-200-300/1A 5P20/5P20 10VA/10VA",
+              "台",
+              1,
+              ""
+            ],
+            [
+              "5）",
+              "钢支架",
+              "H=3000mm,热镀锌",
+              "套",
+              1,
+              ""
+            ],
+            [
+              1.3,
+              "10kV 避雷器",
+              "YH5WZ-17/45，附计数器",
+              "只",
+              3,
+              ""
+            ],
+            [
+              1.4,
+              "钢芯铝绞线",
+              "JL/G1A-400/25",
+              "m",
+              40,
+              ""
+            ],
+            [
+              1.5,
+              "铜铝过渡设备线 夹",
+              "SYG-300/25A-80×80",
+              "套",
+              4,
+              ""
+            ],
+            [
+              1.6,
+              "铜铝过渡设备线 夹",
+              "SYG-300/25A-60×60",
+              "套",
+              1,
+              ""
+            ],
+            [
+              1.7,
+              "高压电力电缆",
+              "ZC-YJY63-26/35-1×300",
+              "m",
+              25,
+              ""
+            ],
+            [
+              1.8,
+              "冷缩电缆终端头",
+              "与 ZC-YJY63-26/35-1×300 配套",
+              "套",
+              2,
+              ""
+            ],
+            [
+              "三",
+              "110kV 系统",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1.1,
+              "110kVGIS 组合电 器",
+              "126kV，1600A，40kA，100kA， 3s 含 1 台断路器 TA:400~800/1A 5P30/0.5/0.2s 5P30/5P30/5P30",
+              "套",
+              1,
+              ""
+            ],
+            [
+              1.2,
+              "电压互感器",
+              "110 √3 / 0.1 √3 / 0.1 √3 / 0.1 √3 /0.1",
+              "套",
+              1,
+              "出线侧（三相 PT）"
+            ],
+            [
+              "",
+              "",
+              "0.2/0.5(3P)/6P 二次负担：50VA/相， 开口 3P:100VA/相",
+              "",
+              "",
+              ""
+            ],
+            [
+              1.3,
+              "氧化锌避雷器",
+              "YH10W-102/266W",
+              "只",
+              3,
+              ""
+            ],
+            [
+              1.4,
+              "钢芯铝绞线",
+              "JL/G1A-400/35",
+              "m",
+              150,
+              ""
+            ],
+            [
+              "四",
+              "35kV 系统",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1.1,
+              "35kV 电缆出线柜",
+              "KYN61A-40.5，1250A 配真空断路器",
+              "面",
+              4,
+              ""
+            ],
+            [
+              1.2,
+              "35kV 主变进线柜",
+              "KYN61A-40.5，2500A",
+              "面",
+              1,
+              ""
+            ],
+            [
+              1.3,
+              "35kV 站用变柜",
+              "KYN61A-40.5，1250A 配真空断路器",
+              "面",
+              1,
+              ""
+            ],
+            [
+              1.4,
+              "35kV 无功补偿柜",
+              "KYN61A-40.5，1250A 配 SF6 断路器",
+              "面",
+              1,
+              ""
+            ],
+            [
+              1.5,
+              "35kV 消谐柜",
+              "KYN61A-40.5，1250A",
+              "面",
+              1,
+              ""
+            ],
+            [
+              1.6,
+              "35kV 高压电缆",
+              "ZC-YJY23-26/35-3×300",
+              "m",
+              200,
+              "SVG 柜"
+            ],
+            [
+              1.7,
+              "35kV 高压电缆",
+              "ZC-YJY23-26/35-3×95",
+              "m",
+              100,
+              "站用变柜"
+            ],
+            [
+              1.8,
+              "35kV 高压电缆头",
+              "配 3×300 电缆使用，冷缩式",
+              "套",
+              2,
+              ""
+            ],
+            [
+              1.9,
+              "35kV 高压电缆头",
+              "配 3×95 电缆使用，冷缩式",
+              "套",
+              2,
+              ""
+            ],
+            [
+              1.1,
+              "无功补偿装置 SVG",
+              "±180000kVar，35kV 直挂水冷",
+              "套",
+              1,
+              ""
+            ],
+            [
+              1.11,
+              "接地变",
+              "DKSC-1200/37",
+              "台",
+              1,
+              ""
+            ],
+            [
+              "五",
+              "场用电及照明部分",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1,
+              "10kV 手车式金属 密闭开关柜",
+              "含真空断路器和 TA，31.5kA （4s）",
+              "面",
+              1,
+              "10kV 厂用电外 来主供电源进线 柜"
+            ],
+            [
+              2,
+              "10kV 场用电变压 器",
+              "S11-315/10kV 10.5±2×2.5%/0.4kV Dyn-11",
+              "台",
+              1,
+              ""
+            ],
+            [
+              3,
+              "低压配电柜",
+              "GCS",
+              "面",
+              5,
+              ""
+            ],
+            [
+              4,
+              "35kV 站用变",
+              "SCB11-315/35kV 37±2×2.5%/0.4kV Dyn11-11",
+              "台",
+              1,
+              ""
+            ],
+            [
+              6,
+              "接地电阻装置",
+              "Rn=25.3Ω",
+              "套",
+              1,
+              ""
+            ],
+            [
+              7,
+              "常用照明箱",
+              "XRM1-253L/3",
+              "个",
+              8,
+              ""
+            ],
+            [
+              8,
+              "户外照明箱",
+              "ZXW-2/3",
+              "个",
+              1,
+              ""
+            ],
+            [
+              9,
+              "事故照明箱",
+              "XRM1-253L/3",
+              "个",
+              1,
+              ""
+            ],
+            [
+              10,
+              "检修电源箱",
+              "",
+              "个",
+              5,
+              ""
+            ],
+            [
+              11,
+              "户外照明控制箱",
+              "",
+              "个",
+              2,
+              ""
+            ],
+            [
+              12,
+              "通风及插座电源 箱",
+              "XRM2",
+              "个",
+              2,
+              ""
+            ],
+            [
+              13,
+              "灯具及辅助材料",
+              "",
+              "项",
+              1,
+              ""
+            ],
+            [
+              "六",
+              "防雷接地",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1,
+              "升压站防雷接地",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1.1,
+              "热镀锌接地扁钢",
+              "60×6",
+              "m",
+              3000,
+              ""
+            ],
+            [
+              1.2,
+              "垂直接地极",
+              "L=2500mm",
+              "根",
+              30,
+              ""
+            ],
+            [
+              1.3,
+              "接地铜排、铜绞 线",
+              "355",
+              "t",
+              1,
+              ""
+            ],
+            [
+              1.4,
+              "降阻剂",
+              "",
+              "m3",
+              50,
+              ""
+            ],
+            [
+              1.5,
+              "避雷针",
+              "H=35m",
+              "根",
+              1,
+              ""
+            ],
+            [
+              "七",
+              "预制舱",
+              "",
+              "",
+              "",
+              ""
+            ],
+            [
+              1,
+              "综合配电舱",
+              "长 29200×宽 6500mm",
+              "套",
+              1,
+              "一层"
+            ],
+            [
+              "",
+              "长 23900×宽 6500mm",
+              "套",
+              1,
+              "二层",
+              ""
+            ],
+            [
+              2,
+              "SVG 预制舱",
+              "长 9800×宽 3310mm",
+              "套",
+              1,
+              ""
+            ],
+            [
+              3,
+              "接地变舱",
+              "长 6000×宽 3400mm",
+              "套",
+              1,
+              ""
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "电气二次",
+      "fields": [
+        {
+          "fieldCode": "communicationPowerDesign",
+          "name": "通讯电源设计",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "communicationPowerUnitType",
+          "name": "通讯电源设计单位",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "communicationPowerQuantityValue",
+          "name": "通讯电源设计数量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "communicationPowerDesignDescription",
+          "name": "通讯电源设计描述",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "dcBatteryConfiguration",
+          "name": "直流蓄电池配置",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "upsPowerConfiguration",
+          "name": "UPS电源配置",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalSecondaryBatterySpec",
+          "name": "electricalSecondaryBatterySpec",
+          "value": "220V/300Ah，104 节",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalSecondaryBatteryUnit",
+          "name": "electricalSecondaryBatteryUnit",
+          "value": "组",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalSecondaryBatteryQuantity",
+          "name": "electricalSecondaryBatteryQuantity",
+          "value": 1,
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalSecondaryUpsSpec",
+          "name": "electricalSecondaryUpsSpec",
+          "value": "7.5kVA",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalSecondaryUpsUnit",
+          "name": "electricalSecondaryUpsUnit",
+          "value": "面",
+          "unit": null
+        },
+        {
+          "fieldCode": "electricalSecondaryUpsQuantity",
+          "name": "electricalSecondaryUpsQuantity",
+          "value": 1,
+          "unit": null
+        }
+      ],
+      "tables": [
+        {
+          "key": "electricalSecondaryMainEquipment",
+          "name": "表 6-21：电气二次主要设备清单",
+          "columns": [
+            "1.6",
+            "安全防护设备",
+            "套",
+            "1"
+          ],
+          "columnKeys": [
+            "1.6",
+            "安全防护设备",
+            "套",
+            "1"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "data": [
+            [
+              1.7,
+              "110kV 线路电能表屏",
+              "面",
+              1
+            ],
+            [
+              1.8,
+              "主变压器电能表屏",
+              "面",
+              1
+            ],
+            [
+              1.9,
+              "电能表",
+              "台",
+              4
+            ],
+            [
+              1.1,
+              "关口表",
+              "台",
+              11
+            ]
+          ]
+        },
+        {
+          "key": "electricalSecondaryMainEquipmentCopy",
+          "tableCode": "electricalSecondaryMainEquipmentCopy",
+          "name": "风电场主要电气二次工程量",
+          "tableRef": {
+            "section": "电气二次",
+            "tableKey": "electricalSecondaryMainEquipment",
+            "tableName": "表 6-21：电气二次主要设备清单"
+          },
+          "columns": [
+            "1.6",
+            "安全防护设备",
+            "套",
+            "1"
+          ],
+          "data": [
+            [
+              1.7,
+              "110kV 线路电能表屏",
+              "面",
+              1
+            ],
+            [
+              1.8,
+              "主变压器电能表屏",
+              "面",
+              1
+            ],
+            [
+              1.9,
+              "电能表",
+              "台",
+              4
+            ],
+            [
+              1.1,
+              "关口表",
+              "台",
+              11
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "集电线路",
+      "fields": [
+        {
+          "fieldCode": "collectorLineNames",
+          "name": "线路名称",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "collectorVoltage",
+          "name": "集电线路电压",
+          "value": 35,
+          "unit": "kV"
+        },
+        {
+          "fieldCode": "circuitCount",
+          "name": "回路数",
+          "value": 4,
+          "unit": "回"
+        },
+        {
+          "fieldCode": "newRouteLength",
+          "name": "新建线路路径长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "newOverheadLineLength",
+          "name": "新建架空线路长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "newSingleCircuitLineLength",
+          "name": "新建单回路线路长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "newDoubleCircuitLineLength",
+          "name": "新建双回路线路长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "newCableLineLength",
+          "name": "新建电缆线路长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "totalCollectorRouteLength",
+          "name": "全线集电线路路径长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "doubleCircuitOverheadRouteLength",
+          "name": "双回架空线路路径长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "singleCircuitOverheadRouteLength",
+          "name": "单回架空线路路径长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "boxToTerminalTowerCableRouteLength",
+          "name": "箱变至终端塔电缆路径长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "singleCircuitCableRouteLength",
+          "name": "单回电缆线路路径长度",
+          "value": null,
+          "unit": "km"
+        },
+        {
+          "fieldCode": "doubleCircuitCableRouteLength",
+          "name": "双回路电缆路径长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "collectorCableCoreMaterial",
+          "name": "电缆电芯材质",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "collectorLayingMethod",
+          "name": "敷设方式",
+          "value": "架空+电缆直埋",
+          "unit": null
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "土建升压站",
+      "fields": [
+        {
+          "fieldCode": "totalLandArea",
+          "name": "总占地面积",
+          "value": 4960,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "insideWallLandArea",
+          "name": "围墙内占地面积",
+          "value": 4680,
+          "unit": "m2"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "风机基础",
+      "fields": [
+        {
+          "fieldCode": "windFoundationType",
+          "name": "风机基础类型",
+          "value": "一机一变接线方式，集电线 路采用电缆敷设，土建工程主要有风机基础",
+          "unit": null
+        },
+        {
+          "fieldCode": "windFoundationExcavationQuantity",
+          "name": "风机基础开挖量",
+          "value": 326650,
+          "unit": "m³"
+        },
+        {
+          "fieldCode": "windFoundationBackfillQuantity",
+          "name": "风机基础回填量",
+          "value": 207845,
+          "unit": "m³"
+        },
+        {
+          "fieldCode": "windFoundationC15Concrete",
+          "name": "风机基础-C15混凝土",
+          "value": null,
+          "unit": "m³"
+        },
+        {
+          "fieldCode": "windFoundationC20Concrete",
+          "name": "风机基础-C20混凝土",
+          "value": null,
+          "unit": "m³"
+        },
+        {
+          "fieldCode": "windFoundationC40Concrete",
+          "name": "风机基础-C40混凝土",
+          "value": null,
+          "unit": "m³"
+        },
+        {
+          "fieldCode": "windFoundationC45Concrete",
+          "name": "风机基础-C45混凝土",
+          "value": null,
+          "unit": "m³"
+        },
+        {
+          "fieldCode": "foundationCapDiameter",
+          "name": "承台直径",
+          "value": 20,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationColumnDiameter",
+          "name": "台柱直径",
+          "value": "7.2",
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationCapBottomRadius",
+          "name": "承台底面半径R",
+          "value": 10,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationTopRadius",
+          "name": "棱台顶面半径R1",
+          "value": 3.6,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationColumnRadius",
+          "name": "承台台柱半径R2",
+          "value": 3.6,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationOuterEdgeHeight",
+          "name": "承台底板外缘高度H1",
+          "value": 1,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationConeHeight",
+          "name": "承台底板棱台高度H2",
+          "value": 1.6,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationColumnHeight",
+          "name": "台柱高度H3",
+          "value": 1.2,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "foundationBuriedDepth",
+          "name": "基础埋深Hd",
+          "value": 3.5,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "pileOuterDiameter",
+          "name": "桩截面外径(直径)",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "pileCount",
+          "name": "桩数",
+          "value": null,
+          "unit": "根"
+        },
+        {
+          "fieldCode": "pileLength",
+          "name": "桩长",
+          "value": null,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "pileRingCount",
+          "name": "桩圈数",
+          "value": null,
+          "unit": null
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "箱变基础",
+      "fields": [],
+      "tables": [
+        {
+          "key": "boxFoundationTechnical",
+          "name": "表9.5-1 箱变基础单台工程量表（配事故油池）",
+          "columns": [
+            "boxFoundationRebarQuantity"
+          ],
+          "columnKeys": [
+            "boxFoundationRebarQuantity"
+          ],
+          "index": [
+            0
+          ],
+          "data": [
+            [
+              1585
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "道路",
+      "fields": [
+        {
+          "fieldCode": "accessRoadLength",
+          "name": "进站道路工程量",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "siteEntryRoadLength",
+          "name": "进场道路长度",
+          "value": null,
+          "unit": "km"
+        },
+        {
+          "fieldCode": "accessRoadSubgradeWidth",
+          "name": "进站道路路基宽度",
+          "value": 6.5,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "accessRoadPavementWidth",
+          "name": "进站道路路面宽度",
+          "value": 6,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "newRoadLength",
+          "name": "新建道路长度",
+          "value": 0.3,
+          "unit": "km"
+        },
+        {
+          "fieldCode": "rebuiltRoadLength",
+          "name": "改建道路长度",
+          "value": 26.5,
+          "unit": "km"
+        },
+        {
+          "fieldCode": "subgradeWidth",
+          "name": "路基宽度",
+          "value": 5,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "pavementWidth",
+          "name": "路面宽度",
+          "value": 4.5,
+          "unit": "m"
+        },
+        {
+          "fieldCode": "siteRoadLength",
+          "name": "场内道路长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "maintenanceRoadLength",
+          "name": "检修道路长度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "maintenanceRoadSubgradeWidth",
+          "name": "检修道路路基宽度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "maintenanceRoadPavementWidth",
+          "name": "检修道路路面宽度",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "offsiteTrafficConditionDescription",
+          "name": "场外交通运输条件描述",
+          "value": null,
+          "unit": null
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "用地面积",
+      "fields": [
+        {
+          "fieldCode": "permanentLandTotalArea",
+          "name": "永久占地合计",
+          "value": 3560,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "permanentLandWindFoundationArea",
+          "name": "永久占地-风机基础",
+          "value": 6,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "permanentLandBoxTransformerArea",
+          "name": "永久占地-箱变基础",
+          "value": 3,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "permanentLandSubstationArea",
+          "name": "永久占地-110kV升压站",
+          "value": 1,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "permanentLandAccessRoadArea",
+          "name": "永久占地-进升压站道路",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "longTermLeaseTotalArea",
+          "name": "长期租地合计",
+          "value": 3560,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "longTermLeaseMaintenanceRoadArea",
+          "name": "检修道路征地总面积",
+          "value": null,
+          "unit": "㎡"
+        },
+        {
+          "fieldCode": "longTermLeaseAccessRoadArea",
+          "name": "长期租地-进站道路",
+          "value": 0.3,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "longTermLeaseTowerFoundationArea",
+          "name": "铁塔基础征地总面积",
+          "value": null,
+          "unit": "㎡"
+        },
+        {
+          "fieldCode": "temporaryLandTotalArea",
+          "name": "临时性占地合计",
+          "value": 3560,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "temporaryLandPlatformArea",
+          "name": "临时占地-场内平整安装平台",
+          "value": 100,
+          "unit": "m2"
+        },
+        {
+          "fieldCode": "temporaryLandConstructionRoadArea",
+          "name": "临时占地-临时施工道路",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "temporaryLandDirectBuriedCableArea",
+          "name": "直埋电缆征地总面积",
+          "value": null,
+          "unit": "㎡"
+        },
+        {
+          "fieldCode": "temporaryLandConstructionSiteArea",
+          "name": "临时施工区征地总面积",
+          "value": null,
+          "unit": "㎡"
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "土石方平衡",
+      "fields": [
+        {
+          "fieldCode": "roadEarthworkExcavation",
+          "name": "道路土方开挖",
+          "value": 264925,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "roadEarthworkBackfill",
+          "name": "道路土方回填",
+          "value": 172753,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "windPlatformEarthworkExcavation",
+          "name": "风机平台土方开挖",
+          "value": 326650,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "windPlatformEarthworkBackfill",
+          "name": "风机平台土方回填",
+          "value": 207845,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "windFoundationEarthworkExcavation",
+          "name": "风机基础土方开挖",
+          "value": 326650,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "windFoundationEarthworkBackfill",
+          "name": "风机基础土方回填",
+          "value": 207845,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "boxFoundationEarthworkExcavation",
+          "name": "箱变基础土方开挖",
+          "value": 375300,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "boxFoundationEarthworkBackfill",
+          "name": "箱变基础土方回填",
+          "value": 240020,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "collectorLineEarthworkExcavation",
+          "name": "集电线路土方开挖",
+          "value": null,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "collectorLineEarthworkBackfill",
+          "name": "集电线路土方回填",
+          "value": null,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "substationEarthworkExcavation",
+          "name": "升压站土方开挖",
+          "value": 326650,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "substationEarthworkBackfill",
+          "name": "升压站土方回填",
+          "value": 207845,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "totalEarthworkExcavation",
+          "name": "合计土方开挖",
+          "value": 1620175,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "totalEarthworkBackfill",
+          "name": "合计土方回填",
+          "value": 1036308,
+          "unit": "m3"
+        },
+        {
+          "fieldCode": "spoilDisposalSiteCount",
+          "name": "弃渣场数量",
+          "value": 4,
+          "unit": "个"
+        },
+        {
+          "fieldCode": "spoilDisposalSiteArea",
+          "name": "弃渣场面积",
+          "value": 70000,
+          "unit": "m2"
+        }
+      ],
+      "tables": [
+        {
+          "key": "earthworkBalance",
+          "name": "土石方平衡表",
+          "columns": [
+            "项目",
+            "土方开挖m³",
+            "土方回填m³"
+          ],
+          "columnKeys": [
+            "item",
+            "excavation",
+            "backfill"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "data": [
+            [
+              "道路",
+              264925,
+              172753
+            ],
+            [
+              "风机平台",
+              326650,
+              207845
+            ],
+            [
+              "风机基础",
+              326650,
+              207845
+            ],
+            [
+              "箱变基础",
+              375300,
+              240020
+            ],
+            [
+              "升压站",
+              326650,
+              207845
+            ],
+            [
+              "合计",
+              1620175,
+              1036308
+            ]
+          ]
+        },
+        {
+          "key": "earthworkBalanceCopy",
+          "tableCode": "earthworkBalanceCopy",
+          "name": "土石方平衡表",
+          "tableRef": {
+            "section": "土石方平衡",
+            "tableKey": "earthworkBalance",
+            "tableName": "土石方平衡表"
+          },
+          "columns": [
+            "项目",
+            "土方开挖m³",
+            "土方回填m³"
+          ],
+          "data": [
+            [
+              "道路",
+              264925,
+              172753
+            ],
+            [
+              "风机平台",
+              326650,
+              207845
+            ],
+            [
+              "风机基础",
+              326650,
+              207845
+            ],
+            [
+              "箱变基础",
+              375300,
+              240020
+            ],
+            [
+              "升压站",
+              326650,
+              207845
+            ],
+            [
+              "合计",
+              1620175,
+              1036308
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "环保水保",
+      "fields": [
+        {
+          "fieldCode": "environmentalInvestment",
+          "name": "环保总投资",
+          "value": 650,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "waterSoilConservationInvestment",
+          "name": "水保总投资",
+          "value": null,
+          "unit": null
+        }
+      ],
+      "tables": []
+    },
+    {
+      "name": "技经概算",
+      "fields": [
+        {
+          "fieldCode": "investmentCostStandard",
+          "name": "费用标准",
+          "value": "《陆上风电场工程设计概算编制规定及费用标准》",
+          "unit": null
+        },
+        {
+          "fieldCode": "investmentQuotaSystem",
+          "name": "定额体系",
+          "value": "《陆上风电场工程概算定额》(NB/T31010-2019)",
+          "unit": null
+        },
+        {
+          "fieldCode": "investmentPriceLevel",
+          "name": "价格水平",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "investmentStaticPartTotal",
+          "name": "工程静态投资（一～五）部分合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentTotalPartTotal",
+          "name": "工程总投资（一～七）部分合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentDeductibleVatWindFarm",
+          "name": "可抵扣增值税（风电场工程）",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentSupportingCostStaticInvestment",
+          "name": "配套费静态投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentSupportingCostConstructionInterest",
+          "name": "配套费建设期利息",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentSupportingCostProjectTotal",
+          "name": "配套费工程总投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentManagementBuildingStaticInvestment",
+          "name": "片区管理综合楼静态投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentManagementBuildingConstructionInterest",
+          "name": "片区管理综合楼建设期利息",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentManagementBuildingProjectTotal",
+          "name": "片区管理综合楼工程总投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentSmartWindFarmStaticInvestment",
+          "name": "智慧风场静态投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentSmartWindFarmConstructionInterest",
+          "name": "智慧风场建设期利息",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentSmartWindFarmDynamicInvestment",
+          "name": "智慧风场动态投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentStaticInvestmentTotal",
+          "name": "静态投资（部分）",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentConstructionInterestGrandTotal",
+          "name": "建设期利息合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentDynamicInvestmentTotal",
+          "name": "动态投资（部分）",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentProjectTotalCost",
+          "name": "工程总投资合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "unitKwStaticInvestmentPartTotal",
+          "name": "单位千瓦静态投资（部分）",
+          "value": null,
+          "unit": "元/kW"
+        },
+        {
+          "fieldCode": "unitKwInvestmentPartTotal",
+          "name": "单位千瓦动态投资（部分）",
+          "value": null,
+          "unit": "元/kW"
+        },
+        {
+          "fieldCode": "unitKwStaticInvestmentEstimate",
+          "name": "单位千瓦静态投资",
+          "value": null,
+          "unit": "元/kW"
+        },
+        {
+          "fieldCode": "unitKwDynamicInvestmentEstimate",
+          "name": "单位千瓦动态投资",
+          "value": null,
+          "unit": "元/kW"
+        },
+        {
+          "fieldCode": "investmentSmartManagementPlatformTotal",
+          "name": "智慧管理平台合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investment110kvOutgoingLineProjectTotal",
+          "name": "110kV送出线路工程合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentOppositeBayExpansionTotal",
+          "name": "对侧间隔扩建工程合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investment330kvOutgoingLineShareTotal",
+          "name": "330kV送出线路分摊费合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentProductSupportingCostTotal",
+          "name": "产品配套费合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentNewEnergyStationPerceptionEquipmentTotal",
+          "name": "新能源场站感知设备合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentTechnologySpecialTotal",
+          "name": "科技专篇合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentStaticTotalItoIv",
+          "name": "静态投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentConstructionInterestTotal",
+          "name": "建设期利息合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "investmentDynamicTotalItoIv",
+          "name": "动态投资",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "windTurbineUnitPrice",
+          "name": "风机单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "turbineTowerUnitPrice",
+          "name": "风机（含塔筒）单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "mainTransformerUnitPrice",
+          "name": "主变单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "transformerCompleteSetUnitPrice",
+          "name": "主变整套单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "windTurbineTowerUnitPrice",
+          "name": "塔筒单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "anchorBoltUnitPrice",
+          "name": "预应力锚栓单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "containerSubstationUnitPrice",
+          "name": "箱变单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "cableBranchBoxUnitPrice",
+          "name": "电缆分支箱单价",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "disconnectorSwitchUnitPrice",
+          "name": "隔离开关单价",
+          "value": null,
+          "unit": "万元"
+        }
+      ],
+      "tables": [
+        {
+          "key": "investmentTechnicalEconomicIndicators",
+          "name": "表 12-1：主要技术经济指标表",
+          "columns": [
+            "风电场名称",
+            "瓮安县建中枫香坪风电场工 程",
+            "建设地点",
+            "贵州省黔南布依族 苗族自治州瓮安县",
+            "col_4",
+            "col_5",
+            "col_6"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5",
+            "col_6"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "data": [
+            [
+              "设计单位",
+              "北京计鹏信息咨询有限公司",
+              "建设单位",
+              "贵州盾安风电有限 公司",
+              "",
+              "",
+              ""
+            ],
+            [
+              "风电机组单位 造价",
+              "元/kW",
+              2400,
+              "塔筒单位造价",
+              "元/t",
+              11000,
+              ""
+            ],
+            [
+              "风电机组基础 单价",
+              "万元/座",
+              99.24,
+              "升压站单位造价",
+              "万元",
+              2872.03,
+              ""
+            ],
+            [
+              "装机规模",
+              "MW",
+              100,
+              "主要工程 量",
+              "土方开挖",
+              "m3",
+              46625
+            ],
+            [
+              "单机容量",
+              "kW",
+              4000,
+              "土方回填",
+              "m3",
+              30825,
+              ""
+            ],
+            [
+              "年发电量",
+              "万 kW·h",
+              22110,
+              "混凝土",
+              "m3",
+              15325,
+              ""
+            ],
+            [
+              "年利用小时数",
+              "h",
+              2211,
+              "钢筋",
+              "t",
+              1550,
+              ""
+            ],
+            [
+              "静态投资",
+              "万元",
+              62158.49,
+              "塔筒",
+              "t",
+              5663.75,
+              ""
+            ],
+            [
+              "动态投资",
+              "万元",
+              63296.97,
+              "建设用地 面积",
+              "永久用地",
+              "亩",
+              20.45
+            ],
+            [
+              "单位千瓦静态 投资",
+              "元/kW",
+              6215.85,
+              "临时用地",
+              "亩",
+              581.81,
+              ""
+            ],
+            [
+              "单位千瓦动态 投资",
+              "元/kW",
+              6329.7,
+              "计划施工 时间",
+              "第一台机组发 电工期",
+              "月",
+              "\\"
+            ],
+            [
+              "建设期利息",
+              "万元",
+              1138.48,
+              "总工期",
+              "月",
+              12,
+              ""
+            ],
+            [
+              "送出工程投资",
+              "万元",
+              1250,
+              "生产单位定员",
+              "人",
+              10,
+              ""
+            ]
+          ]
+        },
+        {
+          "key": "investmentEstimate",
+          "name": "15.2.1工程总概算表",
+          "columns": [
+            "installationCost",
+            "constructionCost",
+            "unitKwStaticInvestment",
+            "dynamicInvestment"
+          ],
+          "columnKeys": [
+            "installationCost",
+            "constructionCost",
+            "unitKwStaticInvestment",
+            "dynamicInvestment"
+          ],
+          "index": [
+            0
+          ],
+          "data": [
+            [
+              5,
+              5,
+              6215.85,
+              6329.7
+            ]
+          ]
+        },
+        {
+          "key": "investmentEstimateCopy",
+          "tableCode": "investmentEstimateCopy",
+          "name": "工程总概算表",
+          "tableRef": {
+            "section": "技经概算",
+            "tableKey": "investmentEstimate",
+            "tableName": "15.2.1工程总概算表"
+          },
+          "columns": [
+            "installationCost",
+            "constructionCost",
+            "unitKwStaticInvestment",
+            "dynamicInvestment"
+          ],
+          "data": [
+            [
+              5.0,
+              5.0,
+              6215.85,
+              6329.7
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "财务",
+      "fields": [
+        {
+          "fieldCode": "depreciationYears",
+          "name": "折旧年限",
+          "value": 20,
+          "unit": "年"
+        },
+        {
+          "fieldCode": "salvageRate",
+          "name": "残值率",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "repairCost",
+          "name": "修理费",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "materialCostPerKw",
+          "name": "材料费（元/KW）",
+          "value": "材料费用暂定为 10 元/kW",
+          "unit": null
+        },
+        {
+          "fieldCode": "constructionPeriodYears",
+          "name": "建设期（月/年)",
+          "value": 12,
+          "unit": "月"
+        },
+        {
+          "fieldCode": "workingCapitalUnitKwIndicator",
+          "name": "流动资金单位千瓦指标",
+          "value": null,
+          "unit": "元/KW"
+        },
+        {
+          "fieldCode": "workingCapitalLoanRatio",
+          "name": "流动资金贷款比例",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "workingCapitalCapitalRatio",
+          "name": "流动资本金比例",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "workingCapitalLoanInterestRate",
+          "name": "流动资金贷款利率",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "constructionCapitalRatio",
+          "name": "建设资本金比例",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "constructionFundLoanRatio",
+          "name": "建设资金贷款比例",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "repaymentMethod",
+          "name": "还款方式",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "repaymentPeriod",
+          "name": "偿还年限",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "annualLoanInterestRate",
+          "name": "年贷款利率",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "staffingCount",
+          "name": "定员人数",
+          "value": 10,
+          "unit": "人"
+        },
+        {
+          "fieldCode": "staffSalary",
+          "name": "人员工资",
+          "value": 7,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "welfareOtherRatio",
+          "name": "职工福利费及其他占比",
+          "value": 60,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "financeWorkingCapitalUnit",
+          "name": "流动资金单位",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeWorkingCapitalValue",
+          "name": "流动资金数值",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeWindSystemCapacityUnit",
+          "name": "风电系统容量单位",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeWindSystemCapacityValue",
+          "name": "风电系统容量数值",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeAnnualOnGridEnergyUnit",
+          "name": "风电系统年上网电量单位",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeAnnualOnGridEnergyValue",
+          "name": "风电系统年上网电量数值",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeLaborWelfareTotal",
+          "name": "人工工资及福利费合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeMaterialCostTotal",
+          "name": "材料费合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeMaterialCostSchedule",
+          "name": "材料费（合计及第1年至第21年）",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeMaterialCostYears1To13",
+          "name": "材料费第1年至第13年",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeRepairCostTotal",
+          "name": "修理费合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeRepairCostSchedule",
+          "name": "修理费（合计及第1年至第21年）",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeRepairCostYears1To13",
+          "name": "修理费第1年至第13年",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeInsuranceCostTotal",
+          "name": "保险费合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeInsuranceRate",
+          "name": "保险费率",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "otherCost",
+          "name": "其他费用",
+          "value": 5,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "landUseTax",
+          "name": "土地使用税",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeOtherCostTotal",
+          "name": "其他费用合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeLandUseTaxTotal",
+          "name": "其中：土地使用税合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeMaterialCostYears14To21",
+          "name": "材料费第14年至第21年",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeRepairCostYears14To21",
+          "name": "修理费第14年至第21年",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeFixedAssetOriginalValueBuildYearAndYear1",
+          "name": "固定资产原值建设期及第1年",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithoutTaxTotal",
+          "name": "上网电价（不含税）合计",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithTaxTotal",
+          "name": "上网电价（含税）合计",
+          "value": null,
+          "unit": null
+        },
+        {
+          "fieldCode": "financeIncomeTaxTotal",
+          "name": "所得税合计",
+          "value": null,
+          "unit": "万元"
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithoutTaxYears2To13",
+          "name": "上网电价（不含税）第2年至第13年",
+          "value": null,
+          "unit": "元/kWh"
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithTaxYears2To13",
+          "name": "上网电价（含税）第2年至第13年",
+          "value": null,
+          "unit": "元/kWh"
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithoutTaxYears14To21",
+          "name": "上网电价（不含税）第14年至第21年",
+          "value": null,
+          "unit": "元/kWh"
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithTaxYears14To21",
+          "name": "上网电价（含税）第14年至第21年",
+          "value": null,
+          "unit": "元/kWh"
+        },
+        {
+          "fieldCode": "financeCurtailmentRateSingle",
+          "name": "限电率（单一值）",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "financeCurtailmentRateSegments",
+          "name": "限电率（分段值）",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "financeCurtailmentAnnualOnGridEnergyMwh",
+          "name": "限电后年上网电量",
+          "value": null,
+          "unit": "MWh"
+        },
+        {
+          "fieldCode": "financeCurtailmentEquivalentFullLoadHours",
+          "name": "限电等效满负荷小时数",
+          "value": null,
+          "unit": "h"
+        },
+        {
+          "fieldCode": "windFarmGridPrice",
+          "name": "风电场上网电价",
+          "value": 0.3111,
+          "unit": "元/kWh"
+        },
+        {
+          "fieldCode": "financeCapitalIrrWithoutOutgoing",
+          "name": "资本金财务内部收益率(不含送出)",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "financeCapitalIrr",
+          "name": "资本金财务内部收益率",
+          "value": null,
+          "unit": "%"
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithoutTaxSchedule",
+          "name": "上网电价（不含税）第1年至第21年",
+          "unit": "元/kWh",
+          "value": null
+        },
+        {
+          "fieldCode": "financeOnGridPriceWithTaxSchedule",
+          "name": "上网电价（含税）第1年至第21年",
+          "unit": "元/kWh",
+          "value": null
+        }
+      ],
+      "tables": [
+        {
+          "key": "financeSensitivityAnalysis",
+          "name": "表 13-1：敏感性分析表",
+          "columns": [
+            "方案类型",
+            "变化幅度（%）",
+            "投资回收期 (所得税 后)(年)",
+            "项目投资财务 内部收益率 (所得税 前)(%)",
+            "项目投资财务 内部收益率 (所得税 后)(%)",
+            "资本金财 务内部收 益率 （%）"
+          ],
+          "columnKeys": [
+            "col_0",
+            "col_1",
+            "col_2",
+            "col_3",
+            "col_4",
+            "col_5"
+          ],
+          "index": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "data": [
+            [
+              "投资变化分析",
+              -10,
+              10.73,
+              8.79,
+              7.59,
+              13.69
+            ],
+            [
+              -5,
+              11.34,
+              7.98,
+              6.86,
+              11.34,
+              ""
+            ],
+            [
+              0,
+              11.96,
+              7.23,
+              6.2,
+              9.31,
+              ""
+            ],
+            [
+              5,
+              12.59,
+              6.53,
+              5.58,
+              7.52,
+              ""
+            ],
+            [
+              10,
+              13.21,
+              5.88,
+              5.01,
+              5.92,
+              ""
+            ],
+            [
+              "产量变化分析",
+              -10,
+              13.57,
+              5.53,
+              4.71,
+              5.1
+            ],
+            [
+              -5,
+              12.72,
+              6.39,
+              5.46,
+              7.17,
+              ""
+            ],
+            [
+              0,
+              11.96,
+              7.23,
+              6.2,
+              9.31,
+              ""
+            ],
+            [
+              5,
+              11.29,
+              8.04,
+              6.92,
+              11.51,
+              ""
+            ],
+            [
+              10,
+              10.7,
+              8.83,
+              7.63,
+              13.8,
+              ""
+            ],
+            [
+              "电价变化分析",
+              -20,
+              15.66,
+              3.72,
+              3.15,
+              0.83
+            ],
+            [
+              -15,
+              14.54,
+              4.64,
+              3.94,
+              3.1,
+              ""
+            ],
+            [
+              -10,
+              13.57,
+              5.53,
+              4.71,
+              5.1,
+              ""
+            ],
+            [
+              -5,
+              12.72,
+              6.39,
+              5.46,
+              7.17,
+              ""
+            ],
+            [
+              0,
+              11.96,
+              7.23,
+              6.2,
+              9.31,
+              ""
+            ],
+            [
+              "利率变化分析",
+              -10,
+              11.96,
+              7.23,
+              6.2,
+              10.24
+            ],
+            [
+              -5,
+              11.96,
+              7.23,
+              6.2,
+              9.77,
+              ""
+            ],
+            [
+              0,
+              11.96,
+              7.23,
+              6.2,
+              9.31,
+              ""
+            ],
+            [
+              5,
+              11.96,
+              7.23,
+              6.2,
+              8.87,
+              ""
+            ],
+            [
+              10,
+              11.96,
+              7.23,
+              6.2,
+              8.44,
+              ""
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

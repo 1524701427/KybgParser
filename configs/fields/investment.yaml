@@ -6,10 +6,10 @@ fields:
     sections:
       include: [工程概况, 建设规模, 主要技术经济指标]
       exclude: []
-    aliases: [装机容量, 建设规模, 总装机容量]
-    unit_aliases: [MW, 兆瓦]
+    aliases: [装机容量, 建设规模, 总装机容量, 总建设容量, 总装机规模, 项目总装机容量, 风电场装机容量, 建设总规模]
+    unit_aliases: [MW, 兆瓦, 万千瓦, 千瓦]
     patterns:
-      - "(?:装机容量|建设规模|总装机容量).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(MW|兆瓦)?"
+      - "(?:总装机容量|总建设容量|总装机规模|装机容量|建设总规模|建设规模).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万千瓦|千瓦|MW|兆瓦)?"
     validators:
       min: 0
 
@@ -39,6 +39,15 @@ fields:
     unit_aliases: [万元]
     patterns:
       - "(?:静态投资|工程静态投资).{0,30}?([0-9]+(?:\\.[0-9]+)?)\\s*(万元)?"
+    scalar_rules:
+      - name: 工程静态总投资
+        source_types: [paragraph]
+        value_type: number
+        value_group: value
+        section_include: [综合说明, 投资估算, 工程概算, 主要技术经济指标]
+        require_any: [静态工程总投资]
+        patterns:
+          - '静态工程总投资\s*(?P<value>[0-9]+(?:\.[0-9]+)?)\s*万元'
     validators:
       min: 0
 

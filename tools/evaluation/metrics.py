@@ -4,7 +4,7 @@ import re
 
 
 class FieldMetrics:
-    """Field-level evaluation metrics."""
+    """字段级评估指标。"""
 
     def calculate(self, predictions: list[dict], golden: list[dict]) -> dict:
         if not golden:
