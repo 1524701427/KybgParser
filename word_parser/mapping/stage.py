@@ -64,9 +64,19 @@ def load_mapping_operators(config_root: str | Path) -> tuple[str, ...]:
 
 def _merge_turbulence(parse_result: dict[str, Any], config_root: str | Path) -> None:
     mapped = parse_result.get("mapped")
-    key = "${eachTierHeightTurbulenceTableList}"
-    if isinstance(mapped, dict) and key in mapped:
-        mapped[key] = merge_turbulence_records(mapped[key])
+    if not isinstance(mapped, dict):
+        return
+    schema = ConfigLoader(config_root).load_required_yaml("output_schema.yaml")
+    output_codes = schema.get("output_field_codes") or {}
+    for code, specification in (schema.get("field_value_transforms") or {}).items():
+        if not isinstance(specification, dict) or specification.get("operator") != "merge_turbulence_records":
+            continue
+        output_name = output_codes.get(code)
+        if not output_name:
+            raise ValueError(f"Missing mapped output for transform field {code}")
+        placeholder = output_name if str(output_name).startswith("${") else "${" + str(output_name) + "}"
+        if placeholder in mapped:
+            mapped[placeholder] = merge_turbulence_records(mapped[placeholder])
 
 
 def _fill_missing_final_fields(parse_result: dict[str, Any], config_root: str | Path) -> None:
