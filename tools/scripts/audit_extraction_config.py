@@ -115,6 +115,11 @@ def audit_runtime(config_root: Path) -> list[Issue]:
         for index, group in enumerate(scope):
             _strings(group, f"discovery.scope_terms[{index}]", issues)
     _pattern(discovery.get("context_value_pattern"), "discovery.context_value_pattern", issues)
+    for key in ("number_cell_pattern", "column_header_unit_pattern", "paragraph_clause_pattern", "contextual_clause_pattern"):
+        _pattern(discovery.get(key), f"discovery.{key}", issues)
+    _strings(discovery.get("two_cell_value_exclusions"), "discovery.two_cell_value_exclusions", issues)
+    for key in ("two_cell_text_max_length", "contextual_label_min_length", "contextual_prefix_guard_chars"):
+        _number(discovery.get(key), f"discovery.{key}", issues, 1, 10000)
     for key in ("label_min_length", "label_max_length", "paragraph_clause_max_length", "string_value_max_length"):
         _number(discovery.get(key), f"discovery.{key}", issues, 1, 10000)
     if (isinstance(discovery.get("label_min_length"), int)
@@ -127,6 +132,14 @@ def audit_runtime(config_root: Path) -> list[Issue]:
     for key in ("value", "unit", "noise", "raw_unit", "summary"):
         _strings(headers.get(key), f"value_extraction.table_headers.{key}", issues)
     _pattern(headers.get("material_grade_pattern"), "value_extraction.table_headers.material_grade_pattern", issues)
+    for key in ("number_near_alias_window", "table_group_header_max_cells"):
+        _number(value_extraction.get(key), f"value_extraction.{key}", issues, 1, 10000)
+    heading_patterns = value_extraction.get("heading_exclusion_patterns")
+    _strings(heading_patterns, "value_extraction.heading_exclusion_patterns", issues)
+    if isinstance(heading_patterns, list):
+        for index, pattern in enumerate(heading_patterns):
+            _pattern(pattern, f"value_extraction.heading_exclusion_patterns[{index}]", issues)
+    _strings(value_extraction.get("heading_value_markers"), "value_extraction.heading_value_markers", issues)
 
     resolver = _mapping(cfg.get("candidate_resolution"), "candidate_resolution", issues)
     weights = _mapping(resolver.get("method_weights"), "candidate_resolution.method_weights", issues)
