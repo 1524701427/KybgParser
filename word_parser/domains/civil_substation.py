@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 from typing import Any
@@ -82,7 +82,7 @@ class SubstationCivilRulesMixin:
 
     def _substation_total_area_from_matrix(self, matrix: list[list[str]]) -> Any:
         header = matrix[0] if matrix else []
-        area_index = self._find_header_index(header, ["面积", "占地"])
+        area_index = self._find_header_index(header, domain_strings(self, "civil_substation", "list_001", ["面积", "占地"]))
         for row in matrix[1:]:
             label = " ".join(row[:2])
             if not any(alias in label for alias in ("升压站总占地", "总占地面积", "110kV升压站", "升压站占地")):
