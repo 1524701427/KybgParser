@@ -22,6 +22,8 @@ _EXPORTS = {
     "CandidateFact": ("word_parser.extraction.candidate_facts", "CandidateFact"),
     "collect_candidate_facts": ("word_parser.extraction.candidate_facts", "collect_candidate_facts"),
     "candidate_fact_report": ("word_parser.extraction.candidate_facts", "candidate_fact_report"),
+    "candidate_quality_report": ("word_parser.extraction.candidate_diagnostics", "candidate_quality_report"),
+    "validate_candidate_audit_policy": ("word_parser.extraction.candidate_diagnostics", "validate_candidate_audit_policy"),
 }
 __all__ = list(_EXPORTS)
 
