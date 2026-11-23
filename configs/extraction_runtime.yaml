@@ -20,7 +20,7 @@ discovery:
     - [一期, 二期, 本期, 远期]
     - [平均, 最大, 最小]
     - [年, 月, 日]
-  context_value_pattern: '^\\s*(?:为|约为|达到|达|是|取|：|:)\\s*(.+)$'
+  context_value_pattern: '^\s*(?:为|约为|达到|达|是|取|：|:)\s*(.+)$'
 
 value_extraction:
   table_headers:
