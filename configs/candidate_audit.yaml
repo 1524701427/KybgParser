@@ -1,0 +1,18 @@
+# Read-only candidate quality diagnostics.
+# This policy is NOT used to select extraction winners, validate mapped fields,
+# change YAML field rules, or overwrite the existing parser outputs.
+version: 1
+enabled: true
+required_field_codes_for_statuses: [candidate, OK]
+evidence_checks:
+  primary_any: [blockId, tableId, evidence]
+  secondary_field_any: [tableKey, tableName, rowIndex, columnIndex]
+  secondary_table_any: [tableKey, tableName]
+  nil_reason_key: nilReason
+cross_stage_variations:
+  enabled: true
+  accepted_primary_statuses: [candidate]
+  accepted_secondary_statuses: [OK]
+  # Values are compared as exact JSON; units are preserved and compared too.
+  # Variations are observations, not proven errors, since phases may differ.
+  include_only_same_unit: true
