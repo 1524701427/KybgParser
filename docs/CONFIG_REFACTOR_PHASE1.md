@@ -106,3 +106,39 @@ New tests: `tests/test_primary_operator_registry_parity.py` compares complete ex
 **No domain calculation method has been removed.** The registry intentionally points to approved existing methods rather than executing Python expressions from YAML. No changes have been merged to `main`.
 
 Validation remains limited to unit/integration fixtures on GitHub-hosted Linux. Full real report Aspose/OCR mapped JSON comparisons must be completed in the original runtime before merge.
+
+
+## Continued migration: lossless primary/secondary candidate audit
+
+Primary extraction candidates currently live in the existing parser details file under `extractionCandidates`.
+Secondary table values are written under `tableValueExtraction.sections[].tableFields` and `derivedTables`.
+They do **not** share the same source format, nor do secondary NIL rows carry a numeric score.
+
+This phase introduces `word_parser/extraction/candidate_facts.py`, a **read-only adapter** to a common
+`CandidateFact` shape (`stage`, `kind`, `code`, `value`, `raw_value`, `unit`, `method`, `status`,
+`score`, `confidence`, `section`, `source`, `original`). The adapter deep-copies the original record,
+preserves row/column/table/page references and NIL traces, and never converts secondary confidence
+to a primary candidate score. Derived tables keep columns and all rows. It **does not select a winner**.
+
+Use the standalone tool after a normal parse:
+
+```bash
+python tools/scripts/audit_candidate_facts.py data/predictions/PROJECT_details.json
+python tools/scripts/audit_candidate_facts.py data/predictions/PROJECT_details.json --output reports/PROJECT_candidate_facts.json
+```
+
+The original detail JSON usually already includes secondary detail after a full parse. When separate
+files are available, supply `--secondary-detail secondary_details.json`; explicit secondary input
+takes precedence so records are not duplicated. No output file is created without `--output`.
+The CLI rejects destinations that would overwrite parser `_details.json`, `_result.json`, or `_mapped.json`.
+
+`valueVariations` is for review only: different phases, designs and source tables may legitimately
+contain differing observations. The original resolver, mapping, secondary merge and field validation
+do not use this new adapter and remain completely unchanged.
+
+Tests: `tests/test_candidate_facts_adapter.py` verifies round-trip provenance and status preservation,
+invalid-source rejection, CLI non-mutation and separate audit output. `tests/test_secondary_merge_invariants.py`
+locks legacy precedence: primary nonempty field/table values win; secondary only fills missing values.
+
+The existing 284 final output mappings remain protected by `tests/test_output_field_contract.py`.
+Full real-report PDF/Word+OCR parity remains outstanding; do not merge without it.
