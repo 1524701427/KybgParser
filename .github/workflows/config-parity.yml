@@ -17,6 +17,9 @@ on:
       - "tests/test_real_report_parity_runner.py"
       - "configs/candidate_audit.yaml"
       - "configs/deterministic_rules.yaml"
+      - "configs/mapping_pipeline.yaml"
+      - "tests/test_four_stage_pipeline.py"
+      - "tests/test_mapping_stage_contract.py"
       - "tests/test_domain_yaml_parity.py"
       - "tools/scripts/audit_domain_migration.py"
       - "tools/scripts/smoke_windows_ocr.py"
@@ -48,14 +51,14 @@ jobs:
       - name: Compile modified Python sources
         run: |
           python -m compileall -q word_parser/application/factory.py word_parser/discovery/indicators.py word_parser/primary
-          python -m compileall -q word_parser/domains word_parser/config/domain_regex.py
+          python -m compileall -q word_parser/domains word_parser/config/domain_regex.py word_parser/application word_parser/output word_parser/mapping word_parser/secondary
           python -m compileall -q tools/scripts/compare_mapped.py tools/scripts/audit_extraction_config.py
           python -m compileall -q word_parser/extraction/candidate_facts.py word_parser/extraction/candidate_diagnostics.py tools/scripts/audit_candidate_facts.py
           python -m compileall -q word_parser/secondary/table_values/resolver.py tools/scripts/run_real_report_parity.py tools/scripts/run_candidate_report_smoke.py
       - name: Audit configuration rules
         run: python tools/scripts/audit_extraction_config.py --config-root configs
       - name: Check YAML parity and extraction contract
-        run: python -m pytest tests/test_domain_literal_regex_parity.py tests/test_domain_migration_audit.py tests/test_resultbuilder_missing_helper.py tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
+        run: python -m pytest tests/test_four_stage_pipeline.py tests/test_mapping_stage_contract.py tests/test_domain_literal_regex_parity.py tests/test_domain_migration_audit.py tests/test_resultbuilder_missing_helper.py tests/test_domain_yaml_parity.py tests/test_real_report_parity_runner.py tests/test_candidate_diagnostics_policy.py tests/test_secondary_merge_invariants.py tests/test_candidate_facts_adapter.py tests/test_funnel_yaml_parity.py tests/test_primary_operator_registry_parity.py tests/test_output_field_contract.py tests/test_extraction_grammar_yaml_parity.py tests/test_shared_field_registry.py tests/test_retrieval_yaml_parity.py tests/test_mapped_parity_tool.py tests/test_extraction_config_audit.py tests/test_config_driven_parity.py tests/test_indicator_discovery.py tests/test_context_constraints.py tests/test_recall_recovery.py tests/test_equivalent_extraction.py tests/test_table_values_new_primitives.py tests/test_public_structure.py -q
 
       - name: Inventory remaining domain extraction rules
         run: |
