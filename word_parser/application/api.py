@@ -27,7 +27,7 @@ def parse_document(file_path: str, config_root: str | Path = "configs") -> dict[
 def parse_document_with_table_values(
     file_path: str,
     config_root: str | Path = "configs",
-    table_value_config: str | Path = DEFAULT_TABLE_VALUE_CONFIG,
+    table_value_config: str | Path | None = None,
 ) -> dict[str, Any]:
     """解析文档，并继续执行二次表内抽取。"""
     return run_full_parse(
