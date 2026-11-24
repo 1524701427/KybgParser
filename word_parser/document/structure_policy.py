@@ -51,6 +51,8 @@ def load_structure_policy(config=None):
     for key in ("max_columns", "max_expanded_cells"):
         if type(recovery.get(key)) is not int or recovery[key] <= 0:
             raise ValueError(f"document_structure.yaml: invalid {key}")
+    if recovery.get("extraction_view", "audit") not in ("audit", "safe"):
+        raise ValueError("document_structure.yaml: invalid extraction_view")
     continuation = recovery["continuation"]
     if type(continuation.get("enabled")) is not bool:
         raise ValueError("document_structure.yaml: invalid continuation.enabled")

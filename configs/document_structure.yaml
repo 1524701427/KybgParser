@@ -41,6 +41,7 @@ diagnostics:
 
 table_recovery:
   enabled: true
+  extraction_view: safe
   continuation:
     enabled: true
     max_order_gap: 6
