@@ -30,6 +30,8 @@ from word_parser.mapping.wind import (
 from word_parser.secondary.table_values.primitives import json_safe
 from word_parser.secondary.table_values.results import final_result_with_table_values, table_value_details
 from word_parser.secondary.table_values.resolver import write_table_value_details
+from word_parser.secondary.cross_validation import build_audit
+from word_parser.extraction.candidate_registry import CandidateRegistry
 
 
 LEGACY_OPERATOR_ORDER = (
@@ -152,13 +154,21 @@ def execute_final_mapping(
             if not destinations["detail"].is_file():
                 raise RuntimeError(f"一次抽取详情文件不存在：{destinations['detail']}")
             shutil.copy2(destinations["detail"], working["detail"])
-        write_table_value_details(working["detail"], table_value_details(enhanced))
+        primary_snapshot = json.loads(working["detail"].read_text(encoding="utf-8"))
+        secondary_snapshot = table_value_details(enhanced)
+        registry = CandidateRegistry.from_details(primary_snapshot, secondary_snapshot)
+        write_table_value_details(working["detail"], secondary_snapshot)
         _write_json(working["result"], final_result_with_table_values(enhanced))
         parse_result["outputFiles"] = {**original_files, **{key: str(path) for key, path in working.items()}}
         try:
             parse_result["mapped"] = mapping_from_details(working["detail"], config_root=config_root)
             for name in names:
                 registry[name](parse_result, enhanced, config_root)
+            final_detail = json.loads(working["detail"].read_text(encoding="utf-8"))
+            audit = build_audit(parse_result, primary_snapshot, secondary_snapshot, final_detail, config_root, registry)
+            if audit is not None:
+                final_detail["crossValidation"] = audit
+                _write_json(working["detail"], final_detail)
             _write_json(working["mapped"], parse_result["mapped"])
             _write_json(working["result"], parse_result["result"])
             for key in ("detail", "result", "mapped"):
@@ -171,4 +181,5 @@ def execute_final_mapping(
             parse_result["outputFiles"] = original_files
     # Internal intermediate detail is not part of the public parser return.
     parse_result.pop("_primary_detail", None)
+    parse_result.pop("_recovered_tables", None)
     return parse_result

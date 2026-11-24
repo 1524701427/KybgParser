@@ -1,0 +1,55 @@
+# 只审计不覆盖。配置全部字段参与，不能独立核实的字段明确返回原因。
+version: 1
+enabled: true
+mode: audit
+source_section_patterns: ['技经概算', '工程概算', '投资概算', '投资估算', '设计概算', '概算']
+source_title_patterns: ['工程总概算表', '设备及安装工程概算表', '建筑工程概算表', '施工辅助工程概算表', '其他费用概算表', '主要技术经济指标表']
+label_headers: [项目, 项目名称, 名称, 工程名称, 工程或费用名称, 项目名称及规格, 指标, 指标名称, 设备名称, 设备名称及规格]
+unit_headers: [单位, 计量单位]
+value_headers: [数值, 指标值, 技术指标, 参数值, 规格, 型号, 型号及规格]
+scope_exclude_patterns: ['远期', '规划', '备选', '备用', '单台', '单机', '每台', '每套', '运输费', '安装费', '暂列', '暂估']
+unit_groups:
+  length: {km: 1000, 公里: 1000, 千米: 1000, m: 1, 米: 1}
+  power: {MW: 1000, 兆瓦: 1000, kW: 1, 千瓦: 1}
+  apparent_power: {MVA: 1000, kVA: 1}
+  voltage: {kV: 1000, 千伏: 1000, V: 1, 伏: 1}
+  money: {万元: 10000, 元: 1, 亿元: 100000000}
+  area: {m²: 1, m2: 1, 平方米: 1, ha: 10000, 公顷: 10000}
+  volume: {m³: 1, m3: 1, 立方米: 1}
+  count_machine: {台: 1}
+  count_set: {套: 1}
+  count_item: {个: 1}
+  count_circuit: {回: 1}
+  duration: {月: 1, 个月: 1, 年: 12}
+  percentage: {'%': 1}
+numeric_relative_tolerance: 0.000001
+numeric_absolute_tolerance: 0.000001
+# 泛化匹配只用精确名称/别名，不用模糊子串；别名证据默认需要人工确认。
+# 明确的字段规则可以声明等价行标签及对应列语义，覆盖通用列名。
+field_overrides:
+  turbineCount:
+    labels: [风机台数, 风力发电机组台数, 风力发电机组, 风电机组, 风机]
+    value_headers: [数量, 台数, 数值, 工程量]
+    unit: 台
+    trusted: true
+  newRoadLength:
+    labels: [新建道路长度, 新建道路, 新建场内道路]
+    value_headers: [数量, 工程量, 长度, 数值]
+    unit: km
+    trusted: true
+  rebuiltRoadLength:
+    labels: [改建道路长度, 改建道路, 改扩建道路]
+    value_headers: [数量, 工程量, 长度, 数值]
+    unit: km
+    trusted: true
+  installedCapacity:
+    labels: [装机容量, 风电场装机容量, 总装机容量]
+    value_headers: [数值, 指标值, 容量]
+    unit: MW
+    trusted: true
+  turbineCapacity:
+    labels: [单机容量, 风机单机容量]
+    value_headers: [数值, 指标值, 容量]
+    unit: MW
+    scope_exclude_patterns: ['远期', '规划', '备选', '备用', '运输费', '安装费']
+    trusted: true
