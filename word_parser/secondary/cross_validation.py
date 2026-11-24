@@ -156,6 +156,13 @@ def amount_unit(heading, policy):
     return None
 
 
+def header_unit(heading, policy):
+    known = {label(u): u for group in policy["unit_groups"].values() for u in group}
+    parts = re.findall(r"[（(]([^）)]+)[）)]", str(heading))
+    matches = list(dict.fromkeys(known[label(part)] for part in parts if label(part) in known))
+    return matches[0] if len(matches) == 1 else None
+
+
 def inherit_price_items(policy, loader):
     if not policy.get("inherit_equipment_price_items"):
         return
@@ -203,17 +210,20 @@ def field_candidates(code, spec, row_index, policy):
                 if identity in seen:
                     continue
                 seen.add(identity)
-                actual_unit = amount_unit(heading, policy) if role in {"unit_price", "total_amount"} else unit
+                actual_unit = amount_unit(heading, policy) if role in {"unit_price", "total_amount"} else (unit or header_unit(heading, policy))
                 if role in {"unit_price", "total_amount"} and not actual_unit and label(unit) in {label(u) for u in policy.get("amount_units", [])}:
                     actual_unit = unit
                 value = converted(raw, actual_unit, target_unit, policy)
                 if role == "specification" and number(raw) is None and not target_unit:
                     value = raw
-                if any(re.search(p, _scope_text(table, row)) for p in exclusions):
+                scope_text = _scope_text(table, row) + " / " + heading
+                if any(re.search(p, scope_text) for p in exclusions):
                     status = "scope_mismatch"
                 elif value is not None:
                     exact_name = label(row_label) == label(spec.get("name"))
-                    trusted = rule.get("trusted") is True or (rule.get("trusted") is not False and exact_name and (policy.get("adoption") or {}).get("exact_field_name"))
+                    inherited = label(row_label) in {label(a) for a in spec.get("budget_rule_aliases", [])}
+                    inherited = inherited and role in {"quantity", "engineering_quantity", "total_amount", "unit_price"} and header_role(heading, spec.get("budget_rule_columns") or [])
+                    trusted = rule.get("trusted") is True or (rule.get("trusted") is not False and ((exact_name and (policy.get("adoption") or {}).get("exact_field_name")) or inherited))
                     status = "eligible" if trusted else "needs_scope_confirmation"
                 elif target_unit or spec.get("value_type") == "number" or number(raw) is not None:
                     status = "unit_or_type_mismatch"

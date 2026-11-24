@@ -41,9 +41,19 @@ def enrich_specs(specs, schema, loader, policy):
                 and isinstance(column.get("aliases"), list) and not any(
                     rule.get(key) for key in ("value_pattern", "value_patterns", "include_patterns", "merge_following_rows", "variables", "towers")
                 ) and not row.get("match") and not row.get("occurrence")):
-            spec["aliases"] = list(dict.fromkeys([*(spec.get("aliases") or []), *row["aliases"]]))
-            # Aliases are searched but do not become trusted automatically.
-            # Column semantics are still determined by field role and unit.
+            aliases = [a for a in row["aliases"] if isinstance(a, str) and a.strip()]
+            spec["aliases"] = list(dict.fromkeys([*(spec.get("aliases") or []), *aliases]))
+            if rule.get("unit") and not row.get("exclude_aliases") and not row.get("patterns"):
+                columns = [a for a in column["aliases"] if isinstance(a, str)]
+                signature = (tuple(aliases), tuple(columns), rule["unit"])
+                previous = spec.get("_budget_rule_signature")
+                if previous is None:
+                    spec["_budget_rule_signature"] = signature
+                    spec["budget_rule_aliases"] = aliases
+                    spec["budget_rule_columns"] = columns
+                elif previous != signature:
+                    spec["budget_rule_aliases"] = []
+                    spec["budget_rule_columns"] = []
 
 
 def _placeholder(value):
@@ -153,6 +163,9 @@ def apply_budget_priority(parse_result, details, audit, config_root):
                       and (c.get("budgetSection") or not any(re.search(p, str((c.get("source") or {}).get("tableName") or ""))
                           for p in adoption.get("excluded_title_patterns", [])))]
         numeric_type = report.get("valueType") in adoption["numeric_types"]
+        if report.get("valueType") in {"text", "string", "boolean", "bool"} and not numeric_type:
+            skip("non_numeric_field_type")
+            continue
         if not numeric_type and not report.get("unit") and _numeric(original_value) is None and _numeric(original_mapped) is None and not candidates:
             skip("not_quantitative")
             continue
@@ -211,6 +224,7 @@ def apply_budget_priority(parse_result, details, audit, config_root):
         decision["originalSource"] = old_source
         entry.update(value=value, unit=unit, status="PASS", source=source,
                      sources=decision["supportingSources"], budgetAdoption=deepcopy(decision))
+        entry["rule"] = {"resolver": "budget_priority", "decision": decision["action"]}
         for key in ("articleLocation", "location"):
             if key in entry:
                 entry[key] = {"tableId": source.get("tableId"), "page": source.get("page"),
