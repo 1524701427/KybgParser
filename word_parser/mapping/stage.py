@@ -31,6 +31,7 @@ from word_parser.secondary.table_values.primitives import json_safe
 from word_parser.secondary.table_values.results import final_result_with_table_values, table_value_details
 from word_parser.secondary.table_values.resolver import write_table_value_details
 from word_parser.secondary.cross_validation import build_audit
+from word_parser.secondary.budget_priority import apply_budget_priority
 from word_parser.extraction.candidate_registry import CandidateRegistry
 
 
@@ -167,6 +168,9 @@ def execute_final_mapping(
             final_detail = json.loads(working["detail"].read_text(encoding="utf-8"))
             audit = build_audit(parse_result, primary_snapshot, secondary_snapshot, final_detail, config_root, candidate_registry)
             if audit is not None:
+                changed = apply_budget_priority(parse_result, final_detail, audit, config_root)
+                if changed:
+                    _validate_final_mapping(parse_result, config_root=config_root)
                 final_detail["crossValidation"] = audit
                 _write_json(working["detail"], final_detail)
             _write_json(working["mapped"], parse_result["mapped"])

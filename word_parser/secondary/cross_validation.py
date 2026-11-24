@@ -20,7 +20,7 @@ def load_policy(root):
     if not path.is_file():
         return None  # compatibility for saved outputs and older custom configurations
     policy = ConfigLoader(root).load_required_yaml("cross_validation.yaml")
-    if policy.get("version") != 1 or policy.get("mode") != "audit" or type(policy.get("enabled")) is not bool:
+    if policy.get("version") != 1 or policy.get("mode") not in {"audit", "prefer_budget"} or type(policy.get("enabled")) is not bool:
         raise ValueError("cross_validation.yaml: unsupported policy")
     for key in ("source_section_patterns", "source_title_patterns", "scope_exclude_patterns"):
         for pattern in policy[key]:
@@ -37,6 +37,15 @@ def load_policy(root):
     for group in policy["unit_groups"].values():
         if not isinstance(group, dict) or not group or any(Decimal(str(v)) <= 0 for v in group.values()):
             raise ValueError("cross_validation.yaml: invalid unit group")
+    adoption = policy.get("adoption") or {}
+    if policy["mode"] == "prefer_budget":
+        if not isinstance(adoption.get("excluded_sections"), list) or not adoption.get("require_consensus"):
+            raise ValueError("cross_validation.yaml: prefer_budget requires exclusion and consensus policy")
+        for key in ("excluded_title_patterns", "additional_scope_exclude_patterns"):
+            for pattern in adoption.get(key, []):
+                re.compile(pattern)
+        for rule in adoption.get("quantity_unit_patterns", []):
+            re.compile(rule["pattern"])
     return policy
 
 
@@ -165,11 +174,14 @@ def inherit_price_items(policy, loader):
 
 def field_candidates(code, spec, row_index, policy):
     rule = policy.get("field_overrides", {}).get(code, {})
-    labels = rule.get("labels") or [spec.get("name"), *(spec.get("aliases") or [])]
+    labels = list(dict.fromkeys([*(rule.get("labels") or []), spec.get("name"), *(spec.get("aliases") or [])]))
     role = field_role(spec, rule, policy)
     allowed = rule.get("value_headers") or (policy.get("column_roles") or {}).get(role) or spec.get("value_headers") or policy["value_headers"]
     exclusions = rule.get("scope_exclude_patterns", policy["scope_exclude_patterns"])
     target_unit = rule.get("unit") or spec.get("standard_unit") or spec.get("unit")
+    for item in (policy.get("adoption") or {}).get("quantity_unit_patterns", []):
+        if not target_unit and re.search(item["pattern"], str(spec.get("name") or "")):
+            target_unit = item["unit"]
     candidates = []
     seen = set()
     for alias in dict.fromkeys(label(x) for x in labels if x):
@@ -192,20 +204,26 @@ def field_candidates(code, spec, row_index, policy):
                     continue
                 seen.add(identity)
                 actual_unit = amount_unit(heading, policy) if role in {"unit_price", "total_amount"} else unit
+                if role in {"unit_price", "total_amount"} and not actual_unit and label(unit) in {label(u) for u in policy.get("amount_units", [])}:
+                    actual_unit = unit
                 value = converted(raw, actual_unit, target_unit, policy)
                 if role == "specification" and number(raw) is None and not target_unit:
                     value = raw
                 if any(re.search(p, _scope_text(table, row)) for p in exclusions):
                     status = "scope_mismatch"
                 elif value is not None:
-                    status = "eligible" if rule.get("trusted") is True else "needs_scope_confirmation"
+                    exact_name = label(row_label) == label(spec.get("name"))
+                    trusted = rule.get("trusted") is True or (rule.get("trusted") is not False and exact_name and (policy.get("adoption") or {}).get("exact_field_name"))
+                    status = "eligible" if trusted else "needs_scope_confirmation"
                 elif target_unit or spec.get("value_type") == "number" or number(raw) is not None:
                     status = "unit_or_type_mismatch"
                 else:
                     status = "needs_scope_confirmation"
                 candidates.append({"stage": "cross_validation", "value": str(value) if value is not None else raw,
                                    "rawValue": raw, "unit": target_unit, "sourceUnit": actual_unit, "columnRole": role,
-                                   "method": "exact_label_and_column", "status": status, "source": source})
+                                   "method": "exact_label_and_column", "status": status, "source": source,
+                                   "adoptionBlocked": bool(table.get("diagnostics")) or any(re.search(p, _scope_text(table, row)) for p in (policy.get("adoption") or {}).get("additional_scope_exclude_patterns", [])),
+                                   "budgetSection": any(re.search(p, " / ".join([*table.get("sectionPath", []), *table.get("canonicalSections", [])])) for p in policy["source_section_patterns"])})
     return candidates
 
 
@@ -249,7 +267,7 @@ def audit_fields(fields, specifications, rows, primary, final_detail, mapped, co
         mapped_status = None
         if key and len(eligible) == 1 and status in {"consistent", "conflict"} and number(mapping_value) is not None:
             mapped_status = "consistent" if close(mapping_value, eligible[0]["value"], policy) else "conflict"
-        output.append({"fieldCode": code, "fieldName": name, "primaryValue": prior.get("value"),
+        output.append({"fieldCode": code, "fieldName": name, "section": spec.get("section"), "valueType": spec.get("value_type"), "primaryValue": prior.get("value"),
                        "finalValue": value, "mappedValue": mapping_value, "unit": spec.get("standard_unit") or spec.get("unit"),
                        "mappingChanged": bool(key and token(mapping_value) != token(value)), "mappedComparison": mapped_status,
                        "status": status, "candidates": candidates})
@@ -302,6 +320,8 @@ def build_audit(parse_result, primary_detail, secondary_detail, final_detail, co
     schema = loader.load_required_yaml("output_schema.yaml")
     for code, meta in (schema.get("fields") or {}).items():
         specs[code] = {**meta, **specs.get(code, {})}
+    from word_parser.secondary.budget_priority import enrich_specs
+    enrich_specs(specs, schema, loader, policy)
     result = parse_result["result"]
     fields = {}
     for section in result.get("sections") or []:
@@ -309,7 +329,12 @@ def build_audit(parse_result, primary_detail, secondary_detail, final_detail, co
             code = field.get("fieldCode")
             if code:
                 fields[code] = field
-                specs.setdefault(code, {"name": field.get("fieldName") or field.get("name"), "unit": field.get("unit")})
+                spec = specs.setdefault(code, {})
+                spec.setdefault("section", section.get("name"))
+                if not spec.get("name"):
+                    spec["name"] = field.get("fieldName") or field.get("name")
+                if not spec.get("unit") and not spec.get("standard_unit"):
+                    spec["unit"] = field.get("unit")
     # Include all conditional secondary fields, including NIL, plus dynamic primary field codes.
     for source in (primary_detail.get("fieldIndex") or {}, final_detail.get("fieldIndex") or {}):
         for code, field in source.items():
@@ -329,7 +354,7 @@ def build_audit(parse_result, primary_detail, secondary_detail, final_detail, co
                                  parse_result.get("mapped") or {}, schema.get("output_field_codes") or {},
                                  registry, policy, bool(usable_budget))
     table_report = audit_tables(result, usable_budget)
-    return {"version": 1, "mode": "audit", "summary": {
+    return {"version": 1, "mode": policy["mode"], "summary": {
         "fieldCount": len(fields_report), "budgetTableCount": len(budget),
         "unavailableBudgetTableCount": len(budget) - len(usable_budget),
         "tableCount": len(table_report), "fieldStatuses": dict(Counter(f["status"] for f in fields_report)),

@@ -1,7 +1,7 @@
-# 只审计不覆盖。配置全部字段参与，不能独立核实的字段明确返回原因。
+# 概算优先：所有量化映射字段补查；同口径且可信时补值/纠错。
 version: 1
 enabled: true
-mode: audit
+mode: prefer_budget
 source_section_patterns: ['技经概算', '工程概算', '投资概算', '投资估算', '设计概算', '概算']
 source_title_patterns: ['工程总概算表', '设备及安装工程概算表', '建筑工程概算表', '施工辅助工程概算表', '其他费用概算表', '主要技术经济指标表']
 label_headers: [项目, 项目名称, 名称, 工程名称, 工程或费用名称, 项目名称及规格, 指标, 指标名称, 设备名称, 设备名称及规格]
@@ -94,3 +94,18 @@ field_role_patterns:
 amount_units: [万元, 亿元, 元]
 amount_column_exclude_patterns: ['安装', '运输', '调试', '人工', '材料单价', '机械']
 specification_trusted_fields: []
+
+# Only mapped scalar quantitative fields in business sections can be adopted.
+adoption:
+  excluded_sections: [通用, 资源章节]
+  exact_field_name: true
+  inherit_scalar_table_rules: true
+  require_consensus: true
+  reject_diagnostic_tables: true
+  # Non-budget indicator tables can still be audited but cannot override.
+  excluded_title_patterns: ['主要技术经济指标表']
+  numeric_types: [number, numeric, integer, float]
+  quantity_unit_patterns:
+    - {pattern: '台数$', unit: 台}
+    - {pattern: '套数$', unit: 套}
+  additional_scope_exclude_patterns: ['暂定', '分期', '二期', '三期', '预留', '小计']
