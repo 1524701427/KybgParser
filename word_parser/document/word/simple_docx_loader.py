@@ -178,7 +178,18 @@ class SimpleDocxLoader(WordLoader):
             for col_index, cell_node in enumerate(row_node.findall("w:tc", NAMESPACE)):
                 text_parts = [self._paragraph_text(p) for p in cell_node.findall("w:p", NAMESPACE)]
                 text = " ".join(part for part in text_parts if part).strip()
-                row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0))
+                properties = cell_node.find("w:tcPr", NAMESPACE)
+                meta = {}
+                if properties is not None:
+                    for key, tag in (("grid_span", "gridSpan"), ("vertical_merge", "vMerge"), ("horizontal_merge", "hMerge")):
+                        element = properties.find("w:" + tag, NAMESPACE)
+                        if element is not None:
+                            value = element.get("{" + NAMESPACE["w"] + "}val")
+                            meta[key] = value if value is not None else ("continue" if key.endswith("merge") else None)
+                if row_node.find("w:trPr/w:tblHeader", NAMESPACE) is not None:
+                    header = row_node.find("w:trPr/w:tblHeader", NAMESPACE)
+                    meta["declared_header"] = header.get("{" + NAMESPACE["w"] + "}val", "true").lower() not in {"0", "false", "off"}
+                row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0, meta=meta))
             rows.append(row)
         return DocumentTable(id=f"t_{index:04d}", order=order, rows=rows)
 

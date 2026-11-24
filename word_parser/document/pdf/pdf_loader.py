@@ -193,8 +193,21 @@ class OpenDataLoaderPdfLoader:
             if previous is None:
                 continue
             start = len(previous.rows)
+            # 只记录已发生的旧版续表合并，不改变原有合并判定及矩阵。
+            fragments = previous.meta.setdefault("source_fragments", [{
+                "tableId": previous.id, "page": previous.page, "order": previous.order,
+                "caption": previous.caption, "rowStart": 0, "rowCount": start,
+                "bbox": previous.meta.get("bounding_box"),
+            }])
+            fragments.append({
+                "tableId": current.id, "page": current.page, "order": current.order,
+                "caption": current.caption, "rowStart": start, "rowCount": len(current.rows),
+                "bbox": current.meta.get("bounding_box"),
+            })
             for offset, row in enumerate(current.rows):
                 for cell in row:
+                    cell.meta.update(source_table_id=current.id, source_page=current.page,
+                                     source_row=cell.row, source_col=cell.col)
                     cell.row = start + offset
                 previous.rows.append(row)
             removed.add(current.id)

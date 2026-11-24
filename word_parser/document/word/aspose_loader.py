@@ -509,7 +509,7 @@ class AsposeWordsLoader(WordLoader):
             for col_index, cell in enumerate(row.cells):
                 text = cell.to_string(aw.SaveFormat.TEXT).strip()
                 parsed_row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0,
-                                            meta=self._cell_merge_metadata(getattr(cell, "cell_format", None), "horizontal_merge", "vertical_merge")))
+                                            meta=self._cell_merge_metadata(getattr(cell, "cell_format", None), "horizontal_merge", "vertical_merge", getattr(getattr(row, "row_format", None), "heading_format", None))))
             rows.append(parsed_row)
         return DocumentTable(id=f"t_{index:04d}", order=order, rows=rows)
 
@@ -521,14 +521,16 @@ class AsposeWordsLoader(WordLoader):
             for col_index, cell in enumerate(row.Cells):
                 text = self._clean_aspose_text(cell.GetText())
                 parsed_row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0,
-                                            meta=self._cell_merge_metadata(getattr(cell, "CellFormat", None), "HorizontalMerge", "VerticalMerge")))
+                                            meta=self._cell_merge_metadata(getattr(cell, "CellFormat", None), "HorizontalMerge", "VerticalMerge", getattr(getattr(row, "RowFormat", None), "HeadingFormat", None))))
             rows.append(parsed_row)
         return DocumentTable(id=f"t_{index:04d}", order=order, rows=rows)
 
     @staticmethod
-    def _cell_merge_metadata(fmt: Any, horizontal: str, vertical: str) -> dict[str, Any]:
+    def _cell_merge_metadata(fmt: Any, horizontal: str, vertical: str, declared_header: Any = None) -> dict[str, Any]:
         """保留加载器实际读取的合并标记，不猜测跨行跨列跨度。"""
         result = {}
+        if declared_header is not None:
+            result["declared_header"] = bool(declared_header)
         for key, attribute in (("horizontal_merge", horizontal), ("vertical_merge", vertical)):
             value = getattr(fmt, attribute, None)
             if value is not None:

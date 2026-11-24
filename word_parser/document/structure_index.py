@@ -7,7 +7,7 @@ def build_structure_index(ast, policy):
     if settings["mode"] == "off":
         return None
     include_text = settings["include_text"]
-    diagnostics, sections, blocks, tables = [], [], [], []
+    diagnostics, sections, blocks, tables, logical_tables = [], [], [], [], []
     stack = []
     table_ids = set()
     block_ids = set()
@@ -34,19 +34,42 @@ def build_structure_index(ast, policy):
             "canonicalSections": list(table.meta.get("canonical_sections") or []),
             "rowWidths": widths,
             "headerRows": [i for i, row in enumerate(table.rows) if any(cell.is_header for cell in row)],
+            "declaredHeaderRows": [i for i, row in enumerate(table.rows) if any(cell.meta.get("declared_header") is True for cell in row)],
             "captionCandidates": list(table.meta.get("title_candidates") or []),
             "bbox": table.meta.get("bounding_box") or table.meta.get("layout_bbox") or table.meta.get("bbox"),
             "mergeMarkers": [
                 {"row": cell.row, "column": cell.col, "horizontal": cell.meta.get("horizontal_merge"),
-                 "vertical": cell.meta.get("vertical_merge")}
+                 "vertical": cell.meta.get("vertical_merge"), "gridSpan": cell.meta.get("grid_span")}
                 for row in table.rows for cell in row
                 if cell.meta.get("horizontal_merge") not in (None, "NONE", "None", "0")
                 or cell.meta.get("vertical_merge") not in (None, "NONE", "None", "0")
+                or cell.meta.get("grid_span") not in (None, "1", 1)
             ],
         }
-        if include_text:
-            entry["cells"] = [[cell.to_dict() for cell in row] for row in table.rows]
-        tables.append(entry)
+        fragments = table.meta.get("source_fragments") or [{
+            "tableId": table.id, "page": table.page, "order": table.order,
+            "caption": table.caption, "rowStart": 0, "rowCount": len(table.rows),
+            "bbox": entry["bbox"],
+        }]
+        logical_tables.append({
+            "id": table.id, "physicalTableIds": [fragment["tableId"] for fragment in fragments],
+            "sectionPath": list(table.section_path), "caption": table.caption,
+            "rowCount": len(table.rows), "sourceFragments": fragments,
+            "mergeMethod": "legacy_pdf_continuation" if len(fragments) > 1 else None,
+        })
+        for fragment in fragments:
+            start = fragment["rowStart"]
+            end = start + fragment["rowCount"]
+            physical = {**entry, "id": fragment["tableId"], "order": fragment["order"],
+                        "page": fragment["page"], "bbox": fragment.get("bbox"),
+                        "caption": fragment.get("caption"), "logicalTableId": table.id,
+                        "rowWidths": widths[start:end],
+                        "headerRows": [r - start for r in entry["headerRows"] if start <= r < end],
+                        "declaredHeaderRows": [r - start for r in entry["declaredHeaderRows"] if start <= r < end],
+                        "mergeMarkers": [{**m, "row": m["row"] - start} for m in entry["mergeMarkers"] if start <= m["row"] < end]}
+            if include_text:
+                physical["cells"] = [[{**cell.to_dict(), "row": cell.row - start} for cell in row] for row in table.rows[start:end]]
+            tables.append(physical)
 
     last_order = None
     referenced = set()
@@ -98,6 +121,6 @@ def build_structure_index(ast, policy):
     return {
         "version": 1, "format": Path(ast.file_name).suffix.lower(), "status": status,
         "summary": {"blockCount": len(blocks), "sectionCount": len(sections), "physicalTableCount": len(tables),
-                    "diagnosticCount": len(diagnostics)},
-        "sections": sections, "blocks": blocks, "physicalTables": tables, "diagnostics": diagnostics,
+                    "logicalTableCount": len(logical_tables), "diagnosticCount": len(diagnostics)},
+        "sections": sections, "blocks": blocks, "physicalTables": tables, "logicalTables": logical_tables, "diagnostics": diagnostics,
     }

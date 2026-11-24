@@ -108,3 +108,37 @@ def test_structure_policy_controls_style_and_strict_diagnostics():
     import re
     with pytest.raises(re.error):
         StructureParser(policy)
+
+
+def test_pdf_continuation_snapshot_preserves_fragment_coordinates():
+    from word_parser.document.ast.document import DocumentAST, DocumentBlock, DocumentTable, TableCell
+    from word_parser.document.pdf.pdf_loader import OpenDataLoaderPdfLoader
+    from word_parser.document.structure_index import build_structure_index
+    policy = ConfigLoader(CFG).load_required_yaml("document_structure.yaml")
+    policy["diagnostics"]["include_text"] = True
+    first = DocumentTable("t1", 0, page=1, caption="设备表", rows=[
+        [TableCell("序号", 0, 0, is_header=True), TableCell("数量", 0, 1, is_header=True)]])
+    second = DocumentTable("t2", 1, page=2, rows=[
+        [TableCell("1", 0, 0), TableCell("32", 0, 1)]])
+    ast = DocumentAST("sample.pdf", tables=[first, second], blocks=[
+        DocumentBlock("tb1", "table", "", 0, meta={"table_id": "t1"}),
+        DocumentBlock("tb2", "table", "", 1, meta={"table_id": "t2"})])
+    OpenDataLoaderPdfLoader()._merge_continued_tables(ast)
+    assert len(ast.tables) == 1
+    assert first.to_matrix() == [["序号", "数量"], ["1", "32"]]
+    snapshot = build_structure_index(ast, policy)
+    assert snapshot["summary"]["physicalTableCount"] == 2
+    assert snapshot["summary"]["logicalTableCount"] == 1
+    assert snapshot["logicalTables"][0]["physicalTableIds"] == ["t1", "t2"]
+    assert snapshot["physicalTables"][1]["cells"][0][1]["row"] == 0
+    assert snapshot["physicalTables"][1]["cells"][0][1]["meta"]["source_page"] == 2
+
+
+def test_docx_xml_records_declared_header_and_merge_metadata():
+    from xml.etree import ElementTree as ET
+    from word_parser.document.word.simple_docx_loader import SimpleDocxLoader, NAMESPACE
+    xml = '<w:tbl xmlns:w="' + NAMESPACE["w"] + '"><w:tr><w:trPr><w:tblHeader/></w:trPr><w:tc><w:tcPr><w:gridSpan w:val="2"/><w:vMerge w:val="restart"/></w:tcPr><w:p><w:r><w:t>项目</w:t></w:r></w:p></w:tc></w:tr></w:tbl>'
+    table = SimpleDocxLoader()._parse_table(ET.fromstring(xml), 1, 0)
+    cell = table.rows[0][0]
+    assert cell.meta == {"grid_span": "2", "vertical_merge": "restart", "declared_header": True}
+    assert table.to_matrix() == [["项目"]]
