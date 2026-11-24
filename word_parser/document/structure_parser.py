@@ -6,49 +6,19 @@ import re
 
 from word_parser.document.ast.document import DocumentAST
 from word_parser.logger import logger
+from word_parser.document.structure_policy import load_structure_policy
 
 
 class StructureParser:
     """识别标题、表题、图题和普通正文。"""
 
-    TABLE_TITLE_KEYWORDS = (
-        "表",
-        "附表",
-        "清单",
-        "工程量",
-        "概算",
-        "估算",
-        "汇总",
-        "统计",
-        "成果",
-        "计算",
-        "参数",
-        "材料",
-        "设备",
-        "箱变基础",
-        "土石方平衡",
-        "财务指标",
-        "敏感性分析",
-    )
-
-    TABLE_TITLE_BODY_HINTS = (
-        "本工程",
-        "其中",
-        "采用",
-        "设置",
-        "根据",
-        "通过",
-        "因此",
-        "另外",
-        "同时",
-        "满足",
-    )
-
-    HEADING_PATTERNS = [
-        re.compile(r"^第[一二三四五六七八九十百]+[章节篇]\s*"),
-        re.compile(r"^[一二三四五六七八九十]+[、.]\s*"),
-        re.compile(r"^\d+(?:\.\d+){0,3}\s+"),
-    ]
+    def __init__(self, structure_config: dict | None = None):
+        self.policy = load_structure_policy(structure_config)
+        self.heading = self.policy["heading"]
+        self.table_title = self.policy["table_title"]
+        self.TABLE_TITLE_KEYWORDS = tuple(self.table_title["keywords"])
+        self.TABLE_TITLE_BODY_HINTS = tuple(self.table_title["body_hints"])
+        self.HEADING_PATTERNS = [re.compile(pattern) for pattern in self.heading["patterns"]]
 
     def parse(self, ast: DocumentAST) -> DocumentAST:
         """解析文档结构。
@@ -99,19 +69,24 @@ class StructureParser:
             int | None: 标题级别，非标题返回 None。
         """
         style_name = (getattr(style, "style_name", None) or "").lower()
-        if "heading" in style_name:
-            match = re.search(r"(\d+)", style_name)
+        if self.heading["toc_exclusion"] and (re.search(self.heading["toc_style_pattern"], style_name) or re.search(self.heading["toc_text_pattern"], text)):
+            return None
+        style_markers = self.heading["style_contains"]
+        if self.heading["enhanced_styles"]:
+            style_markers = [*style_markers, *self.heading["additional_style_contains"]]
+        if any(marker.lower() in style_name for marker in style_markers):
+            match = re.search(self.heading["style_level_pattern"], style_name)
             return int(match.group(1)) if match else 1
-        if len(text) <= 40 and any(pattern.match(text) for pattern in self.HEADING_PATTERNS):
+        if len(text) <= self.heading["numbered_max_length"] and any(pattern.match(text) for pattern in self.HEADING_PATTERNS):
             if self._looks_like_numbered_body_text(text):
                 return None
             # 编号中点越多，标题层级越深。
             prefix = text.split()[0]
             if re.match(r"^\d+(?:\.\d+)+", prefix):
-                return min(prefix.count(".") + 1, 4)
+                return min(prefix.count(".") + 1, self.heading["max_numbered_level"])
             return 1
-        if len(text) <= 20 and getattr(style, "bold", False):
-            return 2
+        if len(text) <= self.heading["bold_max_length"] and getattr(style, "bold", False):
+            return self.heading["bold_level"]
         return None
 
     def _looks_like_numbered_body_text(self, text: str) -> bool:
@@ -139,10 +114,7 @@ class StructureParser:
         cleaned = self._clean_text(text)
         if not cleaned:
             return False
-        patterns = [
-            r"^(?:附表|表)\s*[\d一二三四五六七八九十]+(?:[.．、\-－]\d+)*\s*[：:、.．]?\s*\S+",
-            r"^\d+(?:\.\d+){1,4}(?:\s*[-－]\s*\d+)?\s+.*(?:表|清单|工程量|概算|估算|汇总|统计|成果|计算|参数|材料|设备)",
-        ]
+        patterns = self.table_title["caption_patterns"]
         return any(re.search(pattern, cleaned) for pattern in patterns)
 
     def _is_figure_caption(self, text: str) -> bool:
@@ -154,7 +126,7 @@ class StructureParser:
         返回：
             bool: 是否图题。
         """
-        return bool(re.match(r"^图\s*[\d一二三四五六七八九十.-]+", text))
+        return bool(re.match(self.policy["figure_caption_pattern"], text))
 
     def _attach_caption(self, ast: DocumentAST, table_block, block_index: int) -> None:
         """将表题挂到表格对象。
@@ -178,7 +150,7 @@ class StructureParser:
         for candidate in candidates:
             if candidate.get("crossedTable"):
                 continue
-            if float(candidate.get("score") or 0.0) < 2.5:
+            if float(candidate.get("score") or 0.0) < self.table_title["minimum_score"]:
                 continue
             table.caption = candidate["text"]
             if candidate.get("source") in {"table_caption", "nearby_title", "styled_title", "heading", "layout_linked_caption", "layout_nearby_title", "layout_caption"}:
@@ -238,7 +210,7 @@ class StructureParser:
         """
         candidates: list[dict] = []
         previous_blocks = ast.blocks[:block_index]
-        for distance, block in enumerate(reversed(previous_blocks[-12:]), start=1):
+        for distance, block in enumerate(reversed(previous_blocks[-self.table_title["lookback_blocks"]:]), start=1):
             if block.type != "paragraph":
                 continue
             text = self._clean_text(block.text or "")

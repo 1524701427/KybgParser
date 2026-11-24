@@ -6,12 +6,14 @@ import re
 
 from word_parser.document.ast.document import DocumentAST
 from word_parser.logger import logger
+from word_parser.document.structure_policy import load_structure_policy
 
 
 class SectionDetector:
     """根据标题结构构建章节路径。"""
 
-    def __init__(self, section_config: dict | None = None):
+    def __init__(self, section_config: dict | None = None, structure_config: dict | None = None):
+        self.table_section_rules = load_structure_policy(structure_config)["table_section_rules"]
         self.section_aliases = self._build_section_aliases(section_config or {})
 
     def detect(self, ast: DocumentAST) -> DocumentAST:
@@ -104,15 +106,7 @@ class SectionDetector:
         if not title_text:
             return []
         # 财务附表、概算表、土建工程量这几类最容易因 Word/PDF 结构丢失章节锚点，优先用表题补齐。
-        mappings = [
-            ("财务", [r"附表\s*(?:16\.)?\d+", r"财务指标", r"现金流量", r"资产负债", r"总成本费用", r"利润与利润分配", r"借款还本付息", r"敏感性分析"]),
-            ("技经概算", [r"主要技术经济指标表", r"工程总概算表", r"(?:施工辅助工程|设备及安装工程|建筑工程|其他费用)概算表"]),
-            ("箱变基础", [r"箱变基础", r"箱式变电站基础", r"机组变压器基础"]),
-            ("土石方平衡", [r"土石方平衡"]),
-            ("道路", [r"道路.*(?:工程数量表|主要工程量表)"]),
-            ("用地", [r"征地", r"用地"]),
-            ("风机基础", [r"基础尺寸及参数表", r"基础断面表"]),
-        ]
+        mappings = [(rule["section"], rule["patterns"]) for rule in self.table_section_rules]
         for section, patterns in mappings:
             if any(re.search(pattern, title_text) for pattern in patterns):
                 return [section]

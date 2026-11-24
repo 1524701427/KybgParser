@@ -47,6 +47,9 @@ class JsonExporter(
             "sections": self._strip_private_keys(built_result.get("sections", [])),
         }
         detail_json = self._build_detail_json(ctx, built_result)
+        snapshot = getattr(getattr(ctx, "ast", None), "meta", {}).get("structure_index")
+        if snapshot is not None:
+            detail_json["documentStructure"] = snapshot
         mapped_json = {} if defer_mapping else self._build_mapped_json(detail_json)
         result_json = self._build_result_json(ctx)
         if not memory_only:

@@ -1,0 +1,40 @@
+# 文档结构识别规则；默认保持历史行为，增强样式和目录过滤须经样本回归后开启。
+version: 1
+heading:
+  patterns: ["^第[一二三四五六七八九十百]+[章节篇]\\s*","^[一二三四五六七八九十]+[、.]\\s*","^\\d+(?:\\.\\d+){0,3}\\s+"]
+  style_contains: ["heading"]
+  style_level_pattern: "(\\d+)"
+  numbered_max_length: 40
+  bold_max_length: 20
+  bold_level: 2
+  max_numbered_level: 4
+  enhanced_styles: false
+  additional_style_contains: ["标题","章标题","节标题"]
+  toc_exclusion: false
+  toc_style_pattern: "(?:^toc\\s*\\d*|^目录\\s*\\d*)$"
+  toc_text_pattern: "(?:\\.{3,}|…{2,}|·{3,})\\s*\\d+\\s*$"
+table_title:
+  keywords: ["表","附表","清单","工程量","概算","估算","汇总","统计","成果","计算","参数","材料","设备","箱变基础","土石方平衡","财务指标","敏感性分析"]
+  body_hints: ["本工程","其中","采用","设置","根据","通过","因此","另外","同时","满足"]
+  caption_patterns: ["^(?:附表|表)\\s*[\\d一二三四五六七八九十]+(?:[.．、\\-－]\\d+)*\\s*[：:、.．]?\\s*\\S+","^\\d+(?:\\.\\d+){1,4}(?:\\s*[-－]\\s*\\d+)?\\s+.*(?:表|清单|工程量|概算|估算|汇总|统计|成果|计算|参数|材料|设备)"]
+  minimum_score: 2.5
+  lookback_blocks: 12
+figure_caption_pattern: "^图\\s*[\\d一二三四五六七八九十.-]+"
+table_section_rules:
+  - section: "财务"
+    patterns: ["附表\\s*(?:16\\.)?\\d+","财务指标","现金流量","资产负债","总成本费用","利润与利润分配","借款还本付息","敏感性分析"]
+  - section: "技经概算"
+    patterns: ["主要技术经济指标表","工程总概算表","(?:施工辅助工程|设备及安装工程|建筑工程|其他费用)概算表"]
+  - section: "箱变基础"
+    patterns: ["箱变基础","箱式变电站基础","机组变压器基础"]
+  - section: "土石方平衡"
+    patterns: ["土石方平衡"]
+  - section: "道路"
+    patterns: ["道路.*(?:工程数量表|主要工程量表)"]
+  - section: "用地"
+    patterns: ["征地","用地"]
+  - section: "风机基础"
+    patterns: ["基础尺寸及参数表","基础断面表"]
+diagnostics:
+  mode: "audit"
+  include_text: false

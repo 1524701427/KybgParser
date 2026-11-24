@@ -38,6 +38,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
     if not field_configs:
         raise ValueError(f"Field YAML configuration is missing or empty: {Path(config_root) / 'fields'}")
     section_config = config_loader.load_required_yaml("sections.yaml")
+    structure_config = config_loader.load_required_yaml("document_structure.yaml")
     pipeline_config = config_loader.load_required_yaml("pipeline.yaml")
     output_schema = config_loader.load_required_yaml("output_schema.yaml")
     extraction_runtime = config_loader.load_required_yaml("extraction_runtime.yaml")
@@ -68,8 +69,8 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
 
     pipeline = ParserPipeline(
         loader=document_loader,
-        structure_parser=StructureParser(),
-        section_detector=SectionDetector(section_config),
+        structure_parser=StructureParser(structure_config),
+        section_detector=SectionDetector(section_config, structure_config),
         candidate_retriever=CandidateRetriever(field_configs, settings=extraction_runtime.get("retrieval")),
         field_matcher=FieldMatcher(extraction_runtime.get("field_matching"), lexicon=shared_lexicon),
         value_extractor=ValueExtractor(

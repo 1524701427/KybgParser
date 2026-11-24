@@ -508,7 +508,8 @@ class AsposeWordsLoader(WordLoader):
             parsed_row: list[TableCell] = []
             for col_index, cell in enumerate(row.cells):
                 text = cell.to_string(aw.SaveFormat.TEXT).strip()
-                parsed_row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0))
+                parsed_row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0,
+                                            meta=self._cell_merge_metadata(getattr(cell, "cell_format", None), "horizontal_merge", "vertical_merge")))
             rows.append(parsed_row)
         return DocumentTable(id=f"t_{index:04d}", order=order, rows=rows)
 
@@ -519,9 +520,20 @@ class AsposeWordsLoader(WordLoader):
             parsed_row: list[TableCell] = []
             for col_index, cell in enumerate(row.Cells):
                 text = self._clean_aspose_text(cell.GetText())
-                parsed_row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0))
+                parsed_row.append(TableCell(text=text, row=row_index, col=col_index, is_header=row_index == 0,
+                                            meta=self._cell_merge_metadata(getattr(cell, "CellFormat", None), "HorizontalMerge", "VerticalMerge")))
             rows.append(parsed_row)
         return DocumentTable(id=f"t_{index:04d}", order=order, rows=rows)
+
+    @staticmethod
+    def _cell_merge_metadata(fmt: Any, horizontal: str, vertical: str) -> dict[str, Any]:
+        """保留加载器实际读取的合并标记，不猜测跨行跨列跨度。"""
+        result = {}
+        for key, attribute in (("horizontal_merge", horizontal), ("vertical_merge", vertical)):
+            value = getattr(fmt, attribute, None)
+            if value is not None:
+                result[key] = str(value)
+        return result
 
     def _append_table(self, ast: DocumentAST, table: DocumentTable, order: int) -> None:
         """追加表格和表格占位块。
