@@ -1,5 +1,5 @@
-"""Image/OCR fallback extraction."""
+"""Backward-compatible cover OCR exports."""
 
-from parser_engine.output.cover_ocr import CoverOcrExtractor, CoverOcrResult
+from word_parser.document.cover_ocr import CoverOcrExtractor, CoverOcrResult
 
 __all__ = ["CoverOcrExtractor", "CoverOcrResult"]

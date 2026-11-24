@@ -1,12 +1,7 @@
-"""Structure, layout and section parsing."""
+"""Backward-compatible structure, layout and section exports."""
 
-from parser_engine.document.layout_sidecar import LayoutTable, OpenDataLoaderLayoutSidecar
-from parser_engine.document.section_detector import SectionDetector
-from parser_engine.document.structure_parser import StructureParser
+from word_parser.document.layout_sidecar import LayoutTable, OpenDataLoaderLayoutSidecar
+from word_parser.document.section_detector import SectionDetector
+from word_parser.document.structure_parser import StructureParser
 
-__all__ = [
-    "LayoutTable",
-    "OpenDataLoaderLayoutSidecar",
-    "SectionDetector",
-    "StructureParser",
-]
+__all__ = ["LayoutTable", "OpenDataLoaderLayoutSidecar", "SectionDetector", "StructureParser"]

@@ -1,6 +1,6 @@
-"""Configuration loading."""
+"""Backward-compatible configuration imports."""
 
-from parser_engine.core.config_loader import ConfigLoader
-from parser_engine.core.logger import logger
+from word_parser.config.loader import ConfigLoader
+from word_parser.logger import logger
 
 __all__ = ["ConfigLoader", "logger"]

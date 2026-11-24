@@ -1,31 +1,16 @@
-"""Core extraction pipeline components."""
+"""Compatibility exports for the active, deterministic primary extraction engine.
 
-from parser_engine.extraction.global_pointer_extractor import GlobalPointerExtractor
-from parser_engine.extraction import (
-    CandidateResolver,
-    CandidateRetriever,
-    FieldMatcher,
-    FunnelPruner,
-    Normalizer,
-    SemanticAnalyzer,
-    SemanticVerifier,
-    Validator,
-)
-from parser_engine.extraction.uie_extractor import UIEExtractor
-from parser_engine.extraction.value_extractor import ValueExtractor
-from parser_engine.ml.embedding_model import BgeEmbeddingMatcher
+Optional ML/experimental operators from the retired parser_engine are not in
+the production pipeline; the canonical components live in word_parser.primary.
+"""
 
-__all__ = [
-    "BgeEmbeddingMatcher",
-    "CandidateResolver",
-    "CandidateRetriever",
-    "FieldMatcher",
-    "FunnelPruner",
-    "GlobalPointerExtractor",
-    "Normalizer",
-    "SemanticAnalyzer",
-    "SemanticVerifier",
-    "UIEExtractor",
-    "Validator",
-    "ValueExtractor",
-]
+from word_parser.primary.candidate_resolver import CandidateResolver
+from word_parser.primary.candidate_retriever import CandidateRetriever
+from word_parser.primary.field_matcher import FieldMatcher
+from word_parser.primary.funnel_pruner import FunnelPruner
+from word_parser.primary.normalizer import Normalizer
+from word_parser.primary.semantic_analyzer import SemanticAnalyzer
+from word_parser.primary.validator import Validator
+from word_parser.primary.value_extractor import ValueExtractor
+
+__all__ = ["CandidateResolver", "CandidateRetriever", "FieldMatcher", "FunnelPruner", "Normalizer", "SemanticAnalyzer", "Validator", "ValueExtractor"]

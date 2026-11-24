@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from main import parse_document
-from parser_engine.tables.table_values import enhance_result_file
+from word_parser.secondary.table_values import enhance_result_file
 
 
 DOCX_PATH = str(ROOT / "samples" / "reports" / "5.陕西华电咸阳永寿常宁镇10万千瓦风电项目可行性研究报告.docx")
