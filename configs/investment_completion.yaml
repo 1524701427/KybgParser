@@ -1,0 +1,45 @@
+# Investment completion compatibility: keep the original row matching and precedence.
+version: 1
+table_placeholder: engineering_estimate_table
+label_header_contains: 项目名称
+amount_header_contains: 合计
+legacy_label_index: 1
+legacy_amount_index: 5
+group_boundary_pattern: '[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩIVX]+'
+group_total_pattern: '(?:工程|项目)?总投资(?:合计)?|动态投资(?:合计)?'
+group_values:
+  delivery_project: ['(?:送出|外送|送电)(?:线路)?(?:工程|投资)']
+  expansion_project: ['扩建工程', '间隔扩建']
+  outgoing_shared_cost: ['送出分摊费', '分摊费', '分摊费用']
+  supporting_cost: ['^配套费$']
+  area_management_building: ['片区管理综合']
+  smart_wind_farm: ['智慧风场']
+  new_energy_sensing_equipment: ['新能源场站感知设备']
+  research_development_cost: ['研发']
+  technology_cost: ['科技']
+  centralized_control_platform_cost: ['平台集控费']
+retain_when_group_missing: [supporting_cost]
+value_aliases:
+  static_investment: [investment_static_partial]
+  dynamic_investment: [investment_dynamic_partial, investment_dynamic_total]
+  static_investment_per_kw: [investment_per_kw_static_partial, investment_per_kw_static_total]
+  dynamic_investment_per_kw: [investment_per_kw_dynamic_partial, investment_per_kw_dynamic_total]
+  project_static_investment: [investment_static_total]
+  project_dynamic_investment: [investment_dynamic_total]
+  unit_kw_static_investment: [investment_per_kw_static_total]
+  unit_kw_dynamic_investment: [investment_per_kw_dynamic_total]
+fill_missing_aliases:
+  investment_interest_total: investment_construction_interest_total
+  investment_project_total: investment_dynamic_total
+fill_missing_rows:
+  investment_total_part_total: ['^静态投资合计$']
+  investment_outgoing_line_legacy_total: ['送出.*110kV', '110kV.*送出']
+result_field_aliases:
+  investmentConstructionInterestGrandTotal: investment_interest_total
+  investmentProjectTotalCost: investment_project_total
+  investmentTotalPartTotal: investment_total_part_total
+  investment110kvOutgoingLineProjectTotal: investment_outgoing_line_legacy_total
+  finalDeliveryProject: delivery_project
+  finalDynamicInvestment: dynamic_investment
+  finalStaticInvestmentPerKw: static_investment_per_kw
+  finalDynamicInvestmentPerKw: dynamic_investment_per_kw

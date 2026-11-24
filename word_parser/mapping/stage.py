@@ -104,7 +104,7 @@ def _operators() -> dict[str, Callable[[dict[str, Any], dict[str, Any], str | Pa
         "hide_duplicate_combined_fields": lambda r, e, c: _hide_combined_table_duplicate_fields(r, config_root=c),
         "fill_transformers": lambda r, e, c: _fill_transformers_from_installation_estimate(r, config_root=c),
         "fill_station_transformers": lambda r, e, c: _fill_station_transformers_from_equipment_table(r, config_root=c),
-        "map_final_investment": lambda r, e, c: _map_final_investment_fields(r),
+        "map_final_investment": lambda r, e, c: _map_final_investment_fields(r, config_root=c),
         "merge_turbulence": lambda r, e, c: _merge_turbulence(r, c),
         "fill_missing_final_fields": lambda r, e, c: _fill_missing_final_fields(r, c),
         "validate_final_mapping": lambda r, e, c: _validate_final_mapping(r, config_root=c),

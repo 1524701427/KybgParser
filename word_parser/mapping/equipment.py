@@ -213,91 +213,17 @@ def _fill_station_transformers_from_equipment_table(parse_result: dict[str, Any]
                     entry.update(value=value, status="PASS", source=source)
         Path(detail_path).write_text(json.dumps(details, ensure_ascii=False, indent=2), encoding="utf-8")
 
-def _map_final_investment_fields(parse_result: dict[str, Any]) -> None:
-    """根据实际概算层级填充下游概算字段。"""
-    import re
-
+def _map_final_investment_fields(parse_result: dict[str, Any], config_root: str | Path | None = None) -> None:
+    """Compatibility adapter: sync the extracted investment values to outputs."""
+    from word_parser.secondary.investment_completion import load_investment_completion, calculate_investment_completion
     mapped = parse_result.get("mapped")
     if not isinstance(mapped, dict):
         return
-    table = mapped.get("${engineering_estimate_table}") or {}
-    rows = table.get("data") or []
-    columns = table.get("columns") or []
-    label_index = next((i for i, name in enumerate(columns) if "项目名称" in str(name)), 1)
-    amount_index = next((i for i, name in enumerate(columns) if "合计" in str(name)), 5)
-
-    def clean(value: Any) -> str:
-        return re.sub(r"\s+", "", str(value or "")).replace("\u000b", "")
-
-    def amount(row: list[Any]) -> int | float | None:
-        value = row[amount_index] if len(row) > amount_index else None
-        return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
-
-    def matching_value(patterns: tuple[str, ...]) -> int | float | None:
-        for row in rows:
-            if len(row) > label_index and amount(row) is not None and any(re.search(p, clean(row[label_index]), re.I) for p in patterns):
-                return amount(row)
-        return None
-
-    def group_value(patterns: tuple[str, ...]) -> int | float | None:
-        for i, row in enumerate(rows):
-            label = clean(row[label_index]) if len(row) > label_index else ""
-            if not any(re.search(p, label, re.I) for p in patterns):
-                continue
-            if amount(row) is not None:
-                return amount(row)
-            for child in rows[i + 1:]:
-                serial = clean(child[0]) if child else ""
-                if re.fullmatch(r"[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩIVX]+", serial, re.I):
-                    break
-                child_label = clean(child[label_index]) if len(child) > label_index else ""
-                if re.fullmatch(r"(?:工程|项目)?总投资(?:合计)?|动态投资(?:合计)?", child_label) and amount(child) is not None:
-                    return amount(child)
-        return None
-
-    supporting_group_value = group_value((r"^配套费$",))
-    values = {
-        "delivery_project": group_value((r"(?:送出|外送|送电)(?:线路)?(?:工程|投资)",)),
-        "expansion_project": group_value((r"扩建工程", r"间隔扩建")),
-        "outgoing_shared_cost": group_value((r"送出分摊费", r"分摊费", r"分摊费用")),
-        "supporting_cost": supporting_group_value if supporting_group_value is not None else mapped.get("${supporting_cost}"),
-        "area_management_building": group_value((r"片区管理综合",)),
-        "smart_wind_farm": group_value((r"智慧风场",)),
-        "new_energy_sensing_equipment": group_value((r"新能源场站感知设备",)),
-        "research_development_cost": group_value((r"研发",)),
-        "technology_cost": group_value((r"科技",)),
-        "centralized_control_platform_cost": group_value((r"平台集控费",)),
-        "static_investment": mapped.get("${investment_static_partial}"),
-        "dynamic_investment": mapped.get("${investment_dynamic_partial}") or mapped.get("${investment_dynamic_total}"),
-        "static_investment_per_kw": mapped.get("${investment_per_kw_static_partial}") or mapped.get("${investment_per_kw_static_total}"),
-        "dynamic_investment_per_kw": mapped.get("${investment_per_kw_dynamic_partial}") or mapped.get("${investment_per_kw_dynamic_total}"),
-        "project_static_investment": mapped.get("${investment_static_total}"),
-        "project_dynamic_investment": mapped.get("${investment_dynamic_total}"),
-        "unit_kw_static_investment": mapped.get("${investment_per_kw_static_total}"),
-        "unit_kw_dynamic_investment": mapped.get("${investment_per_kw_dynamic_total}"),
-    }
-    for code, value in values.items():
-        mapped["${" + code + "}"] = value
-    if mapped.get("${investment_interest_total}") is None:
-        mapped["${investment_interest_total}"] = mapped.get("${investment_construction_interest_total}")
-    if mapped.get("${investment_project_total}") is None:
-        mapped["${investment_project_total}"] = mapped.get("${investment_dynamic_total}")
-    if mapped.get("${investment_total_part_total}") is None:
-        mapped["${investment_total_part_total}"] = matching_value((r"^静态投资合计$",))
-    if mapped.get("${investment_outgoing_line_legacy_total}") is None:
-        mapped["${investment_outgoing_line_legacy_total}"] = matching_value((r"送出.*110kV", r"110kV.*送出"))
-
-    # 汇总字段在映射后才得到数值，同步展示结果与审计详情。
-    aliases = {
-        "investmentConstructionInterestGrandTotal": "investment_interest_total",
-        "investmentProjectTotalCost": "investment_project_total",
-        "investmentTotalPartTotal": "investment_total_part_total",
-        "investment110kvOutgoingLineProjectTotal": "investment_outgoing_line_legacy_total",
-        "finalDeliveryProject": "delivery_project",
-        "finalDynamicInvestment": "dynamic_investment",
-        "finalStaticInvestmentPerKw": "static_investment_per_kw",
-        "finalDynamicInvestmentPerKw": "dynamic_investment_per_kw",
-    }
+    if config_root is None:
+        config_root = Path(__file__).resolve().parents[2] / "configs"
+    policy = load_investment_completion(config_root)
+    mapped.update(calculate_investment_completion(mapped, policy))
+    aliases = policy["result_field_aliases"]
     for field_code, placeholder_code in aliases.items():
         value = mapped.get("${" + placeholder_code + "}")
         if value is None:
