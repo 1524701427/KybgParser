@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from word_parser.config.domain_regex import domain_regex
+from word_parser.config.domain_regex import domain_regex, domain_strings
 
 import re
 
@@ -127,10 +127,10 @@ class InvestmentRulesMixin:
 
     def _material_price_level_from_document(self, ast: DocumentAST) -> str | None:
         text = "\n".join(self._clean_text(block.text) for block in ast.blocks if block.text)
-        patterns = [
+        patterns = domain_strings(self, "investment", "material_price_level_patterns", [
             r"(按[^。；;\n]{0,60}?(?:信息价|市场价格)[^。；;\n]{0,80}?确定)",
             r"([0-9]{4}\s*年\s*[0-9]{1,2}\s*月份材料价格水平)",
-        ]
+        ])
         for pattern in patterns:
             match = re.search(pattern, text)
             if match:
@@ -182,11 +182,11 @@ class InvestmentRulesMixin:
 
     def _investment_basis_context_text(self, ast: DocumentAST) -> str:
         parts: list[str] = []
-        keywords = ("概算编制规定", "费用标准", "概算定额", "价格水平编制", "价格水平")
+        keywords = domain_strings(self, "investment", "basis_context_keywords", ["概算编制规定","费用标准","概算定额","价格水平编制","价格水平"])
         for block in self._body_blocks(ast):
             text = self._clean_text(block.text or "")
             section_text = " ".join(str(part) for part in (block.section_path or []))
-            if any(keyword in f"{section_text} {text}" for keyword in (*keywords, "技经概算", "设计概算", "投资概算")):
+            if any(keyword in f"{section_text} {text}" for keyword in (*keywords, *domain_strings(self, "investment", "basis_context_sections", ["技经概算","设计概算","投资概算"]))):
                 parts.append(text)
         parts.extend(
             self._clean_text(str(page.get("text", "")))
@@ -203,7 +203,7 @@ class InvestmentRulesMixin:
         return f"《{title}》"
 
     def _investment_quota_system_from_text(self, text: str) -> str | None:
-        pattern = r"《?\s*(?P<title>[陆路]上风电场工程概算定额)\s*》?\s*(?:[（(]?\s*(?P<code>NB\s*/\s*T\s*31010\s*[-－—]\s*2019)\s*[）)]?)?"
+        pattern = domain_regex(self, "investment", "quota_system_title", r"《?\s*(?P<title>[陆路]上风电场工程概算定额)\s*》?\s*(?:[（(]?\s*(?P<code>NB\s*/\s*T\s*31010\s*[-－—]\s*2019)\s*[）)]?)?")
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if not match:
             return None
@@ -215,10 +215,10 @@ class InvestmentRulesMixin:
         return f"《{title}》"
 
     def _investment_price_level_from_text(self, text: str) -> str | None:
-        patterns = [
+        patterns = domain_strings(self, "investment", "investment_price_level_patterns", [
             r"按[^。；;\n]{0,30}?(?P<year>[0-9]{4})\s*年\s*(?:第\s*)?(?P<quarter>[一二三四1234])\s*季度[^。；;\n]{0,20}?价格水平编制",
             r"(?P<year>[0-9]{4})\s*年\s*(?:第\s*)?(?P<quarter>[一二三四1234])\s*季度[^。；;\n]{0,20}?价格水平",
-        ]
+        ])
         for pattern in patterns:
             match = re.search(pattern, text)
             if match:

@@ -702,8 +702,15 @@ domain_literal_regexes:
     # Original investment.py:283 re.search
     search_005: "(?:智慧管理平台|(?:集控|集中控制).*?(?:场站侧|平台).*?费用?)"
 
+    quota_system_title: "《?\\s*(?P<title>[陆路]上风电场工程概算定额)\\s*》?\\s*(?:[（(]?\\s*(?P<code>NB\\s*/\\s*T\\s*31010\\s*[-－—]\\s*2019)\\s*[）)]?)?"
+
 # Ordered aliases, table headers, and regex lists; preserve original Python fallbacks.
 domain_literal_lists:
+  investment:
+    material_price_level_patterns: ["(按[^。；;\\n]{0,60}?(?:信息价|市场价格)[^。；;\\n]{0,80}?确定)","([0-9]{4}\\s*年\\s*[0-9]{1,2}\\s*月份材料价格水平)"]
+    investment_price_level_patterns: ["按[^。；;\\n]{0,30}?(?P<year>[0-9]{4})\\s*年\\s*(?:第\\s*)?(?P<quarter>[一二三四1234])\\s*季度[^。；;\\n]{0,20}?价格水平编制","(?P<year>[0-9]{4})\\s*年\\s*(?:第\\s*)?(?P<quarter>[一二三四1234])\\s*季度[^。；;\\n]{0,20}?价格水平"]
+    basis_context_keywords: ["概算编制规定","费用标准","概算定额","价格水平编制","价格水平"]
+    basis_context_sections: ["技经概算","设计概算","投资概算"]
   electrical_primary:
     # Original electrical_primary.py:337 find_header_index
     list_001: ["接入站名称"]
