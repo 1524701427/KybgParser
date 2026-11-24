@@ -8,6 +8,7 @@ import re
 from typing import Any
 
 from word_parser.secondary.table_values.context import NormalizedTable
+from word_parser.extraction.selection import has_value as _has_present_value, select_secondary
 
 from word_parser.secondary.table_values.primitives import _NIL_STATUS, clean_text, normalize_number, normalize_value, parse_number
 
@@ -198,7 +199,7 @@ def _merge_section_fields(section: dict[str, Any], table_fields: list[dict[str, 
             existing = fields[index[field_code]]
             # 第二次查找只填补空缺；未经逐行核对，
             # 不得丢弃已有值。
-            if _has_present_value(existing.get("value")):
+            if select_secondary(existing, table_field) is existing:
                 continue
             fields[index[field_code]] = _compact_table_field(table_field, fallback_name=existing.get("name"))
         else:
@@ -206,18 +207,6 @@ def _merge_section_fields(section: dict[str, Any], table_fields: list[dict[str, 
             index[field_code] = len(fields)
             fields.append(compact)
     section["fields"] = fields
-
-
-def _has_present_value(value: Any) -> bool:
-    """判断字段是否已经包含有效值。"""
-    if value is None:
-        return False
-    if isinstance(value, str):
-        return bool(value.strip())
-    if isinstance(value, (list, tuple, dict)):
-        values = value.values() if isinstance(value, dict) else value
-        return any(_has_present_value(item) for item in values)
-    return True
 
 
 def _merge_section_tables(section: dict[str, Any], derived_tables: list[dict[str, Any]]) -> None:

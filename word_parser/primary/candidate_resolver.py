@@ -6,6 +6,7 @@ from collections import defaultdict
 import re
 from word_parser.document.ast.evidence import Extraction, ParsedField
 from word_parser.logger import logger
+from word_parser.extraction.selection import group_candidates, select_candidate
 
 
 class CandidateResolver:
@@ -54,9 +55,7 @@ class CandidateResolver:
         返回：
             dict[str, ParsedField]: 每个字段的最终结果。
         """
-        grouped: dict[str, list[Extraction]] = defaultdict(list)
-        for extraction in extractions:
-            grouped[extraction.field_code].append(extraction)
+        grouped = group_candidates(extractions, lambda item: item.field_code)
 
         resolved: dict[str, ParsedField] = {}
         for field_code, items in grouped.items():
@@ -70,9 +69,7 @@ class CandidateResolver:
 
     def score_candidates(self, extractions: list[Extraction]) -> list[Extraction]:
         """在冲突消解前公开规则评分，便于审计和复核。"""
-        grouped: dict[str, list[Extraction]] = defaultdict(list)
-        for item in extractions:
-            grouped[item.field_code].append(item)
+        grouped = group_candidates(extractions, lambda item: item.field_code)
         for code, items in grouped.items():
             rankable = self._rankable_items(items, self.field_configs.get(code, {}))
             for item in rankable:
@@ -86,7 +83,7 @@ class CandidateResolver:
         if aggregate_field is not None:
             return aggregate_field
         rank_items = self._rankable_items(items, config)
-        best = max(rank_items, key=lambda item: self._resolver_score(item, rank_items))
+        best = select_candidate(rank_items, lambda item: self._resolver_score(item, rank_items))
         resolver_score = self._resolver_score(best, rank_items)
         output_unit = best.unit or config.get("standard_unit")
         conflicts = self._conflicting_values(best, rank_items, resolver_score) if (
