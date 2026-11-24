@@ -52,6 +52,7 @@ class DetailFieldsMixin:
                     "column": item.debug.get("column_index"),
                     "sectionPath": item.evidence.section_path,
                     "evidence": self._short_text(item.evidence.text, limit=260),
+                    **({"physicalSource": item.evidence.meta["physicalSource"]} if item.evidence.meta.get("physicalSource") else {}),
                 }
                 for item in ctx.extractions
             ],

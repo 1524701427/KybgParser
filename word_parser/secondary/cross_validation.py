@@ -142,7 +142,7 @@ def amount_unit(heading, policy):
     # equipment unit or infer currency from the size of a number.
     text = str(heading)
     for unit in policy.get("amount_units", []):
-        if re.search(r"[（(/\\s]" + re.escape(unit) + r"(?:[）)/\\s]|$)", text):
+        if re.search(r"[（(/\s]" + re.escape(unit) + r"(?:[）)/\s]|$)", text):
             return unit
     return None
 

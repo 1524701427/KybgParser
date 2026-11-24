@@ -12,9 +12,12 @@ def token(value):
 
 def source_key(source):
     """Deduplicate only when exact physical coordinates are available."""
+    physical = source.get("physicalSource") or (source.get("meta") or {}).get("physicalSource")
+    if isinstance(physical, dict):
+        source = physical
     table = source.get("tableId")
-    row = source.get("row", source.get("rowIndex"))
-    col = source.get("columnIndex", source.get("column"))
+    row = source.get("row", source.get("rowIndex", source.get("sourceRow")))
+    col = source.get("columnIndex", source.get("column", source.get("sourceColumn")))
     if table and isinstance(row, int) and isinstance(col, int):
         return (str(table), row, col)
     return None

@@ -3,6 +3,7 @@ from __future__ import annotations
 from time import perf_counter
 
 from word_parser.logger import logger
+from word_parser.document.table_provenance import attach_candidate_provenance
 
 def extract_primary_fields(parser, ctx, indicators: list) -> None:
     stage_started = perf_counter()
@@ -61,6 +62,7 @@ def extract_primary_fields(parser, ctx, indicators: list) -> None:
             for item in rejected
         ]
         parser._log_stage("字段上下文约束", stage_started, 接受=len(ctx.normalized), 拒绝=len(rejected))
+    attach_candidate_provenance(ctx.ast, ctx.extractions)
     ctx.normalized = parser.funnel_pruner.prune_extractions(ctx.normalized, "semantic_candidates")
     ctx.normalized = parser.semantic_analyzer.analyze(ctx.normalized)
     parser._log_stage("候选归一化与语义规则", stage_started, 候选=len(ctx.normalized))

@@ -59,6 +59,8 @@ def _primary_fact(record: dict[str, Any]) -> CandidateFact:
         "sectionPath": deepcopy(record.get("sectionPath")),
         "evidence": record.get("evidence"),
     }
+    if isinstance(record.get("physicalSource"), dict):
+        source["physicalSource"] = deepcopy(record["physicalSource"])
     section_path = record.get("sectionPath") or []
     section = " / ".join(str(item) for item in section_path) if section_path else None
     return CandidateFact(

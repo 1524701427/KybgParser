@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from word_parser.document.table_provenance import physical_cell_source
+
 import re
 from typing import Any
 
@@ -349,8 +351,10 @@ class DocumentValueSupportMixin:
         matrix = self._table_matrix(table)
         source_row = matrix[source_row_index] if source_row_index < len(matrix) else []
         source_text = source_row[source_column_index] if source_column_index < len(source_row) else None
+        physical = physical_cell_source(table, source_row_index, source_column_index)
         return {
             "source": {
+                **({"physicalSource": dict(physical)} if physical else {}),
                 "kind": "document_table_cell",
                 "sourceType": "table",
                 "tableId": table.id,
