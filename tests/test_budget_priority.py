@@ -65,3 +65,18 @@ def test_excluded_resource_section():
     audit = build_audit(result, detail, {"sections": []}, detail, ROOT)
     assert apply_budget_priority(result, detail, audit, ROOT) == 0
     assert next(f for f in audit["fields"] if f["fieldCode"] == "turbineCount")["adoption"]["reason"] == "excluded_section"
+
+
+def test_header_unit_explicit_only():
+    from word_parser.secondary.cross_validation import header_unit, load_policy
+    policy = load_policy(ROOT)
+    assert header_unit("工程量（m³）", policy) in {"m³", "m3"}
+    assert header_unit("数量", policy) is None
+
+
+def test_all_schema_mapping_codes_are_reported():
+    result = {"result": {"sections": []}, "mapped": {}, "_recovered_tables": []}
+    detail = {"fieldIndex": {}}
+    audit = build_audit(result, detail, {"sections": []}, detail, ROOT)
+    table_codes = {c for s in SCHEMA["sections"] for c in s.get("tables", []) if isinstance(c, str)}
+    assert set(CODES) - table_codes <= {f["fieldCode"] for f in audit["fields"]}
