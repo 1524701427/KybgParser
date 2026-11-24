@@ -15,7 +15,7 @@ def source_key(source):
     table = source.get("tableId")
     row = source.get("row", source.get("rowIndex"))
     col = source.get("columnIndex", source.get("column"))
-    if table and row is not None and isinstance(col, int):
+    if table and isinstance(row, int) and isinstance(col, int):
         return (str(table), row, col)
     return None
 

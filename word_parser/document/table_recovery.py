@@ -12,7 +12,7 @@ from copy import deepcopy
 
 
 def label(text):
-    return re.sub(r"\s+", "", unicodedata.normalize("NFKC", str(text or ""))).casefold()
+    return re.sub(r"\s+", "", unicodedata.normalize("NFKC", str("" if text is None else text))).casefold()
 
 
 def marker(value):
@@ -39,6 +39,7 @@ def recover_grid(table, settings):
     max_cols = settings["max_columns"]
     max_cells = settings["max_expanded_cells"]
     fragments = table.meta.get("source_fragments") or []
+    vertical_anchors = set()
 
     def put(row, col, anchor):
         if col >= max_cols or row >= max_cells // max(1, max_cols):
@@ -74,9 +75,11 @@ def recover_grid(table, settings):
                 c += 1
             span = max(_span(cell.col_span), _span(cell.meta.get("grid_span")))
             height = _span(cell.row_span)
-            if h == "continue" and previous is not None:
+            if h == "continue" and previous is not None and (
+                not cell.text.strip() or cell.text.strip() == anchors[previous]["text"].strip()
+            ):
                 anchor = previous
-            elif v == "continue" and lookup(r - 1, c) is not None:
+            elif v == "continue" and lookup(r - 1, c) in vertical_anchors:
                 anchor = lookup(r - 1, c)
                 if cell.text.strip() and cell.text.strip() != anchors[anchor]["text"].strip():
                     diagnostics.append({"code": "MERGE_CONTINUATION_TEXT_CONFLICT", "row": r, "column": c})
@@ -96,6 +99,8 @@ def recover_grid(table, settings):
                     "source": {"tableId": source_id, "page": source_page,
                                "row": source_row, "column": source_col},
                 }
+            if v == "start" or height > 1:
+                vertical_anchors.add(anchor)
             for dr in range(height):
                 for dc in range(span):
                     put(r + dr, c + dc, anchor)
@@ -160,37 +165,47 @@ def _caption(text, rule):
 
 def _compatible(previous, current, rule, blocks):
     if not previous["rows"] or not current["rows"] or len(previous["columns"]) != len(current["columns"]):
-        return False
+        return None
     if not previous["sectionPath"] or previous["sectionPath"] != current["sectionPath"]:
-        return False
+        return None
     gap = current["order"] - previous.get("lastOrder", previous["order"])
     if gap <= 0 or gap > rule["max_order_gap"]:
-        return False
+        return None
     if any(previous.get("lastOrder", previous["order"]) < b.order < current["order"]
            and b.meta.get("structure_type") == "heading" for b in blocks):
-        return False
+        return None
     a, b = previous["lastPage"], current["page"]
     explicit = bool(re.search(rule["continuation_pattern"], str(current["caption"] or "")))
     if a is not None and b is not None:
         if not 0 < b - a <= rule["max_page_gap"]:
-            return False
+            return None
     elif not explicit:
-        return False
+        return None
     left, right = _caption(previous["caption"], rule), _caption(current["caption"], rule)
     if right and left and right != left and not (explicit and right in {"表", ""}):
-        return False
+        return None
     if not explicit and (not left or not right or left != right):
-        return False
+        return None
     headers = [label(c) for c in previous["columns"]]
     incoming = [label(c) for c in current["columns"]]
     equal = sum(bool(x) and x == y for x, y in zip(headers, incoming))
     known = {label(x) for x in rule["header_labels"]}
     recognized = sum(any(label(part) in known for part in col.split(" / ")) for col in previous["columns"])
-    # A continuation with no repeated header may be joined only with explicit
-    # caption and no declared header, rather than interpreting a data row as header.
     if equal >= rule["min_header_matches"] and recognized >= rule["min_header_matches"] and headers == incoming:
-        return True
-    return False
+        return len(current["headerRows"])
+    # Without repeated headers, require explicit continuation, equal title
+    # (or generic continuation caption), and a compatible data row shape.
+    first = current["rows"][0]
+    first_values = [str(c["text"]).strip() if c else "" for c in first]
+    first_hits = sum(label(v) in known for v in first_values)
+    previous_data = previous["rows"][len(previous["headerRows"]):]
+    numeric = lambda value: bool(re.fullmatch(r"[+-]?\d[\d,]*(?:\.\d+)?", str(value).strip()))
+    if explicit and not first_hits and previous_data and recognized >= rule["min_header_matches"]:
+        last = previous_data[-1]
+        numeric_columns = [i for i, c in enumerate(last) if c and numeric(c["text"])]
+        if numeric_columns and all(numeric(first_values[i]) for i in numeric_columns):
+            return 0
+    return None
 
 
 def recover_tables(ast, settings):
@@ -199,14 +214,32 @@ def recover_tables(ast, settings):
     rule = settings["continuation"]
     result = []
     for table in sorted(ast.tables, key=lambda t: t.order):
-        view = recover_grid(table, settings)
-        if result and rule["enabled"] and _compatible(result[-1], view, rule, ast.blocks):
+        try:
+            view = recover_grid(table, settings)
+        except ValueError as exc:
+            # Bounds are safety limits on the new view, not reasons to discard
+            # valid legacy extraction. Preserve an explicit unavailable record.
+            result.append({"id": table.id, "order": table.order, "page": table.page,
+                           "lastPage": table.page, "caption": table.caption,
+                           "sectionPath": list(table.section_path),
+                           "canonicalSections": list(table.meta.get("canonical_sections") or []),
+                           "physicalTableIds": [table.id], "headerRows": [], "columns": [],
+                           "rows": [], "diagnostics": [{"code": "RECOVERY_BOUNDS", "message": str(exc)}],
+                           "continuations": []})
+            continue
+        skip = _compatible(result[-1], view, rule, ast.blocks) if result and rule["enabled"] else None
+        if skip is not None:
             previous = result[-1]
-            skip = len(view["headerRows"])
             start = len(previous["rows"])
             previous["continuations"].append({"tableId": view["id"], "page": view["page"],
                                               "repeatedHeaderRows": skip, "rowStart": start})
             previous["physicalTableIds"].extend(view["physicalTableIds"])
+            # The grid coordinates are local to the recovered logical table,
+            # while source coordinates always remain physical.
+            for row in view["rows"][skip:]:
+                for cell in row:
+                    if cell:
+                        cell["row"] += start - skip
             previous["rows"].extend(view["rows"][skip:])
             previous["diagnostics"].extend(view["diagnostics"])
             previous["lastPage"] = view["lastPage"]

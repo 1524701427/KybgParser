@@ -156,7 +156,7 @@ def execute_final_mapping(
             shutil.copy2(destinations["detail"], working["detail"])
         primary_snapshot = json.loads(working["detail"].read_text(encoding="utf-8"))
         secondary_snapshot = table_value_details(enhanced)
-        registry = CandidateRegistry.from_details(primary_snapshot, secondary_snapshot)
+        candidate_registry = CandidateRegistry.from_details(primary_snapshot, secondary_snapshot)
         write_table_value_details(working["detail"], secondary_snapshot)
         _write_json(working["result"], final_result_with_table_values(enhanced))
         parse_result["outputFiles"] = {**original_files, **{key: str(path) for key, path in working.items()}}
@@ -165,7 +165,7 @@ def execute_final_mapping(
             for name in names:
                 registry[name](parse_result, enhanced, config_root)
             final_detail = json.loads(working["detail"].read_text(encoding="utf-8"))
-            audit = build_audit(parse_result, primary_snapshot, secondary_snapshot, final_detail, config_root, registry)
+            audit = build_audit(parse_result, primary_snapshot, secondary_snapshot, final_detail, config_root, candidate_registry)
             if audit is not None:
                 final_detail["crossValidation"] = audit
                 _write_json(working["detail"], final_detail)

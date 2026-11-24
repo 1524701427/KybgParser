@@ -196,9 +196,12 @@ def audit_fields(fields, specifications, rows, primary, final_detail, mapped, co
             status = "consistent"
         else:
             status = "conflict"
+        mapped_status = None
+        if key and len(eligible) == 1 and status in {"consistent", "conflict"} and number(mapping_value) is not None:
+            mapped_status = "consistent" if close(mapping_value, eligible[0]["value"], policy) else "conflict"
         output.append({"fieldCode": code, "fieldName": name, "primaryValue": prior.get("value"),
                        "finalValue": value, "mappedValue": mapping_value, "unit": spec.get("standard_unit") or spec.get("unit"),
-                       "mappingChanged": bool(key and token(mapping_value) != token(value)),
+                       "mappingChanged": bool(key and token(mapping_value) != token(value)), "mappedComparison": mapped_status,
                        "status": status, "candidates": candidates})
     return output
 
@@ -269,13 +272,15 @@ def build_audit(parse_result, primary_detail, secondary_detail, final_detail, co
             specs.setdefault(code, {"name": code, "unit": first.get("unit")})
     recovered = parse_result.get("_recovered_tables") or []
     budget = list(source_tables(recovered, policy))
-    rows = index_rows(budget, policy)
+    usable_budget = [table for table in budget if table["rows"]]
+    rows = index_rows(usable_budget, policy)
     fields_report = audit_fields(fields, specs, rows, primary_detail, final_detail,
                                  parse_result.get("mapped") or {}, schema.get("output_field_codes") or {},
-                                 registry, policy, bool(budget))
-    table_report = audit_tables(result, budget)
+                                 registry, policy, bool(usable_budget))
+    table_report = audit_tables(result, usable_budget)
     return {"version": 1, "mode": "audit", "summary": {
         "fieldCount": len(fields_report), "budgetTableCount": len(budget),
+        "unavailableBudgetTableCount": len(budget) - len(usable_budget),
         "tableCount": len(table_report), "fieldStatuses": dict(Counter(f["status"] for f in fields_report)),
         "tableStatuses": dict(Counter(t["status"] for t in table_report)),
     }, "fields": fields_report, "tables": table_report, "candidateRegistry": registry.report()}

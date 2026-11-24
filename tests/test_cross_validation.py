@@ -48,3 +48,11 @@ def test_shared_candidate_registry_keeps_observations_and_deduplicates_sources()
     assert len(group["observations"]) == 3
     assert group["physicalSourceCount"] == 1
     assert group["sharedPhysicalSourceCount"] == 1
+
+
+def test_unavailable_budget_tables_are_not_reported_as_verified():
+    primary = {"fieldIndex": {}, "extractionCandidates": []}
+    report = build_audit({"result": {"sections": []}, "mapped": {}}, primary,
+                         {"sections": []}, primary, ROOT)
+    assert report["summary"]["fieldCount"] > 0
+    assert set(report["summary"]["fieldStatuses"]) == {"budget_tables_unavailable"}

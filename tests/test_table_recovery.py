@@ -50,3 +50,25 @@ def test_repeat_header_continuation_and_distinct_caption():
     assert len(view[0]["rows"]) == 3
     assert view[0]["rows"][2][1]["source"] == {"tableId": "b", "page": 2, "row": 1, "column": 1}
     assert len(ast.tables) == 3
+
+
+def test_explicit_continuation_without_repeat_header():
+    previous = make_table("a", 0, 1, "设备概算表", "1")
+    current = DocumentTable("b", 2, 2, "设备概算表（续）", ["技经概算"],
+                            rows=[[TableCell("其他设备", 0, 0, is_header=True),
+                                   TableCell("2", 0, 1, is_header=True)]])
+    ast = DocumentAST("a.pdf", tables=[previous, current])
+    result = recover_tables(ast, SETTINGS)
+    assert len(result) == 1
+    assert result[0]["continuations"][0]["repeatedHeaderRows"] == 0
+    assert result[0]["rows"][2][1]["row"] == 2
+    assert result[0]["rows"][2][1]["source"]["row"] == 0
+
+
+def test_orphan_vertical_merge_does_not_inherit_unmerged_cell():
+    table = DocumentTable("t", 0, rows=[
+        [TableCell("项目", 0, 0)],
+        [TableCell("", 1, 0, meta={"vertical_merge": "continue"})]])
+    view = recover_grid(table, SETTINGS)
+    assert view["rows"][1][0]["text"] == ""
+    assert view["diagnostics"][0]["code"] == "ORPHAN_MERGE"

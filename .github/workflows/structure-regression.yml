@@ -1,0 +1,21 @@
+name: Structure and extraction regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'word_parser/**'
+      - 'configs/**'
+      - 'tests/**'
+      - '.github/workflows/structure-regression.yml'
+  workflow_dispatch:
+jobs:
+  lightweight-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pyyaml rapidfuzz pyahocorasick loguru pytest pandas httpx
+      - run: python -m compileall -q word_parser
+      - run: python -m pytest tests/test_table_recovery.py tests/test_cross_validation.py tests/test_factory_yaml_enforcement.py tests/test_memory_only_export.py tests/test_mapping_stage_contract.py tests/test_candidate_facts_adapter.py tests/test_secondary_merge_invariants.py tests/test_output_field_contract.py -q
