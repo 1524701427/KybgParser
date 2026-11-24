@@ -85,7 +85,7 @@ def create_default_parser(config_root: str | Path = "configs") -> ParserService:
             field_configs=field_configs,
             strong_extraction_methods=(extraction_runtime.get("funnel") or {}).get("strong_extraction_methods"),
         ),
-        normalizer=Normalizer(field_configs, unit_map=(extraction_runtime.get("normalization") or {}).get("unit_aliases")),
+        normalizer=Normalizer(field_configs, unit_conversions=extraction_runtime['normalization']['unit_conversions'], unit_map=(extraction_runtime.get("normalization") or {}).get("unit_aliases")),
         context_filter=CandidateContextFilter(field_configs),
         semantic_analyzer=SemanticAnalyzer(
             field_configs,

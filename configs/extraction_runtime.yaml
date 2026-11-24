@@ -99,6 +99,29 @@ candidate_resolution:
 
 normalization:
   # Mirrors the original Normalizer.UNIT_MAP; does not change any conversions.
+  unit_conversions:
+    - {source: "MWh", target: "万kW·h", factor: 0.1}
+    - {source: "MWh", target: "万kWh", factor: 0.1}
+    - {source: "kWh", target: "万kW·h", factor: 0.0001}
+    - {source: "kWh", target: "万kWh", factor: 0.0001}
+    - {source: "万kWh", target: "万kW·h", factor: 1}
+    - {source: "万kW·h", target: "万kWh", factor: 1}
+    - {source: "m", target: "km", factor: 0.001}
+    - {source: "米", target: "km", factor: 0.001}
+    - {source: "km", target: "m", factor: 1000}
+    - {source: "千米", target: "km", factor: 1}
+    - {source: "kW", target: "MW", factor: 0.001}
+    - {source: "万千瓦", target: "MW", factor: 10}
+    - {source: "MW", target: "kW", factor: 1000}
+    - {source: "kv", target: "kV", factor: 1}
+    - {source: "kV", target: "kv", factor: 1}
+    - {source: "根", target: "座", factor: 1}
+    - {source: "个", target: "座", factor: 1}
+    - {source: "座", target: "个", factor: 1}
+    - {source: "m3", target: "m³", factor: 1}
+    - {source: "m³", target: "m3", factor: 1}
+    - {source: "m2", target: "㎡", factor: 1}
+    - {source: "㎡", target: "m2", factor: 1}
   unit_aliases:
     "米/秒": "m/s"
     "m·s-1": "m/s"

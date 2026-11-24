@@ -11,10 +11,20 @@ from word_parser.logger import logger
 class Normalizer:
     """字段值归一化器。"""
 
-    def __init__(self, field_configs: dict[str, dict] | None = None, unit_map: dict | None = None):
+    def __init__(self, field_configs: dict[str, dict] | None = None, unit_map: dict | None = None, unit_conversions: list[dict] | None = None):
         """字段归一化。新运行时由 YAML 注入单位别名，旧构造方式不变。"""
         self.field_configs = field_configs or {}
         self.UNIT_MAP = dict(self.UNIT_MAP if unit_map is None else unit_map)
+        if unit_conversions is None:
+            from pathlib import Path
+            from word_parser.config.loader import ConfigLoader
+            unit_conversions = ConfigLoader(Path(__file__).resolve().parents[2] / "configs").load_required_yaml("extraction_runtime.yaml")["normalization"]["unit_conversions"]
+        self.unit_factors = {}
+        for rule in unit_conversions:
+            pair = (rule["source"], rule["target"])
+            if pair in self.unit_factors or not isinstance(rule["factor"], (int, float)) or rule["factor"] <= 0:
+                raise ValueError(f"Invalid or duplicate unit conversion: {pair}")
+            self.unit_factors[pair] = rule["factor"]
 
     UNIT_MAP = {
         "米/秒": "m/s",
@@ -188,28 +198,4 @@ class Normalizer:
         return int(result) if result.is_integer() else round(result, 6)
 
     def _unit_factor(self, source_unit: str, target_unit: str) -> float | None:
-        pairs = {
-            ('MWh', '万kW·h'): 0.1,
-            ('MWh', '万kWh'): 0.1,
-            ('kWh', '万kW·h'): 0.0001,
-            ('kWh', '万kWh'): 0.0001,
-            ('万kWh', '万kW·h'): 1.0,
-            ('万kW·h', '万kWh'): 1.0,
-            ('m', 'km'): 0.001,
-            ('米', 'km'): 0.001,
-            ('km', 'm'): 1000.0,
-            ('千米', 'km'): 1.0,
-            ('kW', 'MW'): 0.001,
-            ('万千瓦', 'MW'): 10.0,
-            ('MW', 'kW'): 1000.0,
-            ('kv', 'kV'): 1.0,
-            ('kV', 'kv'): 1.0,
-            ('根', '座'): 1.0,
-            ('个', '座'): 1.0,
-            ('座', '个'): 1.0,
-            ('m3', 'm³'): 1.0,
-            ('m³', 'm3'): 1.0,
-            ('m2', '㎡'): 1.0,
-            ('㎡', 'm2'): 1.0,
-        }
-        return pairs.get((source_unit, target_unit))
+        return self.unit_factors.get((source_unit, target_unit))
