@@ -28,6 +28,12 @@ def load_policy(root):
     for rule in policy.get("field_overrides", {}).values():
         for pattern in rule.get("scope_exclude_patterns", []):
             re.compile(pattern)
+    for entry in policy.get("field_role_patterns", []):
+        re.compile(entry["pattern"])
+        if entry["role"] not in policy["column_roles"]:
+            raise ValueError("cross_validation.yaml: unknown column role")
+    for pattern in policy.get("amount_column_exclude_patterns", []):
+        re.compile(pattern)
     for group in policy["unit_groups"].values():
         if not isinstance(group, dict) or not group or any(Decimal(str(v)) <= 0 for v in group.values()):
             raise ValueError("cross_validation.yaml: invalid unit group")
@@ -54,7 +60,8 @@ def cell_text(cell):
 
 def header_role(column, names):
     normalized = {label(v) for v in names}
-    return any(label(part) in normalized for part in str(column).split(" / "))
+    return any(label(re.sub(r"[（(][^）)]*[）)]$", "", part.strip())) in normalized or label(part) in normalized
+               for part in str(column).split(" / "))
 
 
 def source_tables(tables, policy):
@@ -121,10 +128,46 @@ def _scope_text(table, row):
                        *(cell_text(c) for c in row)])
 
 
+def field_role(spec, rule, policy):
+    if rule.get("role"):
+        return rule["role"]
+    for entry in policy.get("field_role_patterns", []):
+        if re.search(entry["pattern"], str(spec.get("name") or "")):
+            return entry["role"]
+    return None
+
+
+def amount_unit(heading, policy):
+    # An explicit unit inside a heading is required. Do not use a row's
+    # equipment unit or infer currency from the size of a number.
+    text = str(heading)
+    for unit in policy.get("amount_units", []):
+        if re.search(r"[（(/\\s]" + re.escape(unit) + r"(?:[）)/\\s]|$)", text):
+            return unit
+    return None
+
+
+def inherit_price_items(policy, loader):
+    if not policy.get("inherit_equipment_price_items"):
+        return
+    items = loader.load_yaml("table_field_extractors.yaml").get("x_investment_equipment_items") or []
+    overrides = policy.setdefault("field_overrides", {})
+    for item in items:
+        code = item.get("field_code")
+        if not code or code in overrides or not item.get("aliases"):
+            continue
+        # Existing second-stage aliases are reused. Compound requirements and
+        # alternative labels stay advisory; they never trigger overwrites.
+        overrides[code] = {"labels": item["aliases"], "role": "unit_price", "unit": "万元",
+                           "row_excludes": item.get("exclude_aliases") or [],
+                           "trusted": not item.get("all_aliases") and len(item["aliases"]) == 1}
+
+
 def field_candidates(code, spec, row_index, policy):
     rule = policy.get("field_overrides", {}).get(code, {})
     labels = rule.get("labels") or [spec.get("name"), *(spec.get("aliases") or [])]
-    allowed = rule.get("value_headers") or spec.get("value_headers") or policy["value_headers"]
+    role = field_role(spec, rule, policy)
+    allowed = rule.get("value_headers") or (policy.get("column_roles") or {}).get(role) or spec.get("value_headers") or policy["value_headers"]
     exclusions = rule.get("scope_exclude_patterns", policy["scope_exclude_patterns"])
     target_unit = rule.get("unit") or spec.get("standard_unit") or spec.get("unit")
     candidates = []
@@ -133,6 +176,10 @@ def field_candidates(code, spec, row_index, policy):
         for table, row_number, row, unit, row_label in row_index.get(alias, []):
             for col, heading in enumerate(table["columns"]):
                 if not header_role(heading, allowed) or not row[col] or not row[col]["isAnchor"]:
+                    continue
+                if role in {"unit_price", "total_amount"} and any(re.search(p, heading) for p in policy.get("amount_column_exclude_patterns", [])):
+                    continue
+                if any(x in _scope_text(table, row) for x in rule.get("row_excludes", [])):
                     continue
                 raw = cell_text(row[col])
                 if not present(raw):
@@ -144,7 +191,10 @@ def field_candidates(code, spec, row_index, policy):
                 if identity in seen:
                     continue
                 seen.add(identity)
-                value = converted(raw, unit, target_unit, policy)
+                actual_unit = amount_unit(heading, policy) if role in {"unit_price", "total_amount"} else unit
+                value = converted(raw, actual_unit, target_unit, policy)
+                if role == "specification" and number(raw) is None and not target_unit:
+                    value = raw
                 if any(re.search(p, _scope_text(table, row)) for p in exclusions):
                     status = "scope_mismatch"
                 elif value is not None:
@@ -154,7 +204,7 @@ def field_candidates(code, spec, row_index, policy):
                 else:
                     status = "needs_scope_confirmation"
                 candidates.append({"stage": "cross_validation", "value": str(value) if value is not None else raw,
-                                   "rawValue": raw, "unit": target_unit, "sourceUnit": unit,
+                                   "rawValue": raw, "unit": target_unit, "sourceUnit": actual_unit, "columnRole": role,
                                    "method": "exact_label_and_column", "status": status, "source": source})
     return candidates
 
@@ -247,6 +297,7 @@ def build_audit(parse_result, primary_detail, secondary_detail, final_detail, co
     if not policy or not policy["enabled"]:
         return None
     loader = ConfigLoader(config_root)
+    inherit_price_items(policy, loader)
     specs = loader.load_field_configs()
     schema = loader.load_required_yaml("output_schema.yaml")
     for code, meta in (schema.get("fields") or {}).items():

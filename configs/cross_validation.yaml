@@ -53,3 +53,44 @@ field_overrides:
     unit: MW
     scope_exclude_patterns: ['远期', '规划', '备选', '备用', '运输费', '安装费']
     trusted: true
+
+  mainTransformerNum:
+    labels: [主变压器, 主变]
+    role: quantity
+    unit: 台
+    trusted: true
+  electricalPrimarySvgQuantity:
+    labels: [35kV SVG, SVG]
+    role: quantity
+    trusted: false
+  electricalPrimaryTransformerSpec:
+    labels: [主变压器, 主变]
+    role: specification
+    trusted: false
+  electricalPrimarySvgSpec:
+    labels: [35kV SVG, SVG]
+    role: specification
+    trusted: false
+  electricalPrimaryGroundingTransformerSetSpec:
+    labels: [35kV接地变成套装置, 接地变成套装置]
+    role: specification
+    trusted: false
+
+# Reuse item aliases from table_field_extractors.yaml rather than duplicating the catalogue.
+inherit_equipment_price_items: true
+column_roles:
+  quantity: [数量, 台数, 套数, 个数]
+  engineering_quantity: [工程量, 数量, 长度, 面积, 体积]
+  specification: [规格, 型号, 型号及规格, 型号规格及技术数据, '型号、规格及技术数据', 技术数据]
+  unit_price: [单价, 设备单价, 设备购置单价]
+  total_amount: [合计, 合价, 总价, 总金额, 总费用]
+field_role_patterns:
+  - {pattern: '单价$', role: unit_price}
+  - {pattern: '数量$|台数$|套数$', role: quantity}
+  - {pattern: '工程量$|长度$|面积$|体积$', role: engineering_quantity}
+  - {pattern: '型号|规格', role: specification}
+  - {pattern: '合价$|总价$|合计$|总投资$|总费用$', role: total_amount}
+# Amount unit is derived from the PRICE/TOTAL header, never from equipment's 台/套 column.
+amount_units: [万元, 亿元, 元]
+amount_column_exclude_patterns: ['安装', '运输', '调试', '人工', '材料单价', '机械']
+specification_trusted_fields: []
