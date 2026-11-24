@@ -38,3 +38,15 @@ table_section_rules:
 diagnostics:
   mode: "audit"
   include_text: false
+
+table_recovery:
+  enabled: true
+  continuation:
+    enabled: true
+    max_order_gap: 6
+    max_page_gap: 1
+    continuation_pattern: '(?:续表|续\s*表|[（(]续[）)]|（续）|续)$'
+    min_header_matches: 2
+    header_labels: [项目, 项目名称, 工程名称, 名称, 单位, 数量, 序号, 工程量, 单价, 合计, 型号, 规格, 项目名称及规格]
+  max_columns: 256
+  max_expanded_cells: 2000000

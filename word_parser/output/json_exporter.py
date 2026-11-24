@@ -71,6 +71,7 @@ class JsonExporter(
             # Preserve the exact primary detail (including fieldIndex/tableIndex)
             # for the final stage; do not publish interim JSON files.
             exported["_primary_detail"] = self._strip_private_keys(detail_json)
+            exported["_recovered_tables"] = getattr(getattr(ctx, "ast", None), "meta", {}).get("recovered_tables", [])
         return exported
 
     def _map_output_field_codes(self, payload: Any, map_keys: bool = False) -> Any:

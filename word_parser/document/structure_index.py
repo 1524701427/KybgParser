@@ -118,7 +118,14 @@ def build_structure_index(ast, policy):
     status = "error" if any(d["severity"] == "error" for d in diagnostics) else "warning" if diagnostics else "ok"
     if settings["mode"] == "strict" and status == "error":
         raise ValueError("Document structure error: " + ", ".join(d["code"] for d in diagnostics if d["severity"] == "error"))
+    recovered = ast.meta.get("recovered_tables") or []
+    recovery_summary = [
+        {**{key: value for key, value in view.items() if key != "rows"},
+         "rowCount": len(view["rows"]), **({"rows": view["rows"]} if include_text else {})}
+        for view in recovered
+    ]
     return {
+        "recoveredTables": recovery_summary,
         "version": 1, "format": Path(ast.file_name).suffix.lower(), "status": status,
         "summary": {"blockCount": len(blocks), "sectionCount": len(sections), "physicalTableCount": len(tables),
                     "logicalTableCount": len(logical_tables), "diagnosticCount": len(diagnostics)},

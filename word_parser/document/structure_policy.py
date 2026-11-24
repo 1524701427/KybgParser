@@ -45,4 +45,18 @@ def load_structure_policy(config=None):
         patterns(rule["patterns"], section)
     if diagnostics["mode"] not in ("audit", "strict", "off") or type(diagnostics["include_text"]) is not bool:
         raise ValueError("document_structure.yaml: invalid diagnostics settings")
+    recovery = config.get("table_recovery")
+    if not isinstance(recovery, dict) or type(recovery.get("enabled")) is not bool:
+        raise ValueError("document_structure.yaml: invalid table_recovery")
+    for key in ("max_columns", "max_expanded_cells"):
+        if type(recovery.get(key)) is not int or recovery[key] <= 0:
+            raise ValueError(f"document_structure.yaml: invalid {key}")
+    continuation = recovery["continuation"]
+    if type(continuation.get("enabled")) is not bool:
+        raise ValueError("document_structure.yaml: invalid continuation.enabled")
+    for key in ("max_order_gap", "max_page_gap", "min_header_matches"):
+        if type(continuation.get(key)) is not int or continuation[key] <= 0:
+            raise ValueError(f"document_structure.yaml: invalid {key}")
+    re.compile(continuation["continuation_pattern"])
+    strings(continuation["header_labels"], "continuation.header_labels")
     return config
